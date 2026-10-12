@@ -34,6 +34,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 a { color: inherit; }
 
 /* ------------------------------------------------------------------ public site */
+.site img { height: auto; }
 .site h1, .site h2, .site h3, .site p { margin-top: 0; }
 .announcement { padding: .58rem 1rem; text-align: center; background: var(--ink); color: #fffdf8; font-size: .72rem; letter-spacing: .09em; }
 .announcement span { color: #9ed8f2; }

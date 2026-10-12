@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { RegisterServiceWorker } from "@/components/admin/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 import { AdminNav } from "./nav";
+import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
   title: { default: "Team", template: "%s · La Cordobesa Team" },
@@ -19,10 +21,10 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
     <div className="admin">
       <header className="sticky top-0 z-10 border-b border-line bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <a href="/admin" className="flex items-center gap-2 font-serif text-lg">
-            <img src="/assets/logo.svg" alt="" className="h-8 w-8" />
+          <Link href="/admin" className="flex items-center gap-2 font-serif text-lg">
+            <Logo className="h-8 w-8" />
             La Cordobesa <span className="text-xs font-sans font-bold uppercase tracking-wider text-muted">Team</span>
-          </a>
+          </Link>
           {/* Reads the session, so it streams in; the rest of the chrome stays static. */}
           <Suspense fallback={null}>
             <UserMenu />
