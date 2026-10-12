@@ -1,19 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
+import type { Tables } from "@/lib/database.types";
 import { SiteHeader } from "@/components/site-header";
 import { JsonLd } from "@/components/json-ld";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
 import { menuJsonLd } from "@/lib/structured-data";
+import { codeList, legendFor } from "@/lib/allergens";
 
 export const metadata: Metadata = {
   title: "Carta / Karte",
   description: "Die komplette Karte von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
 };
 
+/** The allergen/additive columns arrive with migration 20261012093136. Reading them defensively keeps
+ *  the public menu rendering against a database where it has not been applied yet. */
+const allergensOf = (i: Tables<"menu_items">) => i.allergens ?? [];
+const additivesOf = (i: Tables<"menu_items">) => i.additives ?? [];
+const codes = (i: Tables<"menu_items">) => [...allergensOf(i), ...additivesOf(i)];
+
 export default async function KartePage() {
   const [announcement, menu, specials] = await Promise.all([getAnnouncement(), getMenu(), getActiveSpecials()]);
+
+  const shown = menu.flatMap((c) => c.items);
+  const legend = legendFor(shown.flatMap(allergensOf), shown.flatMap(additivesOf));
 
   return (
     <div className="site">
@@ -59,6 +70,11 @@ export default async function KartePage() {
                         <li key={item.id}>
                           <span>
                             <strong>{item.name}</strong>
+                            {codes(item).length > 0 && (
+                              <sup className="menu-codes" aria-label={`Hinweise: ${codeList(codes(item))}`}>
+                                {codeList(codes(item))}
+                              </sup>
+                            )}
                             {item.subtitle && <em> · {item.subtitle}</em>}
                             {item.description && <small>{item.description}</small>}
                           </span>
@@ -69,9 +85,22 @@ export default async function KartePage() {
                   </div>
                 ))}
             </div>
+            {legend.length > 0 && (
+              <div className="menu-legend">
+                <h2>Kennzeichnung</h2>
+                <ul>
+                  {legend.map((l) => (
+                    <li key={l.code}>
+                      <sup>{l.code}</sup> {l.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <p className="menu-note">
-              Alle unsere Gerichte sind hausgemacht, ohne Konservierungsstoffe oder Zusatzstoffe. Bei Allergien oder
-              Unverträglichkeiten wende dich bitte an unser Personal. <em>¡Buen provecho!</em>
+              Alle unsere Gerichte sind hausgemacht. Die Zahlen und Buchstaben hinter einem Gericht verweisen auf die
+              Kennzeichnung oben. Bei Allergien oder Unverträglichkeiten sprich bitte unser Personal an, wir helfen dir
+              gern weiter. <em>¡Buen provecho!</em>
             </p>
             <p className="menu-cta">
               <Link className="button" href="/#reservieren">

@@ -107,6 +107,12 @@ a { color: inherit; }
 .full-menu li em { color: var(--muted); font-style: italic; }
 .full-menu li small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.5; margin-top: .15rem; }
 .full-menu-price { white-space: nowrap; font-weight: 700; font-size: .78rem; }
+.menu-codes { font-size: .62rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-left: .2rem; vertical-align: super; }
+.menu-legend { max-width: 720px; margin: 3rem auto 0; padding: 1.1rem 1.3rem; background: var(--paper); }
+.menu-legend h2 { font-family: var(--serif); font-size: .95rem; font-weight: 500; margin: 0 0 .7rem; }
+.menu-legend ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem .9rem; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.menu-legend li { font-size: .74rem; color: var(--muted); line-height: 1.5; }
+.menu-legend sup { font-weight: 700; color: var(--ink); }
 .menu-cta { margin: 2.2rem 0 0; text-align: center; }
 .menu-more { margin: 3rem 0 0; text-align: center; }
 .menu-note { max-width: 620px; margin: 2.8rem auto 0; text-align: center; color: var(--muted); font-size: .75rem; line-height: 1.8; }

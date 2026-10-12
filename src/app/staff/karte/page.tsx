@@ -3,6 +3,7 @@ import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuI
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import type { Tables } from "@/lib/database.types";
+import { ADDITIVE_CODES, ADDITIVES, ALLERGEN_CODES, ALLERGENS, codeList } from "@/lib/allergens";
 
 export const metadata = { title: "Karte" };
 
@@ -28,6 +29,10 @@ async function Menu() {
     cats.length > 0
       ? typeof cats[0].show_prices === "boolean"
       : !(await supabase.from("menu_categories").select("show_prices").limit(1)).error;
+  // Same trick for the allergen columns from migration 20261012093136.
+  const allergenColumns =
+    all.length > 0 ? Array.isArray(all[0].allergens) : !(await supabase.from("menu_items").select("allergens").limit(1)).error;
+  const missingCodes = allergenColumns ? all.filter((i) => (i.allergens ?? []).length === 0).length : 0;
 
   return (
     <div className="grid gap-6">
@@ -39,6 +44,17 @@ async function Menu() {
         </p>
       </div>
 
+      {allergenColumns && missingCodes > 0 && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {missingCodes} {missingCodes === 1 ? "Gericht hat" : "Gerichte haben"} noch keine Allergen-Kennzeichnung. In
+          Deutschland müssen die 14 Allergene auf der Karte stehen, also am besten bald nachtragen.
+        </p>
+      )}
+      {!allergenColumns && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Die Allergen-Kennzeichnung ist erst verfügbar, sobald die Datenbank-Migration 20261012093136 eingespielt ist.
+        </p>
+      )}
       {!showPricesColumn && (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Die Option „Preise anzeigen“ ist erst verfügbar, sobald die Datenbank-Migration 0008 eingespielt ist.
@@ -78,12 +94,17 @@ async function Menu() {
 
             <div className="grid gap-1.5">
               {catItems.map((item) => (
-                <ItemRow key={item.id} item={item} categories={cats} />
+                <ItemRow key={item.id} item={item} categories={cats} allergenColumns={allergenColumns} />
               ))}
             </div>
             <details className="rounded-md border border-dashed border-line px-3 py-2">
               <summary className="cursor-pointer text-sm font-semibold text-blue-dark">+ Gericht in „{cat.label}“</summary>
-              <ItemForm categories={cats} defaultCategory={cat.id} nextSort={(catItems.at(-1)?.sort_order ?? 0) + 1} />
+              <ItemForm
+                categories={cats}
+                defaultCategory={cat.id}
+                nextSort={(catItems.at(-1)?.sort_order ?? 0) + 1}
+                allergenColumns={allergenColumns}
+              />
             </details>
           </section>
         );
@@ -143,7 +164,16 @@ function CategoryForm({
   );
 }
 
-function ItemRow({ item, categories }: { item: Tables<"menu_items">; categories: Tables<"menu_categories">[] }) {
+function ItemRow({
+  item,
+  categories,
+  allergenColumns,
+}: {
+  item: Tables<"menu_items">;
+  categories: Tables<"menu_categories">[];
+  allergenColumns: boolean;
+}) {
+  const codes = [...(item.allergens ?? []), ...(item.additives ?? [])];
   return (
     <details className={`rounded-md border border-line bg-white ${item.is_available ? "" : "opacity-60"}`}>
       <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
@@ -152,6 +182,7 @@ function ItemRow({ item, categories }: { item: Tables<"menu_items">; categories:
           {item.subtitle && <span className="ml-2 text-xs uppercase tracking-wider text-blue-dark">{item.subtitle}</span>}
           {item.description && <span className="block truncate text-xs text-muted">{item.description}</span>}
         </span>
+        {codes.length > 0 && <span className="status bg-mint text-blue-dark">{codeList(codes)}</span>}
         {item.is_featured && <span className="status bg-sky-100 text-sky-800">Startseite</span>}
         {!item.is_available && <span className="status bg-gray-200 text-gray-600">Ausverkauft</span>}
         <span className="text-sm font-bold">{item.price_label}</span>
@@ -162,7 +193,7 @@ function ItemRow({ item, categories }: { item: Tables<"menu_items">; categories:
         </form>
       </summary>
       <div className="border-t border-line px-3 pb-3">
-        <ItemForm categories={categories} item={item} />
+        <ItemForm categories={categories} item={item} allergenColumns={allergenColumns} />
       </div>
     </details>
   );
@@ -173,11 +204,13 @@ function ItemForm({
   item,
   defaultCategory,
   nextSort,
+  allergenColumns,
 }: {
   categories: Tables<"menu_categories">[];
   item?: Tables<"menu_items">;
   defaultCategory?: string;
   nextSort?: number;
+  allergenColumns: boolean;
 }) {
   const id = item?.id ?? `new-${defaultCategory}`;
   return (
@@ -222,6 +255,31 @@ function ItemForm({
             <input type="checkbox" name="is_featured" defaultChecked={item?.is_featured ?? false} /> Auf Startseite
           </label>
         </div>
+        {/* Before migration 20261012093136 the grids are hidden and not submitted, so saveMenuItem
+            leaves the columns out entirely. */}
+        {allergenColumns && (
+          <div className="grid gap-3 sm:col-span-6">
+            <input type="hidden" name="codes_field" value="1" />
+            <CodeGrid
+              id={`${id}-alg`}
+              name="allergens"
+              legend="Allergene (Pflicht)"
+              hint="Welche der 14 Allergene stecken in diesem Gericht?"
+              codes={ALLERGEN_CODES}
+              labels={ALLERGENS}
+              selected={item?.allergens ?? []}
+            />
+            <CodeGrid
+              id={`${id}-add`}
+              name="additives"
+              legend="Zusatzstoffe (nur wenn zutreffend)"
+              hint="Bei hausgemachten Gerichten bleibt das meist leer."
+              codes={ADDITIVE_CODES}
+              labels={ADDITIVES}
+              selected={item?.additives ?? []}
+            />
+          </div>
+        )}
         <div className="sm:col-span-6">
           <SubmitButton>{item ? "Speichern" : "Anlegen"}</SubmitButton>
         </div>
@@ -233,5 +291,41 @@ function ItemForm({
         </form>
       )}
     </div>
+  );
+}
+
+/** Checkbox grid for one set of declaration codes. */
+function CodeGrid({
+  id,
+  name,
+  legend,
+  hint,
+  codes,
+  labels,
+  selected,
+}: {
+  id: string;
+  name: string;
+  legend: string;
+  hint: string;
+  codes: readonly string[];
+  labels: Record<string, string>;
+  selected: readonly string[];
+}) {
+  return (
+    <fieldset className="rounded-md border border-line px-3 py-2">
+      <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted">{legend}</legend>
+      <p className="mb-1.5 text-xs text-muted">{hint}</p>
+      <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+        {codes.map((code) => (
+          <label key={code} className="!mb-0 flex items-center gap-2 text-xs normal-case tracking-normal">
+            <input type="checkbox" id={`${id}-${code}`} name={name} value={code} defaultChecked={selected.includes(code)} />
+            <span>
+              <strong>{code}</strong> {labels[code]}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
