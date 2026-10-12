@@ -76,6 +76,10 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
               key={date}
               href={hrefForDay(date)}
               className={cls}
+              // Inline, because `a { color: inherit }` in globals.css is unlayered and Tailwind v4
+              // puts utilities in @layer utilities, which unlayered CSS always beats. Without this
+              // the selected day is ink on ink, i.e. today's date is invisible once you click it.
+              style={isSel ? { color: "white" } : undefined}
               title={`${fmtDateDE(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": geschlossen" : ""}`}
             >
               <span className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral px-1.5 text-white" : ""}`}>
