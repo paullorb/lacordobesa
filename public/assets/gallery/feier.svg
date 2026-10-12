@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Feier mit Torte und Girlanden">
+  <rect width="800" height="600" fill="#152f3b"/>
+  <circle cx="400" cy="330" r="260" fill="#1f4252"/>
+  <path d="M-10 70Q400 190 810 70" fill="none" stroke="#fffdf8" stroke-opacity=".6" stroke-width="3"/>
+  <g>
+    <path d="M30 100l36 8-14 40z" fill="#e68061"/><path d="M120 119l36 8-14 40z" fill="#f2c94c"/><path d="M215 136l36 6-14 40z" fill="#52a8d2"/>
+    <path d="M315 148l34 4-12 42z" fill="#fffdf8"/><path d="M415 150l34-2-8 42z" fill="#e68061"/><path d="M510 142l34-6-4 42z" fill="#f2c94c"/>
+    <path d="M605 126l34-10 2 42z" fill="#52a8d2"/><path d="M700 106l34-12 6 42z" fill="#fffdf8"/>
+  </g>
+  <g>
+    <ellipse cx="120" cy="330" rx="46" ry="58" fill="#e68061"/><path d="M120 388l-6 10h12z" fill="#e68061"/><path d="M120 398q-14 60 6 110" fill="none" stroke="#fffdf8" stroke-opacity=".6" stroke-width="3"/>
+    <ellipse cx="690" cy="300" rx="46" ry="58" fill="#52a8d2"/><path d="M690 358l-6 10h12z" fill="#52a8d2"/><path d="M690 368q14 60-6 140" fill="none" stroke="#fffdf8" stroke-opacity=".6" stroke-width="3"/>
+    <ellipse cx="190" cy="270" rx="38" ry="48" fill="#f2c94c"/><path d="M190 318l-5 9h10z" fill="#f2c94c"/><path d="M190 327q10 80-10 180" fill="none" stroke="#fffdf8" stroke-opacity=".6" stroke-width="3"/>
+  </g>
+  <rect y="500" width="800" height="100" fill="#fffdf8"/>
+  <ellipse cx="400" cy="508" rx="190" ry="20" fill="#e9f2f2"/>
+  <rect x="270" y="400" width="260" height="108" rx="10" fill="#f5f1e9"/>
+  <path d="M270 430q16 22 32 0q16 22 32 0q16 22 32 0q16 22 32 0q16 22 32 0q16 22 32 0q16 22 32 0q16 22 32 0" fill="#e68061"/>
+  <rect x="320" y="300" width="160" height="104" rx="10" fill="#fffdf8"/>
+  <path d="M320 330q13 20 26 0q13 20 26 0q13 20 26 0q13 20 26 0q13 20 26 0q13 20 26 0" fill="#52a8d2"/>
+  <g fill="#e68061"><circle cx="300" cy="470" r="8"/><circle cx="360" cy="478" r="8"/><circle cx="420" cy="470" r="8"/><circle cx="480" cy="478" r="8"/></g>
+  <g>
+    <rect x="352" y="260" width="10" height="42" fill="#52a8d2"/><rect x="395" y="256" width="10" height="46" fill="#f2c94c"/><rect x="438" y="260" width="10" height="42" fill="#e68061"/>
+    <path d="M357 226q-12 20 0 32q12-12 0-32zM400 222q-12 20 0 32q12-12 0-32zM443 226q-12 20 0 32q12-12 0-32z" fill="#ffb347"/>
+  </g>
+  <text x="400" y="568" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="30" fill="#152f3b">¡Feliz cumple!</text>
+</svg>

@@ -69,7 +69,17 @@ export default function DatenschutzPage() {
       <p>
         Die Website verlinkt auf Instagram (Meta Platforms Ireland Ltd.), WhatsApp (WhatsApp Ireland Ltd.) und
         Google Maps (Google Ireland Ltd.). Beim Aufruf dieser Links verlässt du unsere Website; erst dann werden
-        Daten an den jeweiligen Anbieter übertragen. Inhalte dieser Dienste werden nicht in unsere Seite eingebettet.
+        Daten an den jeweiligen Anbieter übertragen. Inhalte von Instagram und WhatsApp werden nicht in unsere Seite
+        eingebettet.
+      </p>
+
+      <h2>6a. Google Maps (Karte im Bereich „Besuch uns“)</h2>
+      <p>
+        Zur Anzeige unseres Standorts können wir eine Karte von Google Maps (Google Ireland Ltd., Gordon House,
+        Barrow Street, Dublin 4, Irland) einbinden. Die Karte wird erst geladen, nachdem du auf „Karte laden“
+        geklickt hast (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Dabei überträgt dein Browser Daten wie deine
+        IP-Adresse und Browserinformationen an Google; Google kann dabei Cookies setzen. Ohne Klick findet keine
+        Verbindung zu Google statt. Weitere Informationen findest du in der Datenschutzerklärung von Google.
       </p>
 
       <h2>7. Deine Rechte</h2>

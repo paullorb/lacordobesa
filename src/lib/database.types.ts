@@ -37,6 +37,33 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_items: {
+        Row: {
+          caption: string | null
+          category: string
+          created_at: string
+          id: string
+          image_url: string
+          storage_path: string | null
+        }
+        Insert: {
+          caption?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          image_url: string
+          storage_path?: string | null
+        }
+        Update: {
+          caption?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          storage_path?: string | null
+        }
+        Relationships: []
+      }
       menu_categories: {
         Row: {
           id: string

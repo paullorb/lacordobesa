@@ -8,6 +8,7 @@ import { DEFAULT_RESERVATION_SETTINGS, TAG, type ReservationSettings } from "@/l
 import { staffEmail } from "@/lib/staff";
 import { addDays } from "@/lib/dates";
 import type { Enums } from "@/lib/database.types";
+import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -288,4 +289,60 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
   updateTag(TAG.hours);
   refresh();
   return { ok: true };
+}
+
+// ---------------------------------------------------------------- gallery
+const EXTENSIONS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+export async function uploadGalleryImage(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const file = formData.get("file");
+  const category = str(formData, "category");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Bitte wähle ein Bild aus." };
+  if (!GALLERY_MIME_TYPES.includes(file.type)) return { ok: false, error: "Nur JPG, PNG oder WebP sind erlaubt." };
+  if (file.size > GALLERY_MAX_BYTES) return { ok: false, error: "Das Bild ist größer als 5 MB." };
+  if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
+
+  const path = `${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
+  const { error: uploadError } = await supabase.storage.from("gallery").upload(path, file, { contentType: file.type });
+  if (uploadError) return { ok: false, error: "Das Bild konnte nicht hochgeladen werden." };
+
+  const { error } = await supabase.from("gallery_items").insert({
+    image_url: supabase.storage.from("gallery").getPublicUrl(path).data.publicUrl,
+    storage_path: path,
+    caption: str(formData, "caption").slice(0, 160) || null,
+    category,
+  });
+  if (error) {
+    await supabase.storage.from("gallery").remove([path]);
+    return { ok: false, error: error.message };
+  }
+  updateTag(TAG.gallery);
+  refresh();
+  return { ok: true };
+}
+
+export async function saveGalleryItem(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const category = str(formData, "category");
+  if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
+  const { error } = await supabase
+    .from("gallery_items")
+    .update({ caption: str(formData, "caption").slice(0, 160) || null, category })
+    .eq("id", str(formData, "id"));
+  if (error) return { ok: false, error: error.message };
+  updateTag(TAG.gallery);
+  refresh();
+  return { ok: true };
+}
+
+export async function deleteGalleryItem(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const id = str(formData, "id");
+  const { data } = await supabase.from("gallery_items").select("storage_path").eq("id", id).maybeSingle();
+  const { error } = await supabase.from("gallery_items").delete().eq("id", id);
+  if (error) return;
+  if (data?.storage_path) await supabase.storage.from("gallery").remove([data.storage_path]);
+  updateTag(TAG.gallery);
+  refresh();
 }

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Mate und Medialunas">
+  <defs>
+    <g id="med">
+      <path d="M-70 10C-60-50 60-50 70 10C50-8 36-12 0-12C-36-12-50-8-70 10Z" fill="#e1a65c"/>
+      <path d="M-40-4c8-20 24-24 40-24M0-28c18 0 34 4 42 24" fill="none" stroke="#b9772c" stroke-width="5" stroke-linecap="round"/>
+      <path d="M-62 6c-10 10-10 22 0 28c6-8 8-18 6-28zM62 6c10 10 10 22 0 28c-6-8-8-18-6-28z" fill="#e1a65c"/>
+    </g>
+  </defs>
+  <rect width="800" height="600" fill="#dfeaf0"/>
+  <rect y="400" width="800" height="200" fill="#fffdf8"/>
+  <path d="M0 400H800" stroke="#152f3b" stroke-opacity=".1" stroke-width="3"/>
+  <path d="M0 440h800M0 500h800M0 560h800" stroke="#52a8d2" stroke-opacity=".25" stroke-width="30"/>
+  <ellipse cx="520" cy="500" rx="240" ry="50" fill="#fffdf8" stroke="#152f3b" stroke-opacity=".15" stroke-width="3"/>
+  <use href="#med" x="440" y="480"/>
+  <use href="#med" x="600" y="470"/>
+  <use href="#med" x="520" y="430"/>
+  <g transform="translate(190 310)">
+    <ellipse cx="0" cy="150" rx="86" ry="16" fill="#152f3b" opacity=".15"/>
+    <path d="M-80 0h160c0 80-30 150-80 150S-80 80-80 0z" fill="#a8703e"/>
+    <path d="M-80 0h160" stroke="#6b3f1d" stroke-width="10"/>
+    <ellipse cx="0" cy="0" rx="80" ry="16" fill="#4a7a2a"/>
+    <path d="M-60 60h120M-52 100h104" stroke="#8c5a2f" stroke-width="6" opacity=".7"/>
+    <rect x="30" y="-120" width="10" height="130" rx="5" fill="#cfd6d9" transform="rotate(14 35 0)"/>
+    <ellipse cx="62" cy="-124" rx="18" ry="8" fill="#cfd6d9" transform="rotate(14 62 -124)"/>
+  </g>
+  <g transform="translate(330 200)">
+    <rect x="0" y="0" width="70" height="210" rx="14" fill="#52a8d2"/>
+    <rect x="0" y="40" width="70" height="30" fill="#277fae"/>
+    <rect x="12" y="-24" width="46" height="28" rx="8" fill="#152f3b"/>
+  </g>
+  <g fill="none" stroke="#152f3b" stroke-opacity=".25" stroke-width="5" stroke-linecap="round"><path d="M170 190q-16-24 0-48M200 190q-16-24 0-48"/></g>
+  <text x="400" y="70" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="38" fill="#152f3b">La merienda argentina</text>
+</svg>

@@ -8,6 +8,7 @@ const ITEMS = [
   { href: "/admin/reservierungen", label: "Reservierungen" },
   { href: "/admin/karte", label: "Karte" },
   { href: "/admin/specials", label: "Specials" },
+  { href: "/admin/gallery", label: "Galerie" },
   { href: "/admin/oeffnungszeiten", label: "Öffnungszeiten" },
   { href: "/admin/einstellungen", label: "Einstellungen" },
 ];
