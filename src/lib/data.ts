@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
+import { todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
 
 /** Cache tags, invalidated by the admin actions with updateTag(). */
@@ -55,7 +56,7 @@ export async function getActiveSpecials(): Promise<Tables<"specials">[]> {
   const supabase = createPublicClient();
   // "today" is baked into the cached entry; cacheLife("hours") revalidates it, and the admin
   // actions invalidate it on every change, so a special lingers at most an hour past ends_on.
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const { data } = await supabase
     .from("specials")
     .select("*")
