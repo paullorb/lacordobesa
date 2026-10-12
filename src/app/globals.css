@@ -317,11 +317,11 @@ a { color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; } }
 
-/* ------------------------------------------------------------------ admin (Tailwind utilities + a few helpers) */
-.admin { background: #f7f5f0; min-height: 100vh; }
-.admin input, .admin select, .admin textarea { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-2 focus:outline-blue; }
-.admin input[type="checkbox"] { @apply w-auto; }
-.admin label { @apply block text-[0.65rem] font-bold uppercase tracking-[0.12em] text-muted mb-1; }
+/* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
+.staff { background: #f7f5f0; min-height: 100vh; }
+.staff input, .staff select, .staff textarea { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-2 focus:outline-blue; }
+.staff input[type="checkbox"] { @apply w-auto; }
+.staff label { @apply block text-[0.65rem] font-bold uppercase tracking-[0.12em] text-muted mb-1; }
 .btn-primary, .btn-ghost, .btn-danger { @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer; }
 .btn-primary { @apply bg-ink text-white hover:bg-blue-dark; }
 .btn-ghost { @apply border border-line bg-transparent text-ink hover:bg-mint; }

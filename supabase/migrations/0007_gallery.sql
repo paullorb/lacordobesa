@@ -28,7 +28,7 @@ create policy "staff upload gallery" on storage.objects for insert to authentica
 create policy "staff delete gallery" on storage.objects for delete to authenticated
   using (bucket_id = 'gallery' and (select public.is_staff()));
 
--- Seed examples (illustrations in /public/assets/gallery plus the hero photo). Staff can delete them in the admin.
+-- Seed examples (illustrations in /public/assets/gallery plus the hero photo). Staff can delete them in the staff area.
 insert into public.gallery_items (image_url, caption, category, created_at) values
   ('/assets/hero-pasteleria.jpg', 'Empanadas und Gebäck frisch aus der Küche', 'food', now() - interval '1 minute'),
   ('/assets/gallery/lokal.svg', 'Unser Lokal am Ginnheimer Wäldchen', 'venue', now() - interval '2 minutes'),

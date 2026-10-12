@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuItemAvailable } from "@/app/admin/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/admin/form-bits";
+import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuItemAvailable } from "@/app/staff/actions";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import type { Tables } from "@/lib/database.types";
 

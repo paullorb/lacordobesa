@@ -1,15 +1,15 @@
 import { Suspense } from "react";
-import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/admin/actions";
-import { ActionForm, SubmitButton } from "@/components/admin/form-bits";
-import { MonthCalendar } from "@/components/admin/month-calendar";
-import { loadCalendarMonth, monthParam } from "@/lib/admin-calendar";
+import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/actions";
+import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
+import { MonthCalendar } from "@/components/staff/month-calendar";
+import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime, WEEKDAYS_DE } from "@/lib/data";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Öffnungszeiten" };
 
-export default function HoursPage(props: PageProps<"/admin/oeffnungszeiten">) {
+export default function HoursPage(props: PageProps<"/staff/oeffnungszeiten">) {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
       <Hours searchParams={props.searchParams} />
@@ -28,7 +28,7 @@ function groupClosures(rows: { date: string; reason: string | null }[]) {
   return out;
 }
 
-async function Hours({ searchParams }: Pick<PageProps<"/admin/oeffnungszeiten">, "searchParams">) {
+async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">, "searchParams">) {
   const { supabase } = await requireStaff();
   const sp = await searchParams;
   const today = todayISO();
@@ -52,8 +52,8 @@ async function Hours({ searchParams }: Pick<PageProps<"/admin/oeffnungszeiten">,
         today={today}
         days={cal.days}
         weeklyClosed={cal.weeklyClosed}
-        hrefForDay={(d) => `/admin/reservierungen?date=${d}`}
-        hrefForMonth={(m) => `/admin/oeffnungszeiten?monat=${m}`}
+        hrefForDay={(d) => `/staff/reservierungen?date=${d}`}
+        hrefForMonth={(m) => `/staff/oeffnungszeiten?monat=${m}`}
       />
 
       <section className="card">

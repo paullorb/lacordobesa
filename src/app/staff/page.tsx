@@ -1,13 +1,13 @@
 import { Suspense } from "react";
-import { MonthCalendar } from "@/components/admin/month-calendar";
-import { ReservationCard } from "@/components/admin/reservation-card";
-import { loadCalendarMonth, monthParam } from "@/lib/admin-calendar";
+import { MonthCalendar } from "@/components/staff/month-calendar";
+import { ReservationCard } from "@/components/staff/reservation-card";
+import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Heute" };
 
-export default function DashboardPage(props: PageProps<"/admin">) {
+export default function DashboardPage(props: PageProps<"/staff">) {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
       <Dashboard searchParams={props.searchParams} />
@@ -15,7 +15,7 @@ export default function DashboardPage(props: PageProps<"/admin">) {
   );
 }
 
-async function Dashboard({ searchParams }: Pick<PageProps<"/admin">, "searchParams">) {
+async function Dashboard({ searchParams }: Pick<PageProps<"/staff">, "searchParams">) {
   const { supabase } = await requireStaff();
   const sp = await searchParams;
   const today = todayISO();
@@ -52,8 +52,8 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/admin">, "searchPara
         selected={today}
         days={cal.days}
         weeklyClosed={cal.weeklyClosed}
-        hrefForDay={(d) => `/admin/reservierungen?date=${d}`}
-        hrefForMonth={(m) => `/admin?monat=${m}`}
+        hrefForDay={(d) => `/staff/reservierungen?date=${d}`}
+        hrefForMonth={(m) => `/staff?monat=${m}`}
       />
 
       {(pendingCount ?? 0) > 0 && (

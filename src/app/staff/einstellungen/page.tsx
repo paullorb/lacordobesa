@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { saveSettings } from "@/app/admin/actions";
-import { ActionForm, SubmitButton } from "@/components/admin/form-bits";
+import { saveSettings } from "@/app/staff/actions";
+import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import { DEFAULT_RESERVATION_SETTINGS, type ReservationSettings } from "@/lib/data";
 

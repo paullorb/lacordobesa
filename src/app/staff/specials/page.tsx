@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { deleteSpecial, saveSpecial } from "@/app/admin/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/admin/form-bits";
+import { deleteSpecial, saveSpecial } from "@/app/staff/actions";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";

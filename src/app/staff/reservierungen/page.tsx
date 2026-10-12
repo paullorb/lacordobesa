@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { createReservationManually } from "@/app/admin/actions";
-import { ActionForm, SubmitButton } from "@/components/admin/form-bits";
-import { MonthCalendar } from "@/components/admin/month-calendar";
-import { ReservationCard } from "@/components/admin/reservation-card";
-import { loadCalendarMonth, monthParam } from "@/lib/admin-calendar";
+import { createReservationManually } from "@/app/staff/actions";
+import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
+import { MonthCalendar } from "@/components/staff/month-calendar";
+import { ReservationCard } from "@/components/staff/reservation-card";
+import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Reservierungen" };
 
-export default function ReservationsPage(props: PageProps<"/admin/reservierungen">) {
+export default function ReservationsPage(props: PageProps<"/staff/reservierungen">) {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
       <Reservations searchParams={props.searchParams} />
@@ -18,7 +18,7 @@ export default function ReservationsPage(props: PageProps<"/admin/reservierungen
   );
 }
 
-async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierungen">, "searchParams">) {
+async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierungen">, "searchParams">) {
   const { supabase } = await requireStaff();
   const sp = await searchParams;
   const today = todayISO();
@@ -29,7 +29,7 @@ async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierun
   let q = supabase.from("reservations").select("*").eq("date", date).order("start_time");
   if (!showCancelled) q = q.neq("status", "cancelled");
   const [{ data: rows }, cal] = await Promise.all([q, loadCalendarMonth(supabase, month)]);
-  const dayHref = (d: string) => `/admin/reservierungen?date=${d}${showCancelled ? "&alle=1" : ""}`;
+  const dayHref = (d: string) => `/staff/reservierungen?date=${d}${showCancelled ? "&alle=1" : ""}`;
 
   return (
     <div className="grid gap-6">
@@ -42,7 +42,7 @@ async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierun
         days={cal.days}
         weeklyClosed={cal.weeklyClosed}
         hrefForDay={dayHref}
-        hrefForMonth={(m) => `/admin/reservierungen?date=${date}&monat=${m}${showCancelled ? "&alle=1" : ""}`}
+        hrefForMonth={(m) => `/staff/reservierungen?date=${date}&monat=${m}${showCancelled ? "&alle=1" : ""}`}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -55,7 +55,7 @@ async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierun
             →
           </Link>
           {date !== today && (
-            <Link href="/admin/reservierungen" className="text-xs text-muted underline">
+            <Link href="/staff/reservierungen" className="text-xs text-muted underline">
               Heute
             </Link>
           )}

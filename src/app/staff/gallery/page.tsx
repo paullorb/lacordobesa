@@ -1,22 +1,22 @@
 import Image from "next/image";
 import { Suspense } from "react";
-import { deleteGalleryItem, saveGalleryItem } from "@/app/admin/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/admin/form-bits";
-import { GalleryUpload } from "@/components/admin/gallery-upload";
+import { deleteGalleryItem, saveGalleryItem } from "@/app/staff/actions";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { GalleryUpload } from "@/components/staff/gallery-upload";
 import { requireStaff } from "@/lib/auth";
 import { GALLERY_CATEGORIES } from "@/lib/gallery";
 
 export const metadata = { title: "Galerie" };
 
-export default function AdminGalleryPage() {
+export default function StaffGalleryPage() {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
-      <AdminGallery />
+      <StaffGallery />
     </Suspense>
   );
 }
 
-async function AdminGallery() {
+async function StaffGallery() {
   const { supabase } = await requireStaff();
   const { data } = await supabase.from("gallery_items").select("*").order("created_at", { ascending: false }).limit(200);
   const items = data ?? [];

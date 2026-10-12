@@ -4,7 +4,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
 
-/** Cache tags, invalidated by the admin actions with updateTag(). */
+/** Cache tags, invalidated by the staff actions with updateTag(). */
 export const TAG = {
   content: "site-content", // menu, specials, announcement
   hours: "opening-hours",
@@ -59,7 +59,7 @@ export async function getActiveSpecials(): Promise<Tables<"specials">[]> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  // "today" is baked into the cached entry; cacheLife("hours") revalidates it, and the admin
+  // "today" is baked into the cached entry; cacheLife("hours") revalidates it, and the staff area
   // actions invalidate it on every change, so a special lingers at most an hour past ends_on.
   const today = todayISO();
   const { data } = await supabase

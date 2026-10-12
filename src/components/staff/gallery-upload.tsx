@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { uploadGalleryImage } from "@/app/admin/actions";
-import { SubmitButton } from "@/components/admin/form-bits";
+import { uploadGalleryImage } from "@/app/staff/actions";
+import { SubmitButton } from "@/components/staff/form-bits";
 import { GALLERY_CATEGORIES } from "@/lib/gallery";
 
 const MAX_EDGE = 1800;

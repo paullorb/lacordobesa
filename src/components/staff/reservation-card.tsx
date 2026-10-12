@@ -1,4 +1,4 @@
-import { setReservationStatus, saveStaffNotes } from "@/app/admin/actions";
+import { setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
 import { whatsappHref } from "@/lib/contact";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";

@@ -1,8 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
-import type { DayInfo } from "@/components/admin/month-calendar";
-import { monthRange } from "@/components/admin/month-calendar";
+import type { DayInfo } from "@/components/staff/month-calendar";
+import { monthRange } from "@/components/staff/month-calendar";
 
 /** Reservation counts, closures and weekly closing days for one month's calendar. */
 export async function loadCalendarMonth(supabase: SupabaseClient<Database>, month: string) {
