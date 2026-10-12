@@ -47,16 +47,12 @@ a { color: inherit; }
 .brand-copy small { font-size: .58rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
 .site-nav { display: flex; align-items: center; gap: 2rem; }
 .site-nav a:not(.nav-cta) { font-size: .78rem; text-decoration: none; font-weight: 600; color: var(--ink); transition: color .2s; }
-.site-nav a:not(.nav-cta):hover { color: var(--blue-dark); }
 .nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: .75rem; font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s; }
-.nav-cta:hover, .button:hover { transform: translateY(-2px); background: var(--blue-dark); }
 .button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .nav-actions { display: flex; align-items: center; gap: .6rem; }
 .nav-call { display: inline-flex; min-height: 46px; padding: 0 1.1rem; align-items: center; justify-content: center; gap: .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: .75rem; font-weight: 700; transition: background .2s; }
-.nav-call:hover { background: var(--mint); }
 .menu-toggle { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; }
 .menu-toggle svg { display: block; transition: transform .2s; }
-.menu-toggle:hover svg { transform: rotate(-8deg) scale(1.06); }
 .menu-close { font-size: 2rem; line-height: 1; }
 .hero { width: min(1392px, calc(100% - 48px)); min-height: 640px; margin: 24px auto 0; overflow: hidden; position: relative; border-radius: 8px; display: flex; align-items: center; background: #263b42; }
 .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,35,45,.91) 0%, rgba(13,35,45,.77) 34%, rgba(13,35,45,.18) 77%, rgba(13,35,45,.04) 100%), url("/assets/hero-pasteleria.jpg") center / cover; }
@@ -69,7 +65,6 @@ a { color: inherit; }
 .hero-text { max-width: 440px; margin-bottom: 2rem; color: rgba(255,253,248,.84); font-size: 1rem; line-height: 1.8; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .button.button-light { color: var(--ink); background: var(--paper); }
-.button.button-light:hover { background: #d8eef8; }
 .text-link { color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.56); padding: .55rem 0; font-size: .77rem; font-weight: 600; }
 .hero-note { position: absolute; z-index: 2; right: 30px; bottom: 28px; display: flex; align-items: center; gap: .65rem; color: white; font-size: .69rem; letter-spacing: .06em; }
 .hero-note img { width: 59px; filter: drop-shadow(0 5px 12px #142c37aa); }
@@ -96,7 +91,6 @@ a { color: inherit; }
 .menu-section .inner { width: min(1120px, 100%); margin: auto; }
 .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
 .menu-card { position: relative; min-height: 275px; padding: 2rem; background: var(--paper); border: 1px solid rgba(21,47,59,.08); display: flex; flex-direction: column; justify-content: space-between; transition: transform .25s, box-shadow .25s; }
-.menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
 .menu-card:nth-child(3n+2) { margin-top: 26px; }
 .menu-card:nth-child(3n) { margin-top: 52px; }
 .dish-number { color: var(--coral); font-family: var(--serif); font-size: .8rem; font-style: italic; }
@@ -139,7 +133,6 @@ a { color: inherit; }
 .contact-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; color: var(--blue-dark); font-size: .9rem; }
 .contact-row small { display: block; margin-bottom: .25rem; color: var(--muted); font-size: .61rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .contact-row a, .contact-row address, .contact-row .hours { font-size: .82rem; text-decoration: none; font-style: normal; line-height: 1.6; }
-.contact-row a:hover { color: var(--blue-dark); }
 .hours { display: grid; grid-template-columns: auto auto; gap: .15rem 1.2rem; }
 .hours .closed { color: var(--muted); }
 .visit-photo { display: block; min-height: 455px; position: relative; overflow: hidden; background: var(--blue); }
@@ -148,7 +141,10 @@ a { color: inherit; }
 .visit-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.3rem; }
 .visit-actions .button { min-height: 42px; padding: 0 1rem; font-size: .69rem; }
 .visit-actions .button.secondary { color: var(--ink); border: 1px solid var(--line); background: transparent; }
-.visit-actions .button.secondary:hover { background: var(--mint); }
+.share-note { flex-basis: 100%; margin: 0; font-size: .72rem; color: var(--muted); }
+.share-note:empty { display: none; }
+/* Keeps the brand glyph on the text baseline in the footer and the craft section. */
+.inline-icon { display: inline-flex; align-items: center; gap: .4rem; }
 
 /* reservation form */
 .reserve-section { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -157,10 +153,17 @@ a { color: inherit; }
 .reserve-copy p:not(.eyebrow) { max-width: 480px; color: var(--muted); font-size: .95rem; line-height: 1.9; }
 .form { display: grid; gap: 1rem; padding: 2rem; background: var(--cream); border: 1px solid var(--line); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.field { display: grid; gap: .35rem; }
-.field label { font-size: .62rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
-.field input, .field select, .field textarea { font: inherit; font-size: .9rem; padding: .7rem .85rem; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); }
-.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+/* Label inside the box: it sits where a placeholder would and floats up once there is text, so a
+   field costs one row instead of two and the real placeholder shows as a hint while typing. */
+.field-float { position: relative; }
+.field-float input, .field-float textarea { width: 100%; font: inherit; font-size: .9rem; padding: 1.3rem .85rem .45rem; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); }
+.field-float textarea { resize: vertical; }
+.field-float input:focus, .field-float textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+.field-float ::placeholder { color: transparent; }
+.field-float :focus::placeholder { color: var(--muted); opacity: .75; }
+.field-float label { position: absolute; left: .9rem; top: .95rem; font-size: .85rem; color: var(--muted); pointer-events: none; transition: top .15s, font-size .15s; }
+.field-float :is(input, textarea):focus + label,
+.field-float :is(input, textarea):not(:placeholder-shown) + label { top: .34rem; font-size: .55rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .slots { display: flex; flex-wrap: wrap; gap: .45rem; }
 .slot { font: inherit; font-size: .8rem; font-weight: 600; padding: .5rem .8rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); cursor: pointer; }
 .slot[aria-pressed="true"] { background: var(--ink); color: white; border-color: var(--ink); }
@@ -174,18 +177,22 @@ a { color: inherit; }
 .wizard-title { margin: 0; font-family: var(--serif); font-size: 1.5rem; font-weight: 500; }
 .wizard-summary { display: flex; flex-wrap: wrap; gap: .4rem; }
 .chip { font: inherit; font-size: .74rem; font-weight: 600; padding: .35rem .75rem; border: 1px solid var(--line); border-radius: 999px; background: var(--mint); color: var(--ink); cursor: pointer; }
-.chip:hover { background: var(--paper); }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .wizard-body { display: grid; gap: 1rem; }
-.day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: .45rem; }
-.day { font: inherit; display: grid; justify-items: center; gap: .1rem; padding: .55rem .2rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); cursor: pointer; }
-.day small { font-size: .62rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.day strong { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; line-height: 1.1; }
+.calendar { display: grid; gap: 1.2rem; }
+.calendar-label { margin: 0 0 .45rem; font-family: var(--serif); font-size: 1.05rem; font-weight: 500; }
+.calendar-heads, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; }
+.calendar-heads { margin-bottom: .3rem; font-size: .58rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.day { font: inherit; display: grid; align-content: center; justify-items: center; min-height: 46px; padding: .25rem .1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font-family: var(--serif); font-size: 1.02rem; line-height: 1.1; cursor: pointer; }
+.day small { font-family: var(--sans); font-size: .46rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .day[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: white; }
-.day[aria-pressed="true"] small { color: rgba(255,255,255,.75); }
-.day:disabled { opacity: .4; cursor: not-allowed; }
+.day[aria-pressed="true"] small { color: rgba(255,253,248,.75); }
+.day:disabled { opacity: .32; cursor: not-allowed; }
 .slot.party { min-width: 3rem; padding: .6rem 1rem; font-size: .95rem; }
 .slots .slot { padding: .6rem 1rem; }
+/* A 15-minute grid means a lot of times on a long day, so they go in columns instead of a ragged wrap. */
+.slots.times { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.slots.times .slot { padding: .6rem .3rem; text-align: center; }
 .text-button { font: inherit; font-size: .75rem; font-weight: 700; padding: 0; border: 0; background: none; color: var(--blue-dark); text-decoration: underline; cursor: pointer; justify-self: start; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .form-note { font-size: .75rem; color: var(--muted); line-height: 1.6; margin: 0; }
@@ -219,7 +226,6 @@ a { color: inherit; }
 .gallery-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .gallery-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border: 0; overflow: hidden; background: var(--mint); cursor: zoom-in; }
 .gallery-tile img { object-fit: cover; transition: transform .4s; }
-.gallery-tile:hover img { transform: scale(1.04); }
 .gallery-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.6rem .9rem .7rem; text-align: left; color: #fff; font-size: .8rem; background: linear-gradient(transparent, rgba(13,35,45,.75)); }
 .lightbox { width: min(1000px, 100vw); max-width: 100vw; max-height: 100dvh; margin: auto; padding: 0; border: 0; background: transparent; color: #fff; overflow: visible; }
 .lightbox::backdrop { background: rgba(10,24,31,.88); }
@@ -229,11 +235,27 @@ a { color: inherit; }
 .lightbox figcaption { display: flex; justify-content: space-between; gap: 1rem; padding: .9rem 1rem; font-size: .9rem; }
 .lightbox figcaption small { opacity: .65; }
 .lightbox-close, .lightbox-nav { position: absolute; display: grid; place-items: center; width: 46px; height: 46px; border: 0; border-radius: 50%; background: rgba(255,255,255,.16); color: #fff; font-size: 1.8rem; line-height: 1; cursor: pointer; }
-.lightbox-close:hover, .lightbox-nav:hover { background: rgba(255,255,255,.3); }
 .lightbox-close { top: 12px; right: 12px; }
 .lightbox-nav { top: calc(36dvh - 23px); }
 .lightbox-nav.prev { left: 12px; }
 .lightbox-nav.next { right: 12px; }
+
+
+/* Hover styling only where there is a pointer: on a touch screen :hover sticks after the tap, which
+   left the Reservieren button and the empanada menu toggle looking permanently selected. */
+@media (hover: hover) {
+  .site-nav a:not(.nav-cta):hover { color: var(--blue-dark); }
+  .nav-cta:hover, .button:hover { transform: translateY(-2px); background: var(--blue-dark); }
+  .nav-call:hover { background: var(--mint); }
+  .menu-toggle:hover svg { transform: rotate(-8deg) scale(1.06); }
+  .button.button-light:hover { background: #d8eef8; }
+  .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
+  .contact-row a:hover { color: var(--blue-dark); }
+  .visit-actions .button.secondary:hover { background: var(--mint); }
+  .chip:hover { background: var(--paper); }
+  .gallery-tile:hover img { transform: scale(1.04); }
+  .lightbox-close:hover, .lightbox-nav:hover { background: rgba(255,255,255,.3); }
+}
 
 @media (max-width: 800px) {
   .nav { width: min(100% - 32px, 1200px); height: 74px; }

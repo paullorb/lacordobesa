@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
 import { EmpanadaIcon } from "@/components/empanada-icon";
 import { Logo } from "@/components/logo";
 
@@ -36,9 +37,9 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
         </Link>
         <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
           {LINKS.map((l) => (
-            <Link key={l.href} href={l.href}>
+            <SectionLink key={l.href} href={l.href}>
               {l.label}
-            </Link>
+            </SectionLink>
           ))}
           <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
             Schreib uns <span aria-hidden="true">↗</span>
@@ -49,9 +50,9 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
             <span aria-hidden="true">☎</span>
             <span className="nav-call-label">Anrufen</span>
           </a>
-          <Link className="nav-cta nav-reserve" href="/#reservieren">
+          <SectionLink className="nav-cta nav-reserve" href="/#reservieren">
             Reservieren
-          </Link>
+          </SectionLink>
           <button
             className="menu-toggle"
             aria-label={open ? "Menü schließen" : "Menü öffnen"}
@@ -64,5 +65,40 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
         </div>
       </div>
     </header>
+  );
+}
+
+type SectionLinkProps = { href: string; className?: string; children: ReactNode };
+
+/**
+ * A `/#anchor` link. `next/link` only scrolls when the route actually changes, so on the page the
+ * anchor already lives on the jump is done here instead – otherwise the link does nothing at all.
+ */
+function SectionLink({ href, className, children }: SectionLinkProps) {
+  const pathname = usePathname();
+  const [path, hash] = href.split("#");
+
+  if (!hash || path !== pathname) {
+    return (
+      <Link className={className} href={href}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      className={className}
+      href={`#${hash}`}
+      onClick={(e) => {
+        const target = document.getElementById(hash);
+        if (!target) return; // no such section here: let the browser handle it
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        history.replaceState(null, "", `#${hash}`);
+      }}
+    >
+      {children}
+    </a>
   );
 }
