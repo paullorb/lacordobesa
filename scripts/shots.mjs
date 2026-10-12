@@ -21,17 +21,18 @@ const BASE = process.env.SHOTS_BASE ?? "http://localhost:3000";
 const OUT = process.env.SHOTS_OUT ?? ".shots";
 const WITH_STAFF = process.argv.includes("--staff");
 
-/** The public pages, in all three languages where they have one. */
+/** The public pages, in both languages where they have one. */
 const PUBLIC_PAGES = [
   ["home", "/"],
   ["home-es", "/es"],
-  ["home-en", "/en"],
   ["menu", "/karte"],
   ["menu-es", "/es/karte"],
-  ["menu-en", "/en/karte"],
   ["preorder", "/vorbestellen"],
+  ["preorder-es", "/es/vorbestellen"],
   ["catering", "/catering"],
+  ["catering-es", "/es/catering"],
   ["gallery", "/gallery"],
+  ["gallery-es", "/es/gallery"],
   ["impressum", "/impressum"],
   ["datenschutz", "/datenschutz"],
   ["not-found", "/diese-seite-gibt-es-nicht"],

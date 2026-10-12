@@ -69,7 +69,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
   const cards = featured.length ? featured : menu.flatMap((c) => c.items.slice(0, 1).map((i) => ({ ...i, category: c })));
 
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       <JsonLd data={restaurantJsonLd(hours)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />

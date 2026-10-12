@@ -60,23 +60,6 @@ const ALLERGENS_ES: Record<keyof typeof ALLERGENS, string> = {
   n: "Moluscos",
 };
 
-const ALLERGENS_EN: Record<keyof typeof ALLERGENS, string> = {
-  a: "Cereals containing gluten",
-  b: "Crustaceans",
-  c: "Eggs",
-  d: "Fish",
-  e: "Peanuts",
-  f: "Soybeans",
-  g: "Milk and lactose",
-  h: "Tree nuts",
-  i: "Celery",
-  j: "Mustard",
-  k: "Sesame seeds",
-  l: "Sulphur dioxide and sulphites",
-  m: "Lupin",
-  n: "Molluscs",
-};
-
 const ADDITIVES_ES: Record<keyof typeof ADDITIVES, string> = {
   "1": "con colorante",
   "2": "con conservante",
@@ -93,32 +76,14 @@ const ADDITIVES_ES: Record<keyof typeof ADDITIVES, string> = {
   "13": "con quinina",
 };
 
-const ADDITIVES_EN: Record<keyof typeof ADDITIVES, string> = {
-  "1": "with colouring",
-  "2": "with preservative",
-  "3": "with antioxidant",
-  "4": "with flavour enhancer",
-  "5": "sulphited",
-  "6": "with blackening agent",
-  "7": "waxed",
-  "8": "with phosphate",
-  "9": "with sweetener",
-  "10": "contains a source of phenylalanine",
-  "11": "with taurine",
-  "12": "contains caffeine",
-  "13": "contains quinine",
-};
-
 export const ALLERGEN_LABELS: Record<Locale, Record<keyof typeof ALLERGENS, string>> = {
   de: ALLERGENS,
   es: ALLERGENS_ES,
-  en: ALLERGENS_EN,
 };
 
 export const ADDITIVE_LABELS: Record<Locale, Record<keyof typeof ADDITIVES, string>> = {
   de: ADDITIVES,
   es: ADDITIVES_ES,
-  en: ADDITIVES_EN,
 };
 
 export type AllergenCode = keyof typeof ALLERGENS;

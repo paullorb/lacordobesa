@@ -3,7 +3,7 @@
 Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 
 - **Public site** (`/`): German landing page with menu, specials, opening hours and a table reservation form, also in
-  Spanish (`/es`) and English (`/en`).
+  Spanish (`/es`).
 - **Gallery** (`/gallery`): photos of the venue, food and events, uploaded by staff under `/staff/gallery`.
 - **Pre-orders** (`/vorbestellen`): empanadas by the dozen, a torta for Saturday. Staff mark dishes as pre-orderable
   per dish under `/staff/karte` and work the inbox under `/staff/vorbestellungen`.
@@ -16,28 +16,34 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 
 ## Languages
 
-German, Spanish (Argentine) and English. German is the default and stays **unprefixed** (`/`, `/karte`), the other two
-live under `/es/...` and `/en/...`.
+German and Spanish (Argentine). German is the default and stays **unprefixed** (`/`, `/karte`); Spanish lives under
+`/es/...`.
 
+English was deliberately dropped. Frankfurt's English-speaking visitors read one of the two comfortably enough to
+order from a menu, and a third set of copy is a third thing to keep correct every time a sentence changes. Adding it
+back is mechanical: `LOCALES` in [`src/lib/i18n.ts`](src/lib/i18n.ts), a dictionary, and a route group.
+
+- **One root layout per language.** `app/(de)/layout.tsx` and `app/(es)/layout.tsx` each render their own `<html>`,
+  so `lang` is `de-DE` or `es-AR` depending on which group the URL fell into. This is the reason for the route
+  groups; it is the only way to get `<html lang>` right without middleware. The cost is a full page load when
+  crossing between them, which happens exactly once per visit: when somebody switches language.
 - **No middleware.** Locale rewriting in `proxy.ts` would put an edge function in front of every public request and
   break the "public site stays fully static" promise below. Instead each page has one thin wrapper per URL shape
-  (`app/karte/page.tsx` for German, `app/[locale]/karte/page.tsx` for the rest) over one shared view in
-  `src/components/pages/`. Every variant prerenders, and the German URLs never moved.
-- **Copy** lives in [`src/lib/dictionaries/`](src/lib/dictionaries). `de.ts` defines the shape; `es.ts` and `en.ts` are
-  typed against it, so a missing key is a build error rather than a blank spot. Interpolation uses functions, not
+  (`app/(de)/karte/page.tsx`, `app/(es)/es/karte/page.tsx`) over one shared view in `src/components/pages/`. Every
+  variant prerenders and the German URLs never moved.
+- **The 404** is `app/global-not-found.tsx`, not `not-found.tsx`: with a root layout per language there is no single
+  layout a global 404 could be composed from, so it renders its own document. Needs `experimental.globalNotFound`.
+- **Copy** lives in [`src/lib/dictionaries/`](src/lib/dictionaries). `de.ts` defines the shape and `es.ts` is typed
+  against it, so a missing key is a build error rather than a blank spot. Interpolation uses functions, not
   `{placeholder}` strings, so the compiler checks the arguments too. That also means client components import the
   dictionary rather than receiving it as a prop, since a function cannot cross the RSC boundary.
-- **Staff-entered content** is not in the dictionaries. Dish *names* are already Spanish and work in all three
-  languages; `menu_items.description_es` / `_en` (migration `20261012102608`) are optional and fall back to the German
-  description, and `/es` and `/en` say so rather than quietly showing German text under an English heading. Specials
-  and category labels are deliberately not translatable: a special lives for a few days, and asking the team to write
-  each one three times is how a feature stops being used.
-- **Known limitation:** the single root layout means `<html lang>` is always `de`. Each page sets `lang` on its own
-  wrapper, which is what assistive technology and `:lang()` honour, and Google is told through the `hreflang`
-  alternates every page emits. Getting `<html lang>` itself right needs either middleware or moving German under
-  `/de`; see the open issue.
+- **Staff-entered content** is not in the dictionaries. Dish *names* are already Spanish and work in both languages;
+  `menu_items.description_es` (migration `20261012102608`) is optional and falls back to the German description, and
+  `/es` says so rather than quietly showing German text under a Spanish heading. `description_en` is still in the
+  schema and still editable, simply unread. Specials and category labels are deliberately not translatable: a special
+  lives for a few days, and asking the team to write each one twice is how a feature stops being used.
 - **The staff app and the e-mail templates are German only.** The team works in German, and a translated Impressum or
-  Datenschutzerklärung would be a second legally-relevant text to keep correct, so those stay German in every locale.
+  Datenschutzerklärung would be a second legally-relevant text to keep correct, so those stay German in both locales.
 
 ## Stack
 

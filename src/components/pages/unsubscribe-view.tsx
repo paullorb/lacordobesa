@@ -21,7 +21,7 @@ export function UnsubscribeView({
 }) {
   const t = getDictionary(locale).unsubscribe;
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       <Suspense fallback={null}>
         <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
       </Suspense>

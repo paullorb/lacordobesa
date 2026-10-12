@@ -16,7 +16,7 @@ export async function CateringView({ locale }: { locale: Locale }) {
   const [announcement, today] = await Promise.all([getAnnouncement(), earliestDate()]);
 
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={CATERING_PATH} />
 

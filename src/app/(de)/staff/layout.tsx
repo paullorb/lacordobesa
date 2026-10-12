@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "./actions";
-import { StaffNav } from "./nav";
+import { signOut } from "@/app/staff/actions";
+import { StaffNav } from "@/app/staff/nav";
 import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
