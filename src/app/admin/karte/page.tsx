@@ -33,6 +33,12 @@ async function Menu() {
         </p>
       </div>
 
+      {cats.length > 0 && typeof cats[0].show_prices !== "boolean" && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Die Option „Preise anzeigen“ ist erst verfügbar, sobald die Datenbank-Migration 0008 eingespielt ist.
+        </p>
+      )}
+
       <nav className="flex flex-wrap gap-1 text-xs">
         {cats.map((c) => (
           <a key={c.id} href={`#cat-${c.slug}`} className="rounded-full border border-line bg-white px-2.5 py-1 hover:bg-mint">
@@ -50,6 +56,7 @@ async function Menu() {
                 <h2 className="font-serif text-xl">{cat.label}</h2>
                 {cat.label_secondary && <span className="text-xs uppercase tracking-wider text-blue-dark">{cat.label_secondary}</span>}
                 {cat.note && <span className="text-xs italic text-muted">{cat.note}</span>}
+                {cat.show_prices === false && <span className="status bg-amber-100 text-amber-800">Preise ausgeblendet</span>}
                 <span className="ml-auto text-xs text-muted group-open:hidden">Kategorie bearbeiten ▾</span>
               </summary>
               <div className="card mt-2 grid gap-4">
@@ -105,6 +112,16 @@ function CategoryForm({ cat, nextSort }: { cat?: Tables<"menu_categories">; next
         <label htmlFor={`${id}-note`}>Hinweis unter der Kategorie (optional)</label>
         <input id={`${id}-note`} name="note" defaultValue={cat?.note ?? ""} placeholder="Alle Gerichte werden mit Salat oder Pommes serviert." />
       </div>
+      {/* undefined = migration 0008 not applied yet; the toggle is then hidden and not submitted. */}
+      {(!cat || typeof cat.show_prices === "boolean") && (
+        <div className="sm:col-span-3">
+          <input type="hidden" name="show_prices_field" value="1" />
+          <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
+            <input type="checkbox" name="show_prices" defaultChecked={cat?.show_prices ?? true} /> Preise auf der Website anzeigen
+          </label>
+          <p className="mt-1 text-xs text-muted">Ausgeschaltet: Die Gerichte bleiben sichtbar, nur die Preise dieser Kategorie nicht.</p>
+        </div>
+      )}
       <div className="sm:col-span-3">
         <SubmitButton>{cat ? "Kategorie speichern" : "Anlegen"}</SubmitButton>
       </div>

@@ -139,6 +139,8 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
     label_secondary: str(formData, "label_secondary") || null,
     note: str(formData, "note") || null,
     sort_order: num(formData, "sort_order"),
+    // Only sent when the form rendered the toggle, i.e. when the show_prices column exists.
+    ...(formData.has("show_prices_field") ? { show_prices: bool(formData, "show_prices") } : {}),
   };
   const { error } = id
     ? await supabase.from("menu_categories").update(row).eq("id", id)

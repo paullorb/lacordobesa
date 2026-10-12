@@ -46,7 +46,11 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
   ]);
   return (categories ?? []).map((c) => ({
     ...c,
-    items: (items ?? []).filter((i) => i.category_id === c.id),
+    // Blanked here, not in the UI, so a hidden price can't leak through any public page. `!== false` keeps
+    // prices visible if the show_prices column doesn't exist yet (migration 0008).
+    items: (items ?? [])
+      .filter((i) => i.category_id === c.id)
+      .map((i) => (c.show_prices !== false ? i : { ...i, price_label: null })),
   }));
 }
 

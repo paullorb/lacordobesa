@@ -70,6 +70,7 @@ export type Database = {
           label: string
           label_secondary: string | null
           note: string | null
+          show_prices: boolean
           slug: string
           sort_order: number
         }
@@ -78,6 +79,7 @@ export type Database = {
           label: string
           label_secondary?: string | null
           note?: string | null
+          show_prices?: boolean
           slug: string
           sort_order?: number
         }
@@ -86,6 +88,7 @@ export type Database = {
           label?: string
           label_secondary?: string | null
           note?: string | null
+          show_prices?: boolean
           slug?: string
           sort_order?: number
         }
