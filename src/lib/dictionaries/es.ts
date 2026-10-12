@@ -167,6 +167,10 @@ export const es: Dictionary = {
     footerMiddle2: ". O llamanos al ",
     footerAfter: ".",
   },
+  /** Chrome shared by every step-based form; see src/components/wizard.tsx. */
+  wizard: {
+    stepOf: (step: number, total: number) => `Paso ${step} de ${total}`,
+  },
   reservation: {
     steps: {
       1: "¿Cuándo querés venir?",
@@ -174,7 +178,6 @@ export const es: Dictionary = {
       3: "¿Para cuántas personas?",
       4: "¿Quién viene?",
     },
-    stepOf: (step: number, total: number) => `Paso ${step} de ${total}`,
     weekdayHeads: ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"],
     pickDate: "Elegir fecha",
     moreDates: "Ver más fechas",
@@ -258,6 +261,19 @@ export const es: Dictionary = {
     successAfter: " podés ver o cancelar tu encargo cuando quieras. Mejor guardalo.",
   },
   inquiryForm: {
+    steps: {
+      1: "¿Qué festejan?",
+      2: "¿Cuándo y para cuántos?",
+      3: "¿Qué presupuesto manejan?",
+      4: "¿Quiénes son?",
+    },
+    changeOccasion: "Cambiar el motivo",
+    changeWhen: "Cambiar fecha y personas",
+    changeBudget: "Cambiar el presupuesto",
+    continueLabel: "Seguir",
+    dateOpen: "Fecha a definir",
+    guestsAboutBefore: "unas ",
+    guestsAboutAfter: " personas",
     occasion: "¿Qué festejan?",
     date: "Fecha (si ya la tenés)",
     guests: "Personas (más o menos)",
