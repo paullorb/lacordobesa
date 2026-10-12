@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { fmtDateDE } from "@/lib/dates";
+import { WaitlistForm } from "@/components/waitlist-form";
 import {
   getAvailability,
   getFirstAvailableDay,
@@ -117,9 +118,10 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   const maxForSlot = Math.min(maxPartySize, selectedSlot?.seatsLeft ?? maxPartySize);
   const bookable = slots.filter((s) => s.seatsLeft > 0);
   const months = calendarMonths(minDate, maxDate);
-  const blocker = date
-    ? unavailableMessage(date, reason, slots.length > 0 && bookable.length === 0, phoneHref, phoneLabel)
-    : null;
+  // Every slot exists but none has a free seat: the day is full, which is the one blocker a waitlist
+  // can do something about. "Ruhetag" or "zu kurzfristig" are not helped by waiting.
+  const fullyBooked = slots.length > 0 && bookable.length === 0;
+  const blocker = date ? unavailableMessage(date, reason, fullyBooked, phoneHref, phoneLabel) : null;
   // The request can only be sent once we know who to call back, so the button only appears then.
   const contactReady = contact.name.trim().length >= 2 && contact.phone.trim().length >= 5;
 
@@ -196,6 +198,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
               {blocker}
             </p>
           )}
+          {!loading && fullyBooked && <WaitlistForm date={date} partySize={partySize} maxPartySize={maxPartySize} />}
           {!loading && bookable.length > 0 && (
             <div>
               <button type="button" className="button" onClick={() => setStep(2)}>

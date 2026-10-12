@@ -437,6 +437,48 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_entries: {
+        Row: {
+          created_at: string
+          date: string
+          email: string | null
+          id: string
+          name: string
+          party_size: number
+          phone: string
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["waitlist_status"]
+          time_preference: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          email?: string | null
+          id?: string
+          name: string
+          party_size: number
+          phone: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["waitlist_status"]
+          time_preference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          email?: string | null
+          id?: string
+          name?: string
+          party_size?: number
+          phone?: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["waitlist_status"]
+          time_preference?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -445,6 +487,17 @@ export type Database = {
       cancel_preorder_by_token: { Args: { p_token: string }; Returns: undefined }
       cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
       is_staff: { Args: never; Returns: boolean }
+      join_waitlist: {
+        Args: {
+          p_date: string
+          p_email: string
+          p_name: string
+          p_party_size: number
+          p_phone: string
+          p_time_preference?: string
+        }
+        Returns: undefined
+      }
       request_event_inquiry: {
         Args: {
           p_budget_band: string
@@ -534,6 +587,7 @@ export type Database = {
         | "cancelled"
         | "no_show"
         | "completed"
+      waitlist_status: "waiting" | "notified" | "converted" | "expired" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
