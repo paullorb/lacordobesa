@@ -176,10 +176,12 @@ export type Database = {
       }
       reservations: {
         Row: {
+          changed_count: number
           created_at: string
           date: string
           email: string | null
           id: string
+          manage_token: string
           name: string
           notes: string | null
           party_size: number
@@ -191,10 +193,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          changed_count?: number
           created_at?: string
           date: string
           email?: string | null
           id?: string
+          manage_token?: string
           name: string
           notes?: string | null
           party_size: number
@@ -206,10 +210,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          changed_count?: number
           created_at?: string
           date?: string
           email?: string | null
           id?: string
+          manage_token?: string
           name?: string
           notes?: string | null
           party_size?: number
@@ -293,7 +299,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
       is_staff: { Args: never; Returns: boolean }
+      manage_token_valid: { Args: { p_token: string }; Returns: boolean }
+      move_reservation_by_token: {
+        Args: { p_date: string; p_party_size: number; p_time: string; p_token: string }
+        Returns: undefined
+      }
       request_reservation: {
         Args: {
           p_date: string
@@ -311,6 +323,18 @@ export type Database = {
         Returns: {
           seats_left: number
           slot: string
+        }[]
+      }
+      reservation_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          changes_left: number
+          name: string
+          notes: string | null
+          party_size: number
+          res_date: string
+          start_time: string
+          status: Database["public"]["Enums"]["reservation_status"]
         }[]
       }
       reservation_settings: { Args: never; Returns: Json }

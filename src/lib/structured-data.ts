@@ -8,8 +8,7 @@ import { ALLERGENS, type AllergenCode } from "@/lib/allergens";
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+import { SITE_URL } from "@/lib/site";
 
 /** schema.org expects the English day names; opening_hours.weekday is 0 = Sunday. */
 const SCHEMA_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -48,20 +47,20 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Restaurant",
-    "@id": `${SITE}/#restaurant`,
+    "@id": `${SITE_URL}/#restaurant`,
     name: "La Cordobesa Pastelería Argentina",
     alternateName: CONTACT.name,
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt am Main: Empanadas, Alfajores, Kuchen, Pasta und Gerichte vom Grill.",
-    url: SITE,
-    image: [`${SITE}/assets/hero-pasteleria.jpg`],
-    logo: `${SITE}/assets/logo.svg`,
+    url: SITE_URL,
+    image: [`${SITE_URL}/assets/hero-pasteleria.jpg`],
+    logo: `${SITE_URL}/assets/logo.svg`,
     telephone: CONTACT.phoneE164,
     email: CONTACT.email,
     address: address(),
     servesCuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
-    hasMenu: `${SITE}/karte`,
-    acceptsReservations: `${SITE}/#reservieren`,
+    hasMenu: `${SITE_URL}/karte`,
+    acceptsReservations: `${SITE_URL}/#reservieren`,
     currenciesAccepted: "EUR",
     sameAs: [CONTACT.instagram],
     hasMap: CONTACT.mapsUrl,
@@ -80,11 +79,11 @@ export function menuJsonLd(menu: MenuCategoryWithItems[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Menu",
-    "@id": `${SITE}/karte#menu`,
+    "@id": `${SITE_URL}/karte#menu`,
     name: "Carta / Karte",
-    url: `${SITE}/karte`,
+    url: `${SITE_URL}/karte`,
     inLanguage: "de-DE",
-    provider: { "@id": `${SITE}/#restaurant` },
+    provider: { "@id": `${SITE_URL}/#restaurant` },
     hasMenuSection: menu
       .filter((c) => c.items.length > 0)
       .map((c) => ({
