@@ -112,8 +112,8 @@ How reservations work:
   SHA-256, kept 24 h) and take a unit from `take_request_quota` before calling the RPC. This needs
   `SUPABASE_SECRET_KEY` on the server; without it the forms run on the publishable key with no per-visitor limit.
 - The limit only binds once the form RPCs stop accepting the publishable key, since that key ships in every
-  browser and a script can call the RPCs directly. Revoking anon is a separate migration, to be applied only after
-  `SUPABASE_SECRET_KEY` is set in Vercel and deployed; applying it earlier breaks every public form. There is no
+  browser and a script can call the RPCs directly. `20261012220938` revokes anon's EXECUTE on them; apply it only
+  after `SUPABASE_SECRET_KEY` is set in Vercel and deployed, because applying it earlier breaks every public form. There is no
   Vercel firewall rule in front of the forms.
 - Staff confirm/cancel in the staff area; the WhatsApp button pre-fills a confirmation message that includes the
   guest's own management link.
