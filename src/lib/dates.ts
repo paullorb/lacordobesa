@@ -85,3 +85,10 @@ export function isISODate(value: unknown): value is string {
   const d = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
+
+/** A real time of day as `HH:MM`, the shape the time slots and `<input type="time">` submit. */
+export function isTime(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) return false;
+  const [h, m] = value.split(":").map(Number);
+  return h <= 23 && m <= 59;
+}

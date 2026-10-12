@@ -2,36 +2,28 @@
 
 import { isBroadcastChannel } from "@/lib/broadcast";
 import { getDictionary } from "@/lib/dictionaries";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
+import { formErrors, formLocale } from "@/lib/form-errors";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type SubscribeState = { ok: true } | { ok: false; error: string } | null;
 
-const ERRORS: Record<string, string> = {
-  invalid_channel: "Bitte wähle, wie wir dich erreichen dürfen.",
-  invalid_contact: "Bitte gib eine gültige Telefonnummer beziehungsweise E-Mail-Adresse an.",
-  invalid_consent: "Bitte stimme der Benachrichtigung zu.",
-  field_too_long: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig.",
-  too_many_requests: "Gerade kommen sehr viele Anmeldungen. Bitte versuch es später noch einmal.",
-};
-
 export async function subscribeToSpecials(_prev: SubscribeState, formData: FormData): Promise<SubscribeState> {
   const channel = String(formData.get("channel") ?? "");
   // The locale decides which consent sentence is recorded. Resolved here rather than submitted as
   // text, so the stored evidence is the wording the form actually displayed and nothing a crafted
   // POST could choose.
-  const submitted = String(formData.get("locale") ?? "");
-  const locale = isLocale(submitted) ? submitted : DEFAULT_LOCALE;
+  const locale = formLocale(formData);
+  const errorFor = formErrors(formData, (d) => d.optin.errors);
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   // The checkbox is the consent. Without it there is nothing to record, so nothing is sent.
-  if (formData.get("consent") !== "on") return { ok: false, error: ERRORS.invalid_consent };
-  if (!isBroadcastChannel(channel)) return { ok: false, error: ERRORS.invalid_channel };
+  if (formData.get("consent") !== "on") return { ok: false, error: errorFor("invalid_consent") };
+  if (!isBroadcastChannel(channel)) return { ok: false, error: errorFor("invalid_channel") };
   if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
-    return { ok: false, error: ERRORS.field_too_long };
+    return { ok: false, error: errorFor("field_too_long") };
   }
 
   const supabase = createPublicClient();
@@ -43,9 +35,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
     p_phone: channel === "whatsapp" ? phone : undefined,
     p_email: channel === "email" ? email : undefined,
   });
-  if (error) {
-    return { ok: false, error: ERRORS[error.message] ?? "Das hat leider nicht geklappt. Bitte versuch es noch einmal." };
-  }
+  if (error) return { ok: false, error: errorFor(error.message) };
   return { ok: true };
 }
 

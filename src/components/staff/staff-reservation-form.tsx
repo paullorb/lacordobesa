@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { createReservationManually } from "@/app/staff/actions";
-import { getAvailability, type Slot } from "@/app/reservations/actions";
+import { getAvailability, type Slot } from "@/app/reservierung/actions";
 import { SubmitButton } from "@/components/staff/form-bits";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 

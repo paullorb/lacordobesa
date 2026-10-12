@@ -14,7 +14,7 @@ import {
   type RequestState,
   type Slot,
   type UnavailableReason,
-} from "@/app/reservations/actions";
+} from "@/app/reservierung/actions";
 
 type Props = {
   locale: Locale;
@@ -256,6 +256,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           }}
         >
           <input type="hidden" name="date" value={date} />
+          <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="time" value={time} />
           <input type="hidden" name="party_size" value={partySize} />
           <div className="form-row">
