@@ -3,19 +3,25 @@
  *  German is the default and stays **unprefixed**: `/`, `/karte`, `/gallery`. Spanish and English
  *  live under `/es/...` and `/en/...`.
  *
- *  Deliberately no middleware. The README's promise that "the public site stays fully static" is
- *  worth keeping, and locale rewriting in `proxy.ts` would put an edge function in front of every
- *  public request. Instead each page has one thin wrapper per URL shape (`app/page.tsx` for German,
- *  `app/[locale]/page.tsx` for the other two) over a single shared implementation, so every variant
- *  prerenders and the German URLs never moved. */
+ *  Deliberately no middleware and no dynamic `[locale]` segment. Middleware would put an edge
+ *  function in front of every public request, giving up the README's promise that "the public site
+ *  stays fully static". A `[locale]` segment avoided that but still cost something: reading the
+ *  locale meant awaiting `params` in the page body, which blocks the prefetchable shell that
+ *  `partialPrefetching` exists to provide, so client-side navigation to a Spanish or English page
+ *  was measurably worse than to a German one.
+ *
+ *  So the locale is a literal instead: `app/page.tsx`, `app/es/page.tsx` and `app/en/page.tsx` are
+ *  three thin wrappers over one shared view in `src/components/pages/`. Nothing to await, every
+ *  variant prerenders, navigation stays instant, an unknown path 404s because no route matches it,
+ *  and the German URLs never moved. Adding a language means adding wrappers, which is cheap next to
+ *  writing the dictionary. */
 
 export const LOCALES = ["de", "es", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "de";
-/** The locales that carry a URL prefix, i.e. everything except the default. */
-export const PREFIXED_LOCALES = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
 
+/** Validates a locale arriving from outside the type system, i.e. a form field. */
 export const isLocale = (value: string): value is Locale => (LOCALES as readonly string[]).includes(value);
 
 /** BCP-47 tags for Intl and the `lang` attribute. Spanish is es-AR: this is an Argentine bakery,
