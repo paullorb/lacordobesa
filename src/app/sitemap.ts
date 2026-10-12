@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const url = (href: string) => `${SITE_URL}${href === "/" ? "" : href}`;
 
   // One entry per locale per page, each carrying the full set of alternates. That is what tells
-  // Google the three URLs are one page in three languages rather than three thin duplicates.
+  // Google the two URLs are one page in two languages rather than two thin duplicates.
   const localized = PAGES.flatMap(({ path, priority, changeFrequency }) =>
     LOCALES.map((locale) => ({
       url: url(localeHref(locale, path)),

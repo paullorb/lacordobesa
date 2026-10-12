@@ -1,6 +1,6 @@
 /** German copy: the source of truth for the dictionary's shape.
  *
- *  `es.ts` and `en.ts` are typed against `Dictionary`, so a missing or misspelled key is a build
+ *  `es.ts` is typed against `Dictionary`, so a missing or misspelled key is a build
  *  error rather than a blank spot on the page. Interpolation is done with functions rather than
  *  `{placeholder}` strings, for the same reason: the compiler checks the arguments.
  *
@@ -501,6 +501,6 @@ export const de = {
   },
 };
 
-/** Widened on purpose: `as const` would turn every German string into a literal type that es.ts and
- *  en.ts could never satisfy. */
+/** Widened on purpose: `as const` would turn every German string into a literal type that es.ts could
+ *  never satisfy. */
 export type Dictionary = typeof de;

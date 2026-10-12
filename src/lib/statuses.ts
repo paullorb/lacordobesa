@@ -7,7 +7,7 @@
  *
  *  The guest-facing wording for the same statuses is deliberately *not* here: a guest reads
  *  "Wir melden uns, sobald wir deinen Tisch bestätigen können", staff read "Offen". Those live in
- *  src/lib/dictionaries/ and carry their own tone, in three languages. */
+ *  src/lib/dictionaries/ and carry their own tone, in both languages. */
 import type { Enums } from "@/lib/database.types";
 
 export const RESERVATION_STATUS_LABEL: Record<Enums<"reservation_status">, string> = {
