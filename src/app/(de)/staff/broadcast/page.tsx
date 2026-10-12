@@ -10,7 +10,8 @@ import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Specials verschicken" };
 
-/** A sign-up whose WhatsApp never arrived is not going to; after this long it stops being listed. */
+/** A sign-up whose WhatsApp never arrived is not going to; after this long it stops being listed.
+ *  Signing up again renews consented_at (subscribe_broadcast), which brings the row back. */
 const PENDING_DAYS = 30;
 
 export default function BroadcastPage() {
@@ -60,7 +61,7 @@ async function Broadcast() {
   const pendingSince = addDays(todayISO(), -PENDING_DAYS);
   const optins = (data ?? []).filter((o) => o.phone);
   const confirmed = optins.filter((o) => o.confirmed_at);
-  const pending = optins.filter((o) => !o.confirmed_at && o.created_at.slice(0, 10) >= pendingSince);
+  const pending = optins.filter((o) => !o.confirmed_at && o.consented_at.slice(0, 10) >= pendingSince);
   const special = specials[0];
 
   return (
@@ -89,7 +90,7 @@ async function Broadcast() {
               <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
                 <span className="min-w-0 flex-1">
                   <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
-                  <span className="block text-xs text-muted">Angemeldet am {fmtDateDE(o.created_at.slice(0, 10))}</span>
+                  <span className="block text-xs text-muted">Angemeldet am {fmtDateDE(o.consented_at.slice(0, 10))}</span>
                 </span>
                 <form action={confirmBroadcastOptin}>
                   <input type="hidden" name="id" value={o.id} />

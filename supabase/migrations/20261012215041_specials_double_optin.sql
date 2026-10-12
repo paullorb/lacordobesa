@@ -67,8 +67,19 @@ begin
 
   -- Already on the list, confirmed or still waiting for the guest's message, is a success, not an
   -- error: telling an anonymous caller "that number is already subscribed" would turn this endpoint
-  -- into a way to test whether a number is on the list. A guest whose first message never arrived
-  -- simply sends it again; the pending row is still there for staff to confirm.
+  -- into a way to test whether a number is on the list.
+  --
+  -- A sign-up still waiting for its message is renewed: the staff page only lists pending rows from
+  -- the last 30 days, so without this a guest who retries after that could never be confirmed. The
+  -- consent is given again, so its time and wording are the new ones. A confirmed row is left alone,
+  -- because its consent record is the evidence.
+  update public.broadcast_optins o
+     set consented_at = now(), consent_text = trim(p_consent_text), name = coalesce(v_name, o.name)
+   where o.channel = 'whatsapp' and o.unsubscribed_at is null and o.confirmed_at is null
+     and public.phone_key(o.phone) = public.phone_key(v_phone);
+  if found then
+    return;
+  end if;
   if exists (select 1 from public.broadcast_optins o
              where o.channel = 'whatsapp' and o.unsubscribed_at is null
                and public.phone_key(o.phone) = public.phone_key(v_phone)) then

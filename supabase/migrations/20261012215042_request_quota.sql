@@ -1,4 +1,4 @@
--- Per-visitor limits for the public forms.
+-- Per-visitor limits for the public forms, and the server's right to call the form RPCs.
 --
 -- The abuse limits inside request_reservation() and its siblings count per phone number and
 -- site-wide. A script that rotates phone numbers never trips the first, and the second then turns
@@ -55,3 +55,25 @@ end $$;
 -- public alone would leave them in place.
 revoke execute on function public.take_request_quota(text, int, int) from public, anon, authenticated;
 grant  execute on function public.take_request_quota(text, int, int) to service_role;
+
+-- Retention. The delete above only runs when somebody submits a form, so after the last submission
+-- of a quiet day the hashes would stay. The privacy policy promises 24 hours, so a job enforces it
+-- independently of traffic. Every 10 minutes keeps the longest stay at 24 hours and 10 minutes.
+create extension if not exists pg_cron with schema pg_catalog;
+grant usage on schema cron to postgres;
+grant all privileges on all tables in schema cron to postgres;
+-- cron.schedule() with an existing job name replaces that job, so re-running this is harmless.
+select cron.schedule(
+  'purge-request-quota',
+  '*/10 * * * *',
+  $$delete from public.request_quota where created_at < now() - interval '24 hours'$$
+);
+
+-- The Server Actions call the form RPCs with the secret key once it is configured. Supabase's
+-- default privileges already give service_role EXECUTE on these, but the grants that matter are
+-- written down rather than inherited from a platform default.
+grant execute on function public.request_reservation(text, text, text, int, date, time, text) to service_role;
+grant execute on function public.request_preorder(text, text, text, date, time, jsonb, text) to service_role;
+grant execute on function public.request_event_inquiry(text, text, text, text, text, date, int, text) to service_role;
+grant execute on function public.join_waitlist(text, text, text, date, int, text) to service_role;
+grant execute on function public.subscribe_broadcast(text, text, text, text, text) to service_role;
