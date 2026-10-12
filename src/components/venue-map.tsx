@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PinIcon } from "@/components/icons";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { legalHref } from "@/lib/legal-links";
@@ -25,6 +26,11 @@ export function VenueMap({ locale, query, label, openUrl }: Props) {
         />
       ) : (
         <div className="venue-map-consent">
+          {/* Until the real map is loaded, a drawn one: streets, the Ginnheimer Wäldchen the shop is
+              named after, and a pin where it stands. Nothing here is fetched from Google. */}
+          <span className="venue-map-pin" aria-hidden="true">
+            <PinIcon size={30} />
+          </span>
           <strong>{label}</strong>
           <p>
             {t.consentBefore}

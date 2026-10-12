@@ -74,3 +74,60 @@ export function repulgueTile() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${FOLD} ${height.toFixed(2)}"><path d="${d}" fill="none" stroke="#000" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
+
+/** An empanada drawn in line: the half-moon body, and the repulgue running along its curved edge.
+ *  The same curve as the straight repulgue, bent onto the arc, so the mark and the signature line
+ *  are visibly the same fold. Three strokes, each with pathLength 1, so the CSS can draw them in
+ *  one after the other (`.empanada-mark` in globals.css). Decorative. */
+export function EmpanadaMark({ className }: { className?: string }) {
+  const R = 120; // radius of the curved edge
+  const cx = 150;
+  const cy = 150;
+  const count = 30;
+  const arc = Math.PI * R;
+  const r = arc / count / (2 * Math.PI);
+  const amplitude = r * LOOP;
+
+  // Walk the arc from the left tip to the right one; the curve's own x becomes distance along the
+  // arc and its y becomes distance out from it, so the loops stand on the edge like crimps.
+  const crimp: string[] = [];
+  for (let i = 0; i <= count * STEPS; i++) {
+    const t = (i / STEPS) * 2 * Math.PI;
+    const out = -amplitude * Math.cos(t) - amplitude * 0.35;
+    const along = Math.min(arc, Math.max(0, r * (t - LOOP * Math.sin(t)) - SHEAR * out));
+    const theta = Math.PI - along / R;
+    const x = cx + (R + out) * Math.cos(theta);
+    const y = cy - (R + out) * Math.sin(theta);
+    crimp.push(`${x.toFixed(1)} ${y.toFixed(1)}`);
+  }
+  const inner = R - 2.6 * amplitude;
+
+  return (
+    <svg
+      className={`empanada-mark${className ? ` ${className}` : ""}`}
+      viewBox="0 0 300 190"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* The base: a shallow curve rather than a ruler line, the way dough sits on a tray. */}
+      <path
+        className="empanada-base"
+        d={`M${cx - R} ${cy} Q${cx} ${cy + 26} ${cx + R} ${cy}`}
+        pathLength={1}
+        strokeWidth={1.4}
+      />
+      <path
+        className="empanada-body"
+        d={`M${cx - inner} ${cy} A${inner} ${inner} 0 0 1 ${cx + inner} ${cy}`}
+        pathLength={1}
+        strokeWidth={1}
+        opacity={0.55}
+      />
+      <path className="empanada-crimp" d={`M${crimp.join("L")}`} pathLength={1} strokeWidth={1.4} />
+    </svg>
+  );
+}

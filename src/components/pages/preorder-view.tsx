@@ -67,6 +67,15 @@ export async function PreorderView({ locale }: { locale: Locale }) {
                   </a>
                   {t.closedAfter}
                 </p>
+                {/* The two ways that do work right now, as buttons rather than links in a sentence. */}
+                <div className="visit-actions">
+                  <a className="button" href={`tel:${CONTACT.phoneE164}`}>
+                    {getDictionary(locale).home.callLabel} <span aria-hidden="true">·</span> {CONTACT.phoneDisplay}
+                  </a>
+                  <a className="button secondary" href={whatsappHref()} target="_blank" rel="noreferrer">
+                    WhatsApp <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
               </div>
             )}
 

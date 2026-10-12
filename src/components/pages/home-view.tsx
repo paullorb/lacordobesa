@@ -7,7 +7,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
 import { PhotoStrip } from "@/components/photo-strip";
-import { Repulgue } from "@/components/repulgue";
+import { OpenStatus } from "@/components/open-status";
+import { EmpanadaMark, Repulgue } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
 import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
@@ -51,6 +52,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
     getHomePhotos(),
     getInstagramPosts(),
   ]);
+
+  // The open-now status runs in the browser, so it gets just the fields it reads.
+  const openingHours = hours.map(({ weekday, opens, closes, is_closed }) => ({ weekday, opens, closes, is_closed }));
 
   // Featured items on the home page; the full list lives behind each category.
   const featured = menu.flatMap((c) => c.items.filter((i) => i.is_featured).map((i) => ({ ...i, category: c })));
@@ -100,7 +104,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             </div>
           </div>
           <div className="hero-note">
-            <span>{t.heroNote}</span>
+            <OpenStatus hours={openingHours} locale={locale} />
             <Logo />
           </div>
         </section>
@@ -128,7 +132,18 @@ export async function HomeView({ locale }: { locale: Locale }) {
           <div className="intro-grid">
             <div className="intro-art">
               <Logo alt="La Cordobesa Pastelería Argentina" />
-              <span className="art-caption">{t.storyArtCaption}</span>
+              {/* The caption runs round the mark as a slowly turning ring, like the stamp on a box
+                  of alfajores. Decorative: the same words are not information of their own. */}
+              <svg className="art-ring" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+                <defs>
+                  <path id="art-ring-path" d="M200 200m-172 0a172 172 0 1 1 344 0a172 172 0 1 1 -344 0" />
+                </defs>
+                <text>
+                  <textPath href="#art-ring-path" textLength={1078} lengthAdjust="spacing">
+                    {`${t.storyArtCaption} · Pastelería Argentina · Frankfurt am Main · `}
+                  </textPath>
+                </text>
+              </svg>
             </div>
             <div className="intro-copy">
               <p className="eyebrow">{t.storyEyebrow}</p>
@@ -213,10 +228,12 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 <InstagramIcon /> {t.craftLink}
               </a>
             </div>
-            <div className="craft-tag">
-              <strong>{t.craftEyebrow}</strong>
-              <span>{t.craftTag}</span>
-            </div>
+            {/* The signature at full size: an empanada closed with its repulgue, drawn in as it
+                scrolls into view. It replaces a second copy of the hero photo. */}
+            <figure className="craft-art">
+              <EmpanadaMark />
+              <figcaption>{t.craftTag}</figcaption>
+            </figure>
           </div>
         </section>
 
@@ -283,6 +300,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                   </span>
                   <div>
                     <small>{t.visitHours}</small>
+                    <OpenStatus hours={openingHours} locale={locale} className="open-status-inline" />
                     <div className="hours">
                       {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
                         const h = hours.find((x) => x.weekday === wd);
