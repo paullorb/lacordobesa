@@ -16,6 +16,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcast_optins: {
+        Row: {
+          channel: Database["public"]["Enums"]["broadcast_channel"]
+          consent_text: string
+          consented_at: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          phone: string | null
+          source: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          channel: Database["public"]["Enums"]["broadcast_channel"]
+          consent_text: string
+          consented_at?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          source?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["broadcast_channel"]
+          consent_text?: string
+          consented_at?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          source?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       closures: {
         Row: {
           created_at: string
@@ -484,6 +529,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      subscribe_broadcast: {
+        Args: { p_channel: string; p_consent_text: string; p_email?: string; p_name?: string; p_phone?: string }
+        Returns: undefined
+      }
+      unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
       cancel_preorder_by_token: { Args: { p_token: string }; Returns: undefined }
       cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
       is_staff: { Args: never; Returns: boolean }
@@ -574,6 +624,7 @@ export type Database = {
       reservation_settings: { Args: never; Returns: Json }
     }
     Enums: {
+      broadcast_channel: "whatsapp" | "email"
       inquiry_status: "new" | "in_progress" | "quoted" | "won" | "lost"
       preorder_status:
         | "pending"

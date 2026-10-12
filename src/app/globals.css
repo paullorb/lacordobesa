@@ -215,6 +215,18 @@ a { color: inherit; }
 .form-note-box { padding: 1.2rem 1.4rem; background: var(--mint); font-size: .9rem; line-height: 1.7; }
 .form-note-box p { margin: 0; }
 
+/* Opt-in for the specials list, shown under the specials on the landing page. */
+.optin { display: grid; gap: 1.4rem; max-width: 720px; margin: 2.6rem auto 0; padding: 1.6rem 1.8rem; background: var(--mint); }
+.optin-copy h2 { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin: .2rem 0 .5rem; }
+.optin-copy p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.7; }
+.optin-fields { display: grid; gap: .8rem; }
+.optin-consent { display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: start; margin: 0; text-transform: none; letter-spacing: normal; }
+.optin-consent span { color: var(--muted); font-size: .74rem; line-height: 1.6; }
+.optin-done { display: block; }
+.optin-done strong { display: block; font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin-bottom: .4rem; }
+.optin-done p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.7; }
+@media (min-width: 720px) { .optin { grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; } .optin-done { grid-template-columns: 1fr; } }
+
 /* The waitlist, offered inside the wizard when a day is full. */
 .waitlist { margin-top: .4rem; border: 1px dashed var(--line); background: var(--paper); }
 .waitlist summary { cursor: pointer; padding: .7rem 1rem; font-size: .8rem; font-weight: 700; color: var(--blue-dark); }

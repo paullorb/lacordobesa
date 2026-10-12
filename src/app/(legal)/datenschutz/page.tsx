@@ -51,6 +51,29 @@ export default function DatenschutzPage() {
         Aufbewahrungspflichten entgegenstehen.
       </p>
 
+      <h2>3a. Vorbestellungen, Feier-Anfragen und Warteliste</h2>
+      <p>
+        Für Vorbestellungen zum Abholen, Anfragen zu Feiern und Catering sowie für die Warteliste gilt das Gleiche wie
+        für die Tischreservierung: Wir verarbeiten Name, Telefonnummer, optional E-Mail-Adresse und deine Angaben zur
+        Bestellung beziehungsweise zur Feier, um die Anfrage zu bearbeiten und dich zu erreichen. Rechtsgrundlage ist
+        Art. 6 Abs. 1 lit. b DSGVO. Speicherort und Auftragsverarbeitung entsprechen Abschnitt 3.
+      </p>
+
+      <h2>3b. Specials per WhatsApp oder E-Mail</h2>
+      <p>
+        Wenn du dich für unsere Specials anmeldest, speichern wir die von dir gewählte Kontaktmöglichkeit
+        (Handynummer oder E-Mail-Adresse), optional deinen Namen, den Zeitpunkt deiner Anmeldung und den Wortlaut der
+        Einwilligung, der dir beim Anmelden angezeigt wurde. Den Wortlaut speichern wir, um nachweisen zu können,
+        wozu genau du zugestimmt hast.
+      </p>
+      <p>
+        Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit widerrufen, ohne
+        Angabe von Gründen und ohne Nachteile: In jeder Nachricht steht ein Abmeldelink, der dich mit einem Klick
+        abmeldet. Nach dem Widerruf verschicken wir dir keine Specials mehr; die Angabe, dass und wann eine
+        Einwilligung erteilt und widerrufen wurde, bewahren wir als Nachweis auf. Deine Reservierungen und
+        Bestellungen bleiben von einer Abmeldung unberührt.
+      </p>
+
       <h2>4. Kontaktaufnahme</h2>
       <p>
         Wenn du uns per E-Mail, Telefon oder WhatsApp kontaktierst, verarbeiten wir deine Angaben zur Bearbeitung
