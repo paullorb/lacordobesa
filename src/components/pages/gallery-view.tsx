@@ -1,7 +1,7 @@
 import { GalleryGrid } from "@/components/gallery-grid";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { CONTACT, whatsappHref } from "@/lib/contact";
+import { whatsappHref } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { getAnnouncement, getGalleryItems } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
