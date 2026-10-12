@@ -226,8 +226,16 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
       DEFAULT_RESERVATION_SETTINGS.last_seating_minutes_before_close,
     ),
   };
-  if (reservations.slot_minutes < 5 || reservations.capacity_seats < 1 || reservations.max_party_size < 1) {
-    return { ok: false, error: "Bitte sinnvolle Werte eintragen." };
+  if (
+    reservations.slot_minutes < 5 ||
+    reservations.duration_minutes < 15 ||
+    reservations.capacity_seats < 1 ||
+    reservations.max_party_size < 1 ||
+    reservations.min_lead_hours < 0 ||
+    reservations.max_days_ahead < 1 ||
+    reservations.last_seating_minutes_before_close < 0
+  ) {
+    return { ok: false, error: "Bitte sinnvolle Werte eintragen (Dauer mindestens 15 Minuten, Raster mindestens 5)." };
   }
   const { error } = await supabase.from("site_settings").upsert([
     { key: "reservations", value: reservations },

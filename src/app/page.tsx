@@ -135,6 +135,27 @@ export default async function HomePage() {
                 </article>
               ))}
             </div>
+            <div className="full-menu">
+              {menu
+                .filter((c) => c.items.length > 0)
+                .map((c) => (
+                  <div className="full-menu-cat" key={c.id}>
+                    <h3>{c.label}</h3>
+                    <ul>
+                      {c.items.map((item) => (
+                        <li key={item.id}>
+                          <span>
+                            <strong>{item.name}</strong>
+                            {item.subtitle && <em> · {item.subtitle}</em>}
+                            {item.description && <small>{item.description}</small>}
+                          </span>
+                          {item.price_label && <span className="full-menu-price">{item.price_label}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+            </div>
             <p className="menu-note">
               Einige Spezialitäten und Tagesangebote können variieren. Frag uns gern nach der aktuellen Auswahl.{" "}
               <em>¡Buen provecho!</em>
