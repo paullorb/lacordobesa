@@ -113,6 +113,15 @@ hold, so `event_inquiries` is a pipeline (`new`, `in_progress`, `quoted`, `won`,
 nullable, because those are usually what the guest wants to discuss. Occasion and budget band are check-constrained to
 the sets in [`src/lib/events.ts`](src/lib/events.ts) so the staff list can group on them.
 
+Landing-page photos (migration `20261012101400`): the page shipped with one bundled JPEG and a gallery seeded with SVG
+illustrations, so the most appetising thing a restaurant has, its own photography, could not reach the page visitors
+land on. Staff now tick *"Auf der Startseite zeigen"* per photo for the strip, and *"Als Hauptbild"* for the large photo
+in *Besuch uns*. The hero is one choice, so it is `site_settings.hero.gallery_item_id` rather than a second flag two
+rows could both carry; if that photo is deleted the bundled JPEG comes back. The strip prefers the Instagram feed
+([`src/lib/instagram.ts`](src/lib/instagram.ts)) when `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID` are set, falls
+back to the featured photos, and is absent entirely when there is neither. An expired token hides the section rather
+than breaking the page.
+
 Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
 The seed rows point at illustrations in `public/assets/gallery/` — staff can delete them once real photos are in.
@@ -155,3 +164,6 @@ sent and the card reports "nicht konfiguriert".
 - Contact details are hardcoded in [`src/lib/contact.ts`](src/lib/contact.ts).
 - The allergen codes exist per dish, but nobody has filled them in yet: every dish still shows as undeclared in
   the staff menu editor.
+- There is still no real food photography. The gallery holds the seeded SVG illustrations, so the landing page shows
+  the bundled hero JPEG and no photo strip. This is the single highest-leverage thing left: the plumbing is done,
+  it needs photos.

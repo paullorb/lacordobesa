@@ -5,6 +5,7 @@ import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
+import { PhotoStrip } from "@/components/photo-strip";
 import { ShareButton } from "@/components/share-button";
 import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
@@ -17,11 +18,13 @@ import {
   fmtTime,
   getActiveSpecials,
   getAnnouncement,
+  getHomePhotos,
   getMenu,
   getOpeningHours,
   getReservationSettings,
   WEEKDAYS_DE,
 } from "@/lib/data";
+import { getInstagramPosts } from "@/lib/instagram";
 
 const ICONS: Record<string, string> = {
   vorspeise: "🫓",
@@ -38,12 +41,14 @@ const ICONS: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const [announcement, menu, specials, hours, reservation] = await Promise.all([
+  const [announcement, menu, specials, hours, reservation, photos, instagram] = await Promise.all([
     getAnnouncement(),
     getMenu(),
     getActiveSpecials(),
     getOpeningHours(),
     getReservationSettings(),
+    getHomePhotos(),
+    getInstagramPosts(),
   ]);
 
   // Featured items on the home page; the full list lives behind each category.
@@ -171,6 +176,8 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <PhotoStrip featured={photos.featured} posts={instagram} />
+
         <section className="craft">
           <div className="section craft-grid">
             <div>
@@ -291,8 +298,13 @@ export default async function HomePage() {
             </div>
             <a className="visit-photo" href={CONTACT.instagram} target="_blank" rel="noreferrer" aria-label="La Cordobesa auf Instagram besuchen">
               <Image
-                src="/assets/hero-pasteleria.jpg"
-                alt="Illustratives Stimmungsbild mit argentinischen Empanadas, Alfajores und Gebäck"
+                src={photos.hero?.image_url ?? "/assets/hero-pasteleria.jpg"}
+                alt={
+                  photos.hero?.caption ??
+                  (photos.hero
+                    ? "Foto aus dem Lokal von La Cordobesa"
+                    : "Illustratives Stimmungsbild mit argentinischen Empanadas, Alfajores und Gebäck")
+                }
                 fill
                 sizes="(max-width: 800px) 100vw, 55vw"
               />

@@ -8,6 +8,8 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
+  // Instagram media is served from scontent*.cdninstagram.com; next/image proxies it, but the
+  // optimizer still emits same-origin URLs, so only 'self' is needed here.
   "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self'",
@@ -37,9 +39,14 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   images: {
-    remotePatterns: supabaseHost
-      ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/gallery/**" }]
-      : [],
+    remotePatterns: [
+      ...(supabaseHost
+        ? [{ protocol: "https" as const, hostname: supabaseHost, pathname: "/storage/v1/object/public/gallery/**" }]
+        : []),
+      // Instagram serves media from per-region scontent hosts, so the hostname cannot be pinned to one.
+      { protocol: "https" as const, hostname: "*.cdninstagram.com" },
+      { protocol: "https" as const, hostname: "*.fbcdn.net" },
+    ],
   },
   experimental: {
     // Gallery uploads are resized in the browser to well under 5 MB before they reach the server action.
