@@ -27,7 +27,7 @@ export function SiteFooter() {
         <div className="copyright">
           © <Year /> La Cordobesa
           <br />
-          Con mucho amor, desde Frankfurt.
+          Con mucho ❤️, desde Frankfurt am Main.
         </div>
       </div>
     </footer>
