@@ -342,7 +342,7 @@ export default async function HomePage() {
 async function Year() {
   "use cache";
   cacheLife("days");
-  return <>{new Date().getFullYear()}</>;
+  return <>{todayISO().slice(0, 4)}</>;
 }
 
 /** Date-picker bounds. Baked into the static shell for up to an hour; the RPC re-validates anyway. */
