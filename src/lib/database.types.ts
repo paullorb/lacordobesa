@@ -1,5 +1,3 @@
-// Generated from the Supabase project schema. Regenerate after migrations:
-//   npx supabase gen types typescript --project-id iabpugtwgjqldlzjjgqj > src/lib/database.types.ts
 export type Json =
   | string
   | number
@@ -9,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.18"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -201,8 +219,8 @@ export type Database = {
           description_es: string | null
           id: string
           is_available: boolean
-          is_preorderable: boolean
           is_featured: boolean
+          is_preorderable: boolean
           name: string
           preorder_unit: string
           price_label: string | null
@@ -220,8 +238,8 @@ export type Database = {
           description_es?: string | null
           id?: string
           is_available?: boolean
-          is_preorderable?: boolean
           is_featured?: boolean
+          is_preorderable?: boolean
           name: string
           preorder_unit?: string
           price_label?: string | null
@@ -239,8 +257,8 @@ export type Database = {
           description_es?: string | null
           id?: string
           is_available?: boolean
-          is_preorderable?: boolean
           is_featured?: boolean
+          is_preorderable?: boolean
           name?: string
           preorder_unit?: string
           price_label?: string | null
@@ -311,6 +329,13 @@ export type Database = {
           unit_label?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "preorder_lines_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "preorder_lines_preorder_id_fkey"
             columns: ["preorder_id"]
@@ -443,21 +468,6 @@ export type Database = {
         }
         Relationships: []
       }
-      staff: {
-        Row: {
-          added_at: string
-          user_id: string
-        }
-        Insert: {
-          added_at?: string
-          user_id: string
-        }
-        Update: {
-          added_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       specials: {
         Row: {
           created_at: string
@@ -488,6 +498,21 @@ export type Database = {
           starts_on?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      staff: {
+        Row: {
+          added_at: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -538,13 +563,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      subscribe_broadcast: {
-        Args: { p_channel: string; p_consent_text: string; p_email?: string; p_name?: string; p_phone?: string }
+      cancel_preorder_by_token: {
+        Args: { p_token: string }
         Returns: undefined
       }
-      unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
-      cancel_preorder_by_token: { Args: { p_token: string }; Returns: undefined }
-      cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
+      cancel_reservation_by_token: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
       is_staff: { Args: never; Returns: boolean }
       join_waitlist: {
         Args: {
@@ -557,6 +583,29 @@ export type Database = {
         }
         Returns: undefined
       }
+      manage_token_valid: { Args: { p_token: string }; Returns: boolean }
+      move_reservation_by_token: {
+        Args: {
+          p_date: string
+          p_party_size: number
+          p_time: string
+          p_token: string
+        }
+        Returns: undefined
+      }
+      phone_key: { Args: { p: string }; Returns: string }
+      preorder_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          lines: Json
+          name: string
+          notes: string
+          pickup_date: string
+          pickup_time: string
+          status: Database["public"]["Enums"]["preorder_status"]
+        }[]
+      }
+      preorder_settings: { Args: never; Returns: Json }
       request_event_inquiry: {
         Args: {
           p_budget_band: string
@@ -570,10 +619,17 @@ export type Database = {
         }
         Returns: undefined
       }
-      manage_token_valid: { Args: { p_token: string }; Returns: boolean }
-      move_reservation_by_token: {
-        Args: { p_date: string; p_party_size: number; p_time: string; p_token: string }
-        Returns: undefined
+      request_preorder: {
+        Args: {
+          p_email: string
+          p_lines: Json
+          p_name: string
+          p_notes?: string
+          p_phone: string
+          p_pickup_date: string
+          p_pickup_time: string
+        }
+        Returns: string
       }
       request_reservation: {
         Args: {
@@ -594,36 +650,12 @@ export type Database = {
           slot: string
         }[]
       }
-      preorder_by_token: {
-        Args: { p_token: string }
-        Returns: {
-          lines: Json
-          name: string
-          notes: string | null
-          pickup_date: string
-          pickup_time: string
-          status: Database["public"]["Enums"]["preorder_status"]
-        }[]
-      }
-      preorder_settings: { Args: never; Returns: Json }
-      request_preorder: {
-        Args: {
-          p_email: string
-          p_lines: Json
-          p_name: string
-          p_notes?: string
-          p_phone: string
-          p_pickup_date: string
-          p_pickup_time: string
-        }
-        Returns: string
-      }
       reservation_by_token: {
         Args: { p_token: string }
         Returns: {
           changes_left: number
           name: string
-          notes: string | null
+          notes: string
           party_size: number
           res_date: string
           start_time: string
@@ -631,6 +663,17 @@ export type Database = {
         }[]
       }
       reservation_settings: { Args: never; Returns: Json }
+      subscribe_broadcast: {
+        Args: {
+          p_channel: string
+          p_consent_text: string
+          p_email?: string
+          p_name?: string
+          p_phone?: string
+        }
+        Returns: undefined
+      }
+      unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
     }
     Enums: {
       broadcast_channel: "whatsapp" | "email"
@@ -647,7 +690,12 @@ export type Database = {
         | "cancelled"
         | "no_show"
         | "completed"
-      waitlist_status: "waiting" | "notified" | "converted" | "expired" | "cancelled"
+      waitlist_status:
+        | "waiting"
+        | "notified"
+        | "converted"
+        | "expired"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -663,12 +711,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -692,11 +740,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -717,11 +765,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -742,11 +790,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -759,11 +807,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -773,8 +821,20 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      broadcast_channel: ["whatsapp", "email"],
+      inquiry_status: ["new", "in_progress", "quoted", "won", "lost"],
+      preorder_status: [
+        "pending",
+        "confirmed",
+        "ready",
+        "collected",
+        "cancelled",
+      ],
       reservation_status: [
         "pending",
         "confirmed",
@@ -782,6 +842,14 @@ export const Constants = {
         "no_show",
         "completed",
       ],
+      waitlist_status: [
+        "waiting",
+        "notified",
+        "converted",
+        "expired",
+        "cancelled",
+      ],
     },
   },
 } as const
+

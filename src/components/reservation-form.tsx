@@ -29,6 +29,11 @@ type Step = 1 | 2 | 3 | 4;
 
 const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 
+/** How many days step 1 offers before asking. Two weeks is the horizon most people book inside, and
+ *  showing every day up to max_days_ahead (30 by default) opens with two months of tiles to scroll
+ *  past. The rest is one tap away, so nothing is actually hidden. */
+const FIRST_DAYS = 14;
+
 export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closedWeekdays, phoneHref, phoneLabel }: Props) {
   const t = getDictionary(locale).reservation;
   // Monday first in all three languages: the calendar grid is built that way, and a German, Spanish
@@ -46,6 +51,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   const [contact, setContact] = useState({ name: "", phone: "", email: "", notes: "" });
   // Date + time the last submit was made for, so a slot error stops showing once the guest picks another slot.
   const [attempt, setAttempt] = useState("");
+  const [showAllDays, setShowAllDays] = useState(false);
   const [loading, startLoading] = useTransition();
   const request = useRef(0);
 
@@ -109,7 +115,9 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   const selectedSlot = slots.find((s) => s.time === time);
   const maxForSlot = Math.min(maxPartySize, selectedSlot?.seatsLeft ?? maxPartySize);
   const bookable = slots.filter((s) => s.seatsLeft > 0);
-  const months = calendarMonths(minDate, maxDate, monthLong);
+  const months = calendarMonths(minDate, maxDate, monthLong, showAllDays ? undefined : FIRST_DAYS);
+  const totalDays = countDays(minDate, maxDate);
+  const truncated = !showAllDays && totalDays > FIRST_DAYS;
   // Every slot exists but none has a free seat: the day is full, which is the one blocker a waitlist
   // can do something about. "Ruhetag" or "zu kurzfristig" are not helped by waiting.
   const fullyBooked = slots.length > 0 && bookable.length === 0;
@@ -184,6 +192,11 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
               </div>
             ))}
           </div>
+          {truncated && (
+            <button type="button" className="text-button more-dates" onClick={() => setShowAllDays(true)}>
+              {t.moreDates} <span aria-hidden="true">↓</span>
+            </button>
+          )}
           {loading && <p className="form-note">{t.loading}</p>}
           {!loading && blocker && (
             <p className="form-note" role="status">
@@ -362,15 +375,24 @@ type CalendarMonth = { key: string; label: string; pad: number; days: string[] }
  * One Monday-first calendar block per month touched by `minDate`..`maxDate`. Only bookable days get a
  * tile; `pad` is the width of the empty run before the first one, so the weekday columns line up.
  */
-function calendarMonths(minDate: string, maxDate: string, monthLong: Intl.DateTimeFormat): CalendarMonth[] {
+function calendarMonths(
+  minDate: string,
+  maxDate: string,
+  monthLong: Intl.DateTimeFormat,
+  limit?: number,
+): CalendarMonth[] {
   const months: CalendarMonth[] = [];
   let cursor = minDate.slice(0, 7);
+  let budget = limit ?? Number.POSITIVE_INFINITY;
   while (cursor <= maxDate.slice(0, 7)) {
     const [year, month] = cursor.split("-").map(Number);
     const days: string[] = [];
     for (let day = 1; day <= new Date(Date.UTC(year, month, 0)).getUTCDate(); day++) {
       const iso = `${cursor}-${String(day).padStart(2, "0")}`;
-      if (iso >= minDate && iso <= maxDate) days.push(iso);
+      if (iso >= minDate && iso <= maxDate && budget > 0) {
+        days.push(iso);
+        budget--;
+      }
     }
     if (days.length > 0) {
       months.push({
@@ -383,6 +405,11 @@ function calendarMonths(minDate: string, maxDate: string, monthLong: Intl.DateTi
     cursor = month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, "0")}`;
   }
   return months;
+}
+
+/** Days in the whole bookable range, so step 1 knows whether it is hiding any. */
+function countDays(minDate: string, maxDate: string) {
+  return Math.floor((Date.parse(`${maxDate}T00:00:00Z`) - Date.parse(`${minDate}T00:00:00Z`)) / 86_400_000) + 1;
 }
 
 function unavailableMessage(
