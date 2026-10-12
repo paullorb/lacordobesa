@@ -15,6 +15,7 @@ export const en: Dictionary = {
     gallery: "Gallery",
     visit: "Visit us",
     write: "Message us",
+    skipToContent: "Skip to content",
     reserve: "Book a table",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -90,6 +91,14 @@ export const en: Dictionary = {
     instagramAria: "Visit La Cordobesa on Instagram",
     weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     shareText: "Argentine empanadas, alfajores and cakes, homemade in Frankfurt am Main.",
+  },
+  notFound: {
+    title: "This page does not exist",
+    eyebrow: "Perdón",
+    text: "Maybe a typo crept in, or the page has moved. Here is the way back:",
+    home: "Go to the home page",
+    menu: "Menu",
+    reserve: "Book a table",
   },
   photos: {
     eyebrow: "Así se ve",

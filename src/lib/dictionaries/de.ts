@@ -16,6 +16,7 @@ export const de = {
     gallery: "Galerie",
     visit: "Besuch uns",
     write: "Schreib uns",
+    skipToContent: "Zum Inhalt springen",
     reserve: "Reservieren",
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
@@ -92,6 +93,14 @@ export const de = {
     instagramAria: "La Cordobesa auf Instagram besuchen",
     weekdays: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
     shareText: "Argentinische Empanadas, Alfajores und Kuchen, hausgemacht in Frankfurt am Main.",
+  },
+  notFound: {
+    title: "Diese Seite gibt es nicht",
+    eyebrow: "Perdón",
+    text: "Vielleicht hat sich ein Tippfehler eingeschlichen, oder die Seite ist umgezogen. Hier geht es zurück:",
+    home: "Zur Startseite",
+    menu: "Carta / Karte",
+    reserve: "Tisch reservieren",
   },
   photos: {
     eyebrow: "Así se ve",

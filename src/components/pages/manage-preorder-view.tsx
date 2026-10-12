@@ -24,7 +24,7 @@ export function ManagePreorderView({
       <Suspense fallback={null}>
         <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
       </Suspense>
-      <main>
+      <main id="main">
         <section className="section">
           <div className="manage-shell">
             <div className="section-heading">

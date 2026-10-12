@@ -54,9 +54,10 @@ a { color: inherit; }
 .menu-toggle svg { display: block; transition: transform .2s; }
 .menu-close { font-size: 2rem; line-height: 1; }
 .hero { width: min(1392px, calc(100% - 48px)); min-height: 640px; margin: 24px auto 0; overflow: hidden; position: relative; border-radius: 8px; display: flex; align-items: center; background: #263b42; }
-.hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,35,45,.91) 0%, rgba(13,35,45,.77) 34%, rgba(13,35,45,.18) 77%, rgba(13,35,45,.04) 100%), url("/assets/hero-pasteleria.jpg") center / cover; }
-.hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(14,35,45,.3), transparent 35%); pointer-events: none; }
-.hero-content { z-index: 1; position: relative; max-width: 680px; padding: 5.5rem 4rem; color: var(--paper); }
+.hero-image { position: absolute; inset: 0; z-index: 0; object-fit: cover; }
+.hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(13,35,45,.91) 0%, rgba(13,35,45,.77) 34%, rgba(13,35,45,.18) 77%, rgba(13,35,45,.04) 100%); }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(14,35,45,.3), transparent 35%); pointer-events: none; }
+.hero-content { z-index: 2; position: relative; max-width: 680px; padding: 5.5rem 4rem; color: var(--paper); }
 .eyebrow { display: flex; align-items: center; gap: .65rem; margin: 0 0 1.3rem; color: #b8e5f7; font-size: .65rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--coral); }
 .site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; }
@@ -65,7 +66,7 @@ a { color: inherit; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .button.button-light { color: var(--ink); background: var(--paper); }
 .text-link { color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.56); padding: .55rem 0; font-size: .77rem; font-weight: 600; }
-.hero-note { position: absolute; z-index: 2; right: 30px; bottom: 28px; display: flex; align-items: center; gap: .65rem; color: white; font-size: .69rem; letter-spacing: .06em; }
+.hero-note { position: absolute; z-index: 3; right: 30px; bottom: 28px; display: flex; align-items: center; gap: .65rem; color: white; font-size: .69rem; letter-spacing: .06em; }
 .hero-note img { width: 59px; filter: drop-shadow(0 5px 12px #142c37aa); }
 .marquee { overflow: hidden; border-bottom: 1px solid var(--line); }
 .marquee-inner { display: flex; justify-content: center; flex-wrap: wrap; gap: .8rem 2rem; padding: 1.15rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: .95rem; font-style: italic; }
@@ -353,7 +354,9 @@ a { color: inherit; }
   .site-nav a:not(.nav-cta) { padding: .9rem 0; border-bottom: 1px solid var(--line); }
   .site-nav .nav-cta { margin-top: 1rem; justify-content: center; border: 0; }
   .hero { width: calc(100% - 24px); min-height: 630px; margin-top: 12px; }
-  .hero::before { background-position: 58% center; background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)), url("/assets/hero-pasteleria.jpg"); }
+  /* Narrow screens need a heavier wash for the text to hold up; the photo itself is the <img>. */
+  .hero::before { background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)); }
+  .hero-image { object-position: 58% center; }
   .hero-content { padding: 4rem 2rem; }
   .section { width: calc(100% - 40px); padding: 82px 0; }
   .intro-grid, .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
@@ -399,6 +402,28 @@ a { color: inherit; }
   .nav-actions { gap: .3rem; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+/* ------------------------------------------------------------------ 404 */
+.not-found { max-width: 620px; margin: 0 auto; text-align: center; }
+.not-found .eyebrow { justify-content: center; color: var(--blue-dark); }
+.not-found-code { margin: 0; font-family: var(--serif); font-size: clamp(4.5rem, 14vw, 8rem); line-height: 1; color: var(--line); }
+.not-found h1 { margin: 1rem 0 1.1rem; font-size: clamp(1.9rem, 4vw, 2.8rem); }
+.not-found-text { margin: 0 0 2rem; color: var(--muted); line-height: 1.8; }
+.not-found-actions { justify-content: center; }
+.not-found-reserve { color: var(--ink); border-bottom-color: var(--line); }
+
+/* ------------------------------------------------------------------ focus and skip link */
+/* :focus-visible only, so a mouse click never paints a ring, but every keyboard and switch user
+   can always see where they are. Two colours because the ring has to survive both the cream page
+   and the dark hero. */
+:focus-visible { outline: 3px solid var(--blue-dark); outline-offset: 2px; border-radius: 4px; }
+.hero :focus-visible, .craft :focus-visible, .site-footer :focus-visible, .announcement :focus-visible {
+  outline-color: #9ed8f2;
+}
+
+/* Off-screen until focused, then the first thing on the page. */
+.skip-link { position: absolute; left: 50%; top: 0; z-index: 50; transform: translate(-50%, -150%); padding: .7rem 1.3rem; border-radius: 0 0 8px 8px; background: var(--ink); color: #fffdf8; font-size: .8rem; font-weight: 700; text-decoration: none; transition: transform .18s ease; }
+.skip-link:focus-visible { transform: translate(-50%, 0); }
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }

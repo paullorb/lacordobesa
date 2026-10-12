@@ -35,6 +35,10 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
 
   return (
     <header className="site-header">
+      {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
+      <a className="skip-link" href="#main">
+        {t.nav.skipToContent}
+      </a>
       <div className="nav">
         <Link className="brand" href={href("/")} aria-label={t.nav.home}>
           <Logo />
