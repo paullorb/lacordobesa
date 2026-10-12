@@ -100,7 +100,7 @@ const BY_ITEM: Record<string, IconSpec> = {
 };
 
 /** The glyph chosen for a dish, or null when it is not one of the items on the card. */
-export function menuIconFor(itemName: string): IconSpec | null {
+function menuIconFor(itemName: string): IconSpec | null {
   return BY_ITEM[itemName.trim().toLowerCase()] ?? null;
 }
 
