@@ -30,8 +30,11 @@ export async function CateringView({ locale }: { locale: Locale }) {
             </div>
 
             <ul className="idea-grid">
-              {t.ideas.map((idea) => (
+              {t.ideas.map((idea, i) => (
                 <li key={idea.title}>
+                  <span className="idea-num" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <h2>{idea.title}</h2>
                   <p>{idea.text}</p>
                 </li>

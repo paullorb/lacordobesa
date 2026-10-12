@@ -105,6 +105,16 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .text-link { color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.56); padding: .55rem 0; font-size: var(--fs-sm); font-weight: 600; }
 .hero-note { position: absolute; z-index: 3; right: 30px; bottom: 28px; display: flex; align-items: center; gap: .65rem; color: white; font-size: var(--fs-xs); letter-spacing: .06em; }
 .hero-note img { width: 59px; filter: drop-shadow(0 5px 12px #142c37aa); }
+/* Open now, or when next: a small status pill. Green open, amber later today, coral closed. */
+.open-status { display: inline-flex; align-items: center; gap: .55rem; margin: 0; }
+.open-status[data-state="pending"] { visibility: hidden; }
+.open-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.open-status[data-state="open"] .open-dot { background: #4cc38a; }
+.open-status[data-state="later"] .open-dot { background: #f2c14e; }
+.open-status[data-state="closed"] .open-dot { background: var(--coral); }
+.hero-note .open-status { padding: .5rem .9rem; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; background: rgba(13,35,45,.45); backdrop-filter: blur(10px); font-size: var(--fs-sm); letter-spacing: .01em; }
+.open-status-inline { margin: .1rem 0 .7rem; font-size: var(--fs-sm); font-weight: 600; }
+.open-status-inline[data-state="open"] .open-dot { background: #2e9d68; }
 .marquee { overflow: hidden; border-bottom: 1px solid var(--line); }
 /* Two identical copies side by side; sliding the track exactly half its width lands copy two where
    copy one started, so the loop has no seam. The second copy is aria-hidden in the markup. */
@@ -123,13 +133,15 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .intro-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 5rem; align-items: center; }
 .intro-art { position: relative; min-height: 420px; border-radius: 48% 48% 8px 8px; background: #a8d7e8; display: grid; place-items: center; overflow: hidden; }
 .intro-art::before { content: ""; position: absolute; width: 300px; height: 300px; border: 1px solid rgba(255,255,255,.65); border-radius: 50%; }
-.intro-art::after { content: ""; position: absolute; width: 365px; height: 365px; border: 1px dashed rgba(255,255,255,.55); border-radius: 50%; }
+
 .intro-art img { z-index: 1; width: 195px; filter: drop-shadow(0 12px 12px rgba(14,64,82,.15)); }
-.art-caption { position: absolute; z-index: 2; bottom: 27px; color: #16546a; font-family: var(--serif); font-size: var(--fs-base); font-style: italic; }
+.art-ring { position: absolute; z-index: 1; top: 50%; left: 50%; width: min(400px, 96%); height: auto; aspect-ratio: 1; translate: -50% -50%; overflow: visible; fill: #16546a; font-family: var(--serif); font-size: 17px; font-style: italic; letter-spacing: .02em; }
 .intro-copy .eyebrow { color: var(--blue-dark); }
 .intro-copy h2 { max-width: 500px; }
 .intro-copy > p:not(.eyebrow) { max-width: 570px; color: var(--muted); font-size: var(--fs-base); line-height: 1.75; }
 .intro-copy .signature { margin: 1.8rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; color: var(--blue-dark); }
+/* Tailwind's base resets every paragraph margin, which ran the story's two paragraphs together. */
+.intro-copy > p:not(.eyebrow) + p { margin-top: 1em; }
 .menu-section { width: 100%; padding: 110px 24px; background: var(--mint); }
 .menu-section .inner { width: min(1120px, 100%); margin: auto; }
 .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
@@ -179,15 +191,16 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .special strong { display: block; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
 .special p { margin: .25rem 0 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; }
 .craft { position: relative; overflow: hidden; background: var(--ink); color: var(--paper); }
-.craft::after { content: ""; position: absolute; inset: 0 0 0 56%; background: url("/assets/hero-pasteleria.jpg") center / cover; opacity: .2; mask-image: linear-gradient(90deg, transparent, #000 65%); }
+.craft::after { content: ""; position: absolute; inset: -30% -20% -30% 45%; background: radial-gradient(closest-side, rgba(82,168,210,.18), transparent); pointer-events: none; }
 .craft .section { position: relative; z-index: 1; padding-top: 92px; padding-bottom: 92px; }
 .craft-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 4rem; align-items: center; }
 .craft .eyebrow { color: #a8dff5; }
 .craft h2 { max-width: 590px; }
 .craft p:not(.eyebrow) { max-width: 600px; color: rgba(255,253,248,.76); font-size: var(--fs-base); line-height: 1.75; }
-.craft-tag { padding: 1.5rem; border: 1px solid rgba(255,255,255,.3); max-width: 280px; transform: rotate(3deg); }
-.craft-tag strong { display: block; font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 500; }
-.craft-tag span { display: block; margin-top: .6rem; font-size: var(--fs-xs); letter-spacing: .15em; text-transform: uppercase; color: #b5e3f4; }
+.craft-art { margin: 0; justify-self: center; width: min(380px, 100%); text-align: center; color: var(--coral); }
+.empanada-mark { display: block; width: 100%; height: auto; overflow: visible; }
+.empanada-base, .empanada-body { stroke: rgba(255,253,248,.75); }
+.craft-art figcaption { margin-top: 1.4rem; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: #b5e3f4; }
 .visit { display: grid; grid-template-columns: .95fr 1.05fr; gap: 4rem; align-items: start; }
 .visit-intro { color: var(--muted); line-height: 1.8; font-size: var(--fs-base); }
 .visit-card { padding: 2.4rem; background: var(--paper); border: 1px solid var(--line); }
@@ -325,10 +338,11 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .waitlist-done p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.7; }
 
 /* /catering: the three things we can do for a feier. */
-.idea-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
-.idea-grid li { padding: 1.1rem 1.2rem; background: var(--paper); border-top: 3px solid var(--coral); }
-.idea-grid h2 { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; margin: 0 0 .4rem; }
-.idea-grid p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.65; }
+.idea-grid { list-style: none; margin: 0 0 3rem; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.idea-grid li { display: grid; grid-template-columns: 3rem minmax(9rem, 13rem) 1fr; gap: .3rem 1.5rem; align-items: baseline; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
+.idea-num { color: var(--coral); font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; }
+.site .idea-grid h2 { margin: 0; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; line-height: 1.2; letter-spacing: -.01em; }
+.idea-grid p { margin: 0; color: var(--muted); font-size: var(--fs-base); line-height: 1.65; }
 
 /* /reservierung/<token>: the guest's own view of one booking. */
 .manage-shell { max-width: 620px; margin: 0 auto; display: grid; gap: 1.6rem; }
@@ -383,16 +397,28 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 
 .venue-map { margin-top: 3rem; min-height: 420px; position: relative; border: 1px solid var(--line); background: var(--mint); overflow: hidden; }
 .venue-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.venue-map-consent { min-height: 420px; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: .9rem; background: linear-gradient(135deg, var(--mint), var(--paper)); }
+.venue-map-consent { --map-veil: linear-gradient(90deg, var(--paper) 0%, rgba(255,253,248,.93) 40%, rgba(255,253,248,0) 70%); position: relative; min-height: 420px; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: .9rem;
+  background:
+    var(--map-veil),
+    radial-gradient(ellipse 20% 34% at 84% 24%, rgba(110,165,120,.32), transparent 72%),
+    linear-gradient(116deg, transparent calc(58% - 6px), #fff calc(58% - 6px) calc(58% + 6px), transparent calc(58% + 6px)),
+    repeating-linear-gradient(26deg, transparent 0 56px, rgba(255,255,255,.95) 56px 59px),
+    repeating-linear-gradient(-64deg, transparent 0 88px, rgba(255,255,255,.95) 88px 91px),
+    var(--mint); }
+.venue-map-consent > :not(.venue-map-pin) { position: relative; z-index: 1; }
+.venue-map-pin { position: absolute; left: 74%; top: 46%; translate: -50% -100%; color: var(--coral); filter: drop-shadow(0 6px 8px rgba(21,47,59,.25)); }
+.venue-map-pin::after { content: ""; position: absolute; left: 50%; top: 100%; width: 14px; height: 6px; translate: -50% -50%; border-radius: 50%; background: rgba(21,47,59,.25); }
 .venue-map-consent strong { font-family: var(--serif); font-size: var(--fs-xl); }
 .venue-map-consent p { max-width: 520px; margin: 0; color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
 .venue-map-consent a:not(.button) { color: var(--blue-dark); }
 
 .gallery-filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.6rem; }
-.gallery-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.gallery-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; grid-auto-flow: dense; }
+.gallery-grid > li:first-child { grid-column: span 2; grid-row: span 2; }
+.gallery-grid > li:first-child .gallery-tile { height: 100%; aspect-ratio: auto; }
 .gallery-tile { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border: 0; overflow: hidden; background: var(--mint); cursor: zoom-in; }
 .gallery-tile img { object-fit: cover; transition: transform .4s; }
-.gallery-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.6rem .9rem .7rem; text-align: left; color: #fff; font-size: var(--fs-sm); background: linear-gradient(transparent, rgba(13,35,45,.75)); }
+.gallery-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.6rem .9rem .75rem; text-align: left; color: #fff; font-size: var(--fs-sm); background: linear-gradient(transparent, rgba(13,35,45,.9)); text-shadow: 0 1px 2px rgba(0,0,0,.3); }
 .lightbox { width: min(1000px, 100vw); max-width: 100vw; max-height: 100dvh; margin: auto; padding: 0; border: 0; background: transparent; color: #fff; overflow: visible; }
 .lightbox::backdrop { background: rgba(10,24,31,.88); }
 .lightbox figure { margin: 0; }
@@ -418,6 +444,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .button.button-light:hover { background: #d8eef8; }
   .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
   .menu-index a:hover { background: var(--ink); color: var(--paper); }
+  .site-footer .footer-links a:hover { background-size: 100% 1px; }
   .footer-links a:hover, .footer-col a:hover, .footer-legal a:hover { color: #9ed8f2; }
   .contact-row a:hover { color: var(--blue-dark); }
   .visit-actions .button.secondary:hover { background: var(--mint); }
@@ -449,7 +476,14 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
      one layer below it, so the bar with the close button stays bright. */
   .nav-backdrop { position: fixed; inset: 0; z-index: 9; background: rgba(21,47,59,.42); }
 }
-@media (min-width: 1321px) { .nav-backdrop { display: none; } }
+@media (min-width: 1321px) {
+  .nav-backdrop { display: none; }
+  /* An underline that draws in from the left on hover and stays under the page being shown. */
+  .site-nav a:not(.nav-cta) { padding: .3rem 0; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: color .2s, background-size .35s cubic-bezier(.2,.7,.2,1); }
+  .site-nav a:not(.nav-cta):hover, .site-nav a[aria-current="page"] { background-size: 100% 1px; }
+}
+.site-nav a[aria-current="page"] { color: var(--blue-dark); }
+.footer-links a { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: color .2s, background-size .35s cubic-bezier(.2,.7,.2,1); }
 @media (max-width: 1320px) and (prefers-reduced-motion: no-preference) {
   .site-nav.open { animation: nav-drop .22s cubic-bezier(.22,.61,.36,1) both; }
   .nav-backdrop { animation: nav-fade .22s ease both; }
@@ -474,10 +508,19 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .menu-grid { grid-template-columns: 1fr 1fr; }
   .menu-card:nth-child(n) { margin-top: 0; }
   .craft-grid, .visit { grid-template-columns: 1fr; gap: 2.5rem; }
-  .craft-tag { max-width: none; }
+  /* minmax(0, …): a plain 1fr cannot shrink below its longest unbreakable line (the email address),
+     which pushed the visit section 13px past a phone screen and made the browser zoom the page out. */
+  .visit { grid-template-columns: minmax(0, 1fr); }
+  .contact-row a { overflow-wrap: anywhere; }
+  .craft-art { width: min(300px, 100%); }
   .visit-photo { min-height: 390px; }
 }
 @media (max-width: 520px) {
+  .idea-grid li { grid-template-columns: 2.4rem 1fr; }
+  .idea-grid p { grid-column: 2; }
+  /* On a phone the text runs the full width, so the veil runs top to bottom instead. */
+  .venue-map-consent { --map-veil: linear-gradient(180deg, rgba(255,253,248,.95) 0%, rgba(255,253,248,.9) 62%, rgba(255,253,248,.2) 100%); justify-content: flex-start; }
+  .venue-map-pin { left: 78%; top: 88%; }
   .announcement { font-size: var(--fs-xs); }
   .brand img { width: 46px; height: 46px; }
   .brand-copy strong { font-size: var(--fs-base); }
@@ -616,6 +659,23 @@ body::after {
     }
   }
 }
+/* The rest of the signature in motion: the ring round the story mark turns, the open dot breathes,
+   and the craft section's empanada is drawn base first, then body, then its repulgue. */
+@media (prefers-reduced-motion: no-preference) {
+  .art-ring { animation: ring-turn 60s linear infinite; }
+  .open-status[data-state="open"] .open-dot { animation: dot-breathe 2.4s ease-in-out infinite; }
+  @supports (animation-timeline: view()) {
+    .empanada-mark { view-timeline: --empanada; }
+    .empanada-mark path { stroke-dasharray: 1 2; animation: repulgue-draw linear both; animation-timeline: --empanada; }
+    /* Qualified like the rule above, which sets the shorthand and would otherwise reset the range. */
+    .empanada-mark .empanada-base { animation-range: entry 5% cover 30%; }
+    .empanada-mark .empanada-body { animation-range: entry 20% cover 40%; }
+    .empanada-mark .empanada-crimp { animation-range: entry 30% cover 55%; }
+  }
+}
+@keyframes ring-turn { to { rotate: 360deg; } }
+@keyframes dot-breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(76,195,138,.55); } 60% { box-shadow: 0 0 0 7px rgba(76,195,138,0); } }
+
 /* Where there is a pointer, a menu card is crimped shut as it is hovered. On touch it is simply drawn. */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .menu-card-edge path { stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1); }

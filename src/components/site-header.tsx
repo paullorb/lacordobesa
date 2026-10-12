@@ -104,8 +104,10 @@ function SectionLink({ href, className, children }: SectionLinkProps) {
   const [path, hash] = href.split("#");
 
   if (!hash || path !== pathname) {
+    // A page link (no #section) says when it is the page being shown, which both reads out to a
+    // screen reader and lets the nav underline where the visitor is.
     return (
-      <Link className={className} href={href}>
+      <Link className={className} href={href} aria-current={!hash && path === pathname ? "page" : undefined}>
         {children}
       </Link>
     );
