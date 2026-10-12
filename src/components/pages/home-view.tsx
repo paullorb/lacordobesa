@@ -64,7 +64,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
     <div className="site" lang={locale}>
       <JsonLd data={restaurantJsonLd(hours)} />
       {announcement && <div className="announcement">{announcement}</div>}
-      <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} locale={locale} path={HOME_PATH} />
+      <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
 
       <main id="start">
         <section className="hero" aria-labelledby="hero-title">
@@ -198,6 +198,15 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <div className="reserve-copy">
               <p className="eyebrow">{t.reserveEyebrow}</p>
               <h2>{t.reserveTitle}</h2>
+              {/* The phone sits here rather than in the navbar: the moment somebody wants to call is
+                  the moment they are halfway through picking a date and would rather just ask. */}
+              <a className="reserve-call" href={`tel:${CONTACT.phoneE164}`}>
+                <span aria-hidden="true">☎</span>
+                <span>
+                  {t.reserveCallPrefix}
+                  <strong>{CONTACT.phoneDisplay}</strong>
+                </span>
+              </a>
             </div>
             {reservation.enabled ? (
               <ReservationForm

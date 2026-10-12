@@ -44,7 +44,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
     <div className="site" lang={locale}>
       <JsonLd data={menuJsonLd(menu)} />
       {announcement && <div className="announcement">{announcement}</div>}
-      <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} locale={locale} path={MENU_PATH} />
+      <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />
 
       <main>
         <section className="menu-section">

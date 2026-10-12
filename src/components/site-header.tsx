@@ -9,11 +9,11 @@ import { Logo } from "@/components/logo";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 
-type Props = { whatsappHref: string; phoneHref: string; locale: Locale; path?: string };
+type Props = { whatsappHref: string; locale: Locale; path?: string };
 
 /** `path` is the locale-independent path of the current page ("/karte"), which the language switch
  *  needs to offer the same page in another language rather than always sending people home. */
-export function SiteHeader({ whatsappHref, phoneHref, locale, path = "/" }: Props) {
+export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
   const [open, setOpen] = useState(false);
   const t = getDictionary(locale);
   const href = (p: string) => localeHref(locale, p);
@@ -55,10 +55,6 @@ export function SiteHeader({ whatsappHref, phoneHref, locale, path = "/" }: Prop
           <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
         </nav>
         <div className="nav-actions">
-          <a className="nav-call" href={phoneHref} aria-label={t.nav.call}>
-            <span aria-hidden="true">☎</span>
-            <span className="nav-call-label">{t.nav.call}</span>
-          </a>
           <SectionLink className="nav-cta nav-reserve" href={href("/#reservieren")}>
             {t.nav.reserve}
           </SectionLink>

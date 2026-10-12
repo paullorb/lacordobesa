@@ -22,7 +22,7 @@ export function ManagePreorderView({
   return (
     <div className="site" lang={locale}>
       <Suspense fallback={null}>
-        <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} locale={locale} path="/" />
+        <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
       </Suspense>
       <main>
         <section className="section">

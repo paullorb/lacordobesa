@@ -18,7 +18,7 @@ export async function GalleryView({ locale }: { locale: Locale }) {
     // told through the hreflang alternates in each page's metadata.
     <div className="site" lang={locale}>
       {announcement && <div className="announcement">{announcement}</div>}
-      <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} locale={locale} path={GALLERY_PATH} />
+      <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={GALLERY_PATH} />
 
       <main>
         <section className="menu-section gallery-section">

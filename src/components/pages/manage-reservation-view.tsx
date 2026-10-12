@@ -26,7 +26,7 @@ export function ManageReservationView({
       {/* SiteHeader reads usePathname() to decide how to link its in-page anchors, which is URL data
           and so needs its own boundary on a dynamic route. */}
       <Suspense fallback={null}>
-        <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} locale={locale} path="/" />
+        <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
       </Suspense>
       <main>
         <section className="section">

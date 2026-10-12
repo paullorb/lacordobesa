@@ -50,7 +50,6 @@ a { color: inherit; }
 .nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: .75rem; font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s; }
 .button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .nav-actions { display: flex; align-items: center; gap: .6rem; }
-.nav-call { display: inline-flex; min-height: 46px; padding: 0 1.1rem; align-items: center; justify-content: center; gap: .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: .75rem; font-weight: 700; transition: background .2s; }
 .menu-toggle { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; }
 .menu-toggle svg { display: block; transition: transform .2s; }
 .menu-close { font-size: 2rem; line-height: 1; }
@@ -173,15 +172,24 @@ a { color: inherit; }
 .slot { font: inherit; font-size: .8rem; font-weight: 600; padding: .5rem .8rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); cursor: pointer; }
 .slot[aria-pressed="true"] { background: var(--ink); color: white; border-color: var(--ink); }
 .slot:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+.reserve-call { display: inline-flex; align-items: center; gap: .55rem; margin-top: 1rem; padding: .6rem 1.1rem; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; color: inherit; text-decoration: none; font-size: .8rem; transition: background .2s, border-color .2s; }
+.reserve-call strong { font-weight: 700; white-space: nowrap; }
+
 .wizard { gap: 1.1rem; }
 .wizard-dots { display: flex; gap: .35rem; }
-.wizard-dots span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.wizard-dots span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); transition: background .35s ease; }
 .wizard-dots span.on { background: var(--blue-dark); }
 .wizard-title { margin: 0; font-family: var(--serif); font-size: 1.5rem; font-weight: 500; }
 .wizard-summary { display: flex; flex-wrap: wrap; gap: .4rem; }
 .chip { font: inherit; font-size: .74rem; font-weight: 600; padding: .35rem .75rem; border: 1px solid var(--line); border-radius: 999px; background: var(--mint); color: var(--ink); cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.wizard-body { display: grid; gap: 1rem; }
+.wizard-body { display: grid; gap: 1rem; animation: wizard-step-in .3s cubic-bezier(.22,.61,.36,1) both; }
+/* Keyed on the step in the markup, so finishing a step replays this rather than swapping instantly. */
+@keyframes wizard-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* A completed step turns into a chip; it pops in so the eye follows the answer upward. */
+.wizard-summary .chip { animation: wizard-chip-in .26s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes wizard-chip-in { from { opacity: 0; transform: scale(.9) translateY(-4px); } to { opacity: 1; transform: none; } }
+.more-dates { margin: -.2rem auto 0; }
 .calendar { display: grid; gap: 1.2rem; }
 .calendar-label { margin: 0 0 .45rem; font-family: var(--serif); font-size: 1.05rem; font-weight: 500; }
 .calendar-heads, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: .3rem; }
@@ -323,7 +331,7 @@ a { color: inherit; }
   .photo-strip a:hover img { transform: scale(1.04); }
   .site-nav a:not(.nav-cta):hover { color: var(--blue-dark); }
   .nav-cta:hover, .button:hover { transform: translateY(-2px); background: var(--blue-dark); }
-  .nav-call:hover { background: var(--mint); }
+  .reserve-call:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.6); }
   .menu-toggle:hover svg { transform: rotate(-8deg) scale(1.06); }
   .button.button-light:hover { background: #d8eef8; }
   .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
@@ -338,8 +346,6 @@ a { color: inherit; }
   .nav { width: min(100% - 32px, 1200px); height: 74px; }
   .menu-toggle { display: inline-flex; padding: 0 .2rem; }
   .nav { gap: 1rem; }
-  .nav-call { width: 44px; min-height: 44px; padding: 0; }
-  .nav-call-label { display: none; }
   .nav-reserve { min-height: 44px; padding: 0 1rem; }
   .nav-actions { margin-left: auto; gap: .4rem; }
   .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; padding: 1rem 24px 1.4rem; background: var(--cream); border-bottom: 1px solid var(--line); flex-direction: column; align-items: stretch; gap: 0; }
@@ -392,7 +398,7 @@ a { color: inherit; }
   .nav-reserve { padding: 0 .75rem; }
   .nav-actions { gap: .3rem; }
 }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }
