@@ -119,6 +119,30 @@ export async function getGalleryItems(): Promise<Tables<"gallery_items">[]> {
   return data ?? [];
 }
 
+/** The hero image and the photo strip on the landing page, both drawn from the gallery.
+ *
+ *  The hero is one choice, so it is stored as a gallery_items id in site_settings under key 'hero'
+ *  and resolved here; if that photo is later deleted, or the migration is not applied, the caller
+ *  falls back to the bundled JPEG rather than rendering a broken image. */
+export async function getHomePhotos(): Promise<{ hero: Tables<"gallery_items"> | null; featured: Tables<"gallery_items">[] }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.gallery);
+  const supabase = createPublicClient();
+  const [{ data: setting }, { data: featured, error }] = await Promise.all([
+    supabase.from("site_settings").select("value").eq("key", "hero").maybeSingle(),
+    supabase.from("gallery_items").select("*").eq("is_featured", true).order("created_at", { ascending: false }).limit(8),
+  ]);
+  // No is_featured column yet (migration 20261012101400): no strip, no hero, bundled image stays.
+  if (error) return { hero: null, featured: [] };
+
+  const heroId = (setting?.value as { gallery_item_id?: string } | null)?.gallery_item_id;
+  const hero = heroId
+    ? ((await supabase.from("gallery_items").select("*").eq("id", heroId).maybeSingle()).data ?? null)
+    : null;
+  return { hero, featured: featured ?? [] };
+}
+
 export const WEEKDAYS_DE = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
 
 /** "09:00:00" -> "09:00" */

@@ -484,7 +484,12 @@ export async function saveGalleryItem(_prev: ActionResult, formData: FormData): 
   if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
   const { error } = await supabase
     .from("gallery_items")
-    .update({ caption: str(formData, "caption").slice(0, 160) || null, category })
+    .update({
+      caption: str(formData, "caption").slice(0, 160) || null,
+      category,
+      // Only sent once migration 20261012101400 added the column.
+      ...(formData.has("featured_field") ? { is_featured: bool(formData, "is_featured") } : {}),
+    })
     .eq("id", str(formData, "id"));
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.gallery);
@@ -503,6 +508,16 @@ export async function deleteGalleryItem(formData: FormData) {
   }
   const { error } = await supabase.from("gallery_items").delete().eq("id", id);
   if (error) return;
+  updateTag(TAG.gallery);
+  refresh();
+}
+
+/** Picks the big photo in the "Besuch uns" section, or clears it when called without an id.
+ *  One choice, so it lives in site_settings rather than as a flag two rows could both carry. */
+export async function setHeroImage(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const id = str(formData, "id");
+  await supabase.from("site_settings").upsert({ key: "hero", value: id ? { gallery_item_id: id } : {} });
   updateTag(TAG.gallery);
   refresh();
 }
