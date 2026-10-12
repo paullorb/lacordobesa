@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
 import { ShareButton } from "@/components/share-button";
+import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
 import { ReservationForm } from "@/components/reservation-form";
@@ -122,7 +123,7 @@ export default async function HomePage() {
             </div>
 
             {specials.length > 0 && (
-              <div className="specials">
+              <div className="specials" id="specials">
                 {specials.map((s) => (
                   <div className="special" key={s.id}>
                     <span className="tag">Heute</span>
@@ -134,6 +135,12 @@ export default async function HomePage() {
                 ))}
               </div>
             )}
+
+            {/* Right under the specials, which is where somebody has just seen what they would be
+                signing up for. An anchor target, since the abmelden page links back here. */}
+            <div id={specials.length > 0 ? undefined : "specials"}>
+              <SpecialsOptin />
+            </div>
 
             <div className="menu-grid">
               {cards.map((item, i) => (

@@ -92,6 +92,15 @@ order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not ca
 already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
 guests pay at pickup.
 
+Specials list (migration `20261012100835`): `specials` had no distribution channel, so only a visitor who happened to
+open the site ever saw one. Guests opt in on the landing page, right under the specials, and staff send from
+`/staff/broadcast` with a per-guest `wa.me` link or a copyable BCC list. **Not an automated sender**: the WhatsApp Cloud
+API needs a Meta Business account, a verified number and approved templates, none of which exist yet; swapping the
+sender later does not change the table. Consent is stored as evidence, not a boolean: `consent_text` snapshots the exact
+wording shown ([`src/lib/broadcast.ts`](src/lib/broadcast.ts)), with `consented_at` and `source`, and every message
+carries a one-click `/abmelden/<token>` link. Subscribing an already-subscribed contact returns silently rather than
+erroring, so the endpoint cannot be used to test whether a number is on the list.
+
 Waitlist (migration `20261012100456`): when every slot on a day exists but none has a free seat, the wizard offers
 `/staff/warteliste` instead of a dead end. One entry per phone number per day, compared on the normalised `phone_key`,
 so the same guest tapping twice does not push somebody else down the list. Deliberately **not** an automatic allocation

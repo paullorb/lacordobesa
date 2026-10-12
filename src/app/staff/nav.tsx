@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/staff/zahlen", label: "Zahlen" },
   { href: "/staff/karte", label: "Karte" },
   { href: "/staff/specials", label: "Specials" },
+  { href: "/staff/broadcast", label: "Verschicken" },
   { href: "/staff/gallery", label: "Galerie" },
   { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten" },
   { href: "/staff/einstellungen", label: "Einstellungen" },
