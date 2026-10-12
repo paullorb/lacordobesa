@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { MenuIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { MenuItemIcon } from "@/components/menu-icons";
+import { Repulgue } from "@/components/repulgue";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { codeList, legendFor } from "@/lib/allergens";
@@ -42,6 +44,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
   const shown = menu.flatMap((c) => c.items);
   const legend = legendFor(shown.flatMap(allergensOf), shown.flatMap(additivesOf), locale);
   const anyUntranslated = shown.some((i) => isUntranslated(i, locale));
+  const categories = menu.filter((c) => c.items.length > 0);
 
   return (
     <div className="site">
@@ -50,88 +53,105 @@ export async function MenuView({ locale }: { locale: Locale }) {
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />
 
       <main id="main">
-        <section className="menu-section">
-          <div className="inner">
-            <div className="section-heading">
-              <p className="eyebrow">{t.eyebrow}</p>
-              <h1>{t.title}</h1>
-              <p>{t.intro}</p>
-            </div>
-
-            {specials.length > 0 && (
-              <div className="specials">
-                {specials.map((s) => (
-                  <div className="special" key={s.id}>
-                    <span className="tag">{getDictionary(locale).home.specialTag}</span>
-                    <div>
-                      <strong>{s.title}</strong>
-                      {s.description && <p>{s.description}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {anyUntranslated && <p className="form-note menu-translation-note">{t.descriptionsInGerman}</p>}
-
-            <div className="full-menu">
-              {menu
-                .filter((c) => c.items.length > 0)
-                .map((c) => (
-                  <div className="full-menu-cat" key={c.id}>
-                    <h2>
-                      {c.label}
-                      {c.label_secondary && <small>{c.label_secondary}</small>}
-                    </h2>
-                    {c.note && <p className="full-menu-note">{c.note}</p>}
-                    <ul>
-                      {c.items.map((item) => {
-                        const text = description(item, locale);
-                        return (
-                          <li key={item.id}>
-                            <MenuItemIcon itemName={item.name} categorySlug={c.slug} />
-                            <span>
-                              <strong>{item.name}</strong>
-                              {codes(item).length > 0 && (
-                                <sup className="menu-codes" aria-label={t.codesLabel(codeList(codes(item)))}>
-                                  {codeList(codes(item))}
-                                </sup>
-                              )}
-                              {item.subtitle && <em> · {item.subtitle}</em>}
-                              {/* An untranslated description is still German, so it says so to a
-                                  screen reader rather than being announced in the page's language. */}
-                              {text && <small lang={isUntranslated(item, locale) ? "de" : undefined}>{text}</small>}
-                            </span>
-                            {item.price_label && <span className="full-menu-price">{item.price_label}</span>}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-            </div>
-
-            {legend.length > 0 && (
-              <div className="menu-legend">
-                <h2>{t.legendTitle}</h2>
-                <ul>
-                  {legend.map((l) => (
-                    <li key={l.code}>
-                      <sup>{l.code}</sup> {l.label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <p className="menu-note">
-              {t.note} <em>{t.noteEmphasis}</em>
-            </p>
-            <p className="menu-cta">
-              <Link className="button" href={localeHref(locale, "/#reservieren")}>
-                {t.cta}
-              </Link>
-            </p>
+        <section className="menu-page">
+          <div className="section-heading">
+            <p className="eyebrow">{t.eyebrow}</p>
+            <h1>{t.title}</h1>
+            <Repulgue className="repulgue-divider" />
+            <p>{t.intro}</p>
           </div>
+
+          {specials.length > 0 && (
+            <div className="specials">
+              {specials.map((s) => (
+                <div className="special" key={s.id}>
+                  <span className="tag">{getDictionary(locale).home.specialTag}</span>
+                  <div>
+                    <strong>{s.title}</strong>
+                    {s.description && <p>{s.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {anyUntranslated && <p className="form-note menu-translation-note">{t.descriptionsInGerman}</p>}
+
+          {/* Sticks under the header while the reader is in the menu, so a long card is one tap
+              from any category rather than a scroll back to the top. Plain anchors: no script. */}
+          <nav className="menu-index" aria-label={t.indexLabel}>
+            <ul>
+              {categories.map((c) => (
+                <li key={c.id}>
+                  <a href={`#${c.slug}`}>{c.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="menu-cats">
+            {categories.map((c, i) => (
+              <section className="menu-cat" id={c.slug} key={c.id} aria-labelledby={`${c.slug}-title`}>
+                <header className="menu-cat-head">
+                  <span className="menu-cat-num" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")} / {String(categories.length).padStart(2, "0")}
+                  </span>
+                  <MenuIcon slug={c.slug} size={30} className="menu-cat-icon" />
+                  <h2 id={`${c.slug}-title`}>{c.label}</h2>
+                  {c.label_secondary && <p className="menu-cat-secondary">{c.label_secondary}</p>}
+                  {c.note && <p className="menu-cat-note">{c.note}</p>}
+                </header>
+                <ul className="menu-items">
+                  {c.items.map((item) => {
+                    const text = description(item, locale);
+                    return (
+                      <li key={item.id}>
+                        <MenuItemIcon itemName={item.name} categorySlug={c.slug} />
+                        <div className="menu-item-body">
+                          <p className="menu-item-line">
+                            <strong>{item.name}</strong>
+                            {codes(item).length > 0 && (
+                              <sup className="menu-codes" aria-label={t.codesLabel(codeList(codes(item)))}>
+                                {codeList(codes(item))}
+                              </sup>
+                            )}
+                            {/* Dotted leader from the name to the price, as on a printed carta. */}
+                            <span className="menu-item-leader" aria-hidden="true" />
+                            {item.price_label && <span className="menu-item-price">{item.price_label}</span>}
+                          </p>
+                          {item.subtitle && <em className="menu-item-subtitle">{item.subtitle}</em>}
+                          {/* An untranslated description is still German, so it says so to a
+                              screen reader rather than being announced in the page's language. */}
+                          {text && <small lang={isUntranslated(item, locale) ? "de" : undefined}>{text}</small>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
+
+          {legend.length > 0 && (
+            <div className="menu-legend">
+              <h2>{t.legendTitle}</h2>
+              <ul>
+                {legend.map((l) => (
+                  <li key={l.code}>
+                    <sup>{l.code}</sup> {l.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="menu-note">
+            {t.note} <em>{t.noteEmphasis}</em>
+          </p>
+          <p className="menu-cta">
+            <Link className="button" href={localeHref(locale, "/#reservieren")}>
+              {t.cta}
+            </Link>
+          </p>
         </section>
       </main>
 
