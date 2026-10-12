@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { subscribeToSpecials } from "@/app/specials/actions";
-import { BROADCAST_CHANNELS, CHANNEL_LABEL, type BroadcastChannel } from "@/lib/broadcast";
+import { CHANNEL_LABEL, OPEN_CHANNELS, type BroadcastChannel } from "@/lib/broadcast";
+import { whatsappHref } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
@@ -11,14 +12,19 @@ import { FIELD_LIMITS } from "@/lib/reservation-limits";
  *  every extra field here costs sign-ups, and none of them would be used. */
 export function SpecialsOptin({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(subscribeToSpecials, null);
-  const [channel, setChannel] = useState<BroadcastChannel>("whatsapp");
+  const [channel, setChannel] = useState<BroadcastChannel>(OPEN_CHANNELS[0]);
   const t = getDictionary(locale).optin;
 
+  // Double opt-in: the sign-up is stored unconfirmed, and the guest's own message from the number
+  // they entered is the proof that they, and not someone else, asked for it.
   if (state?.ok) {
     return (
       <div className="optin optin-done" role="status">
         <strong>{t.doneTitle}</strong>
         <p>{t.doneText}</p>
+        <a className="button" href={whatsappHref(t.confirmMessage)} target="_blank" rel="noreferrer">
+          {t.confirmCta}
+        </a>
       </div>
     );
   }
@@ -32,19 +38,21 @@ export function SpecialsOptin({ locale }: { locale: Locale }) {
       </div>
 
       <div className="optin-fields">
-        <div className="slots" role="group" aria-label={t.channelLabel}>
-          {BROADCAST_CHANNELS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="slot"
-              aria-pressed={channel === c}
-              onClick={() => setChannel(c)}
-            >
-              {CHANNEL_LABEL[c]}
-            </button>
-          ))}
-        </div>
+        {OPEN_CHANNELS.length > 1 && (
+          <div className="slots" role="group" aria-label={t.channelLabel}>
+            {OPEN_CHANNELS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="slot"
+                aria-pressed={channel === c}
+                onClick={() => setChannel(c)}
+              >
+                {CHANNEL_LABEL[c]}
+              </button>
+            ))}
+          </div>
+        )}
         <input type="hidden" name="channel" value={channel} />
         <input type="hidden" name="locale" value={locale} />
 

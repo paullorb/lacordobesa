@@ -343,9 +343,11 @@ export const de = {
     emailLabel: "E-Mail",
     submit: "Bescheid geben",
     submitting: "Wird gespeichert …",
-    doneTitle: "¡Listo! Du bist dabei.",
+    doneTitle: "Fast geschafft: schick uns noch eine WhatsApp",
     doneText:
-      "Wir melden uns, wenn es etwas Besonderes gibt. Abmelden kannst du dich jederzeit über den Link in der Nachricht.",
+      "Damit niemand eine fremde Nummer eintragen kann, schick uns bitte einmal die vorbereitete Nachricht von der Nummer, die du angegeben hast. Sobald sie da ist, bist du dabei. Abmelden kannst du dich jederzeit über den Link in jeder Nachricht.",
+    confirmCta: "Nachricht in WhatsApp öffnen",
+    confirmMessage: "¡Hola! Ich möchte die Specials von La Cordobesa per WhatsApp bekommen.",
     consent: {
       whatsapp:
         "Ich möchte von La Cordobesa per WhatsApp über Specials und Aktionen informiert werden. Ich kann mich jederzeit über den Link in der Nachricht abmelden.",

@@ -2,6 +2,7 @@
 
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import type { PreorderLine } from "@/lib/preorders";
+import { publicFormClient } from "@/lib/public-forms";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -58,7 +59,8 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
   const lines = readLines(formData);
   if (lines.length === 0) return { ok: false, error: ERRORS.empty_order };
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("preorder");
+  if (!allowed) return { ok: false, error: ERRORS.too_many_requests };
   const { data, error } = await supabase.rpc("request_preorder", {
     p_name: name,
     p_phone: phone,

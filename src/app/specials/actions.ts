@@ -1,8 +1,9 @@
 "use server";
 
-import { isBroadcastChannel } from "@/lib/broadcast";
+import { isOpenChannel } from "@/lib/broadcast";
 import { getDictionary } from "@/lib/dictionaries";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
+import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -11,6 +12,7 @@ export type SubscribeState = { ok: true } | { ok: false; error: string } | null;
 
 const ERRORS: Record<string, string> = {
   invalid_channel: "Bitte wähle, wie wir dich erreichen dürfen.",
+  channel_unavailable: "Anmelden geht im Moment nur per WhatsApp.",
   invalid_contact: "Bitte gib eine gültige Telefonnummer beziehungsweise E-Mail-Adresse an.",
   invalid_consent: "Bitte stimme der Benachrichtigung zu.",
   field_too_long: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig.",
@@ -29,12 +31,15 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   const email = String(formData.get("email") ?? "").trim();
   // The checkbox is the consent. Without it there is nothing to record, so nothing is sent.
   if (formData.get("consent") !== "on") return { ok: false, error: ERRORS.invalid_consent };
-  if (!isBroadcastChannel(channel)) return { ok: false, error: ERRORS.invalid_channel };
+  if (!isOpenChannel(channel)) return { ok: false, error: ERRORS.channel_unavailable };
   if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
     return { ok: false, error: ERRORS.field_too_long };
   }
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("specials");
+  if (!allowed) return { ok: false, error: ERRORS.too_many_requests };
+  // The row goes in unconfirmed. It is only offered for sending once the guest's own WhatsApp
+  // message has arrived and staff confirmed it (the success state tells the guest to send it).
   const { error } = await supabase.rpc("subscribe_broadcast", {
     p_channel: channel,
     // Stored verbatim, so the record says exactly what was agreed to rather than just "true".

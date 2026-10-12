@@ -37,6 +37,8 @@ export type Database = {
       broadcast_optins: {
         Row: {
           channel: Database["public"]["Enums"]["broadcast_channel"]
+          confirmed_at: string | null
+          confirmed_by: string | null
           consent_text: string
           consented_at: string
           created_at: string
@@ -51,6 +53,8 @@ export type Database = {
         }
         Insert: {
           channel: Database["public"]["Enums"]["broadcast_channel"]
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           consent_text: string
           consented_at?: string
           created_at?: string
@@ -65,6 +69,8 @@ export type Database = {
         }
         Update: {
           channel?: Database["public"]["Enums"]["broadcast_channel"]
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           consent_text?: string
           consented_at?: string
           created_at?: string
@@ -393,6 +399,24 @@ export type Database = {
         }
         Relationships: []
       }
+      request_quota: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: never
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: never
+        }
+        Relationships: []
+      }
       reservations: {
         Row: {
           changed_count: number
@@ -672,6 +696,10 @@ export type Database = {
           p_phone?: string
         }
         Returns: undefined
+      }
+      take_request_quota: {
+        Args: { p_bucket: string; p_max_1h: number; p_max_24h: number }
+        Returns: boolean
       }
       unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
     }

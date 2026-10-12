@@ -1,6 +1,7 @@
 "use server";
 
 import { addDays } from "@/lib/dates";
+import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -95,7 +96,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
     return { ok: false, error: "Bitte gib die Anzahl der Personen an." };
   }
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("reservation");
+  if (!allowed) return { ok: false, error: ERRORS.too_many_requests };
   const { data, error } = await supabase.rpc("request_reservation", {
     p_name: name,
     p_phone: phone,
@@ -143,7 +145,8 @@ export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Pr
   if (!ISO_DATE.test(date)) return { ok: false, error: "Bitte wähle einen Tag." };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: "Bitte gib die Anzahl der Personen an." };
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("waitlist");
+  if (!allowed) return { ok: false, error: WAITLIST_ERRORS.too_many_requests };
   const { error } = await supabase.rpc("join_waitlist", {
     p_name: name,
     p_phone: phone,

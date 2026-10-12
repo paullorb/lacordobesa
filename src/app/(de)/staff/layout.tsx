@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
@@ -42,6 +43,8 @@ export default function StaffLayout({ children }: LayoutProps<"/staff">) {
 }
 
 async function currentUser() {
+  // Same reason as requireStaff(): getUser() reads the clock, which a runtime prefetch may not.
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },
