@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Alfajores mit Dulce de Leche und Kaffee">
+  <rect width="800" height="600" fill="#f5e6d8"/>
+  <circle cx="120" cy="110" r="190" fill="#f0d4bd"/>
+  <rect y="430" width="800" height="170" fill="#e6c3a6"/>
+  <ellipse cx="330" cy="470" rx="250" ry="48" fill="#152f3b" opacity=".12"/>
+  <ellipse cx="330" cy="450" rx="250" ry="52" fill="#fffdf8"/>
+  <ellipse cx="330" cy="444" rx="200" ry="38" fill="#f5f1e9"/>
+  <g id="alf">
+    <ellipse cx="0" cy="22" rx="92" ry="26" fill="#c98a4b"/>
+    <rect x="-92" y="-8" width="184" height="30" fill="#c98a4b"/>
+    <ellipse cx="0" cy="-8" rx="92" ry="26" fill="#e0a867"/>
+    <path d="M-92 4q92 40 184 0v14q-92 40-184 0z" fill="#8a4f1e"/>
+    <path d="M-92 4a92 26 0 0 1 184 0" fill="none"/>
+  </g>
+  <g transform="translate(235 410)">
+    <ellipse cx="0" cy="26" rx="95" ry="28" fill="#e0a867"/><rect x="-95" y="-6" width="190" height="32" fill="#e0a867"/>
+    <ellipse cx="0" cy="-6" rx="95" ry="28" fill="#ecbc80"/>
+    <rect x="-95" y="2" width="190" height="14" fill="#8a4f1e"/>
+    <ellipse cx="0" cy="26" rx="95" ry="28" fill="none"/>
+  </g>
+  <g transform="translate(400 420)">
+    <ellipse cx="0" cy="26" rx="95" ry="28" fill="#e0a867"/><rect x="-95" y="-6" width="190" height="32" fill="#e0a867"/>
+    <ellipse cx="0" cy="-6" rx="95" ry="28" fill="#ecbc80"/>
+    <rect x="-95" y="2" width="190" height="14" fill="#8a4f1e"/>
+  </g>
+  <g transform="translate(318 340)">
+    <ellipse cx="0" cy="26" rx="95" ry="28" fill="#e0a867"/><rect x="-95" y="-6" width="190" height="32" fill="#e0a867"/>
+    <ellipse cx="0" cy="-6" rx="95" ry="28" fill="#ecbc80"/>
+    <rect x="-95" y="2" width="190" height="14" fill="#8a4f1e"/>
+    <ellipse cx="0" cy="-26" rx="95" ry="28" fill="#f3d3a0" opacity="0"/>
+  </g>
+  <g fill="#fffdf8">
+    <circle cx="150" cy="418" r="4"/><circle cx="170" cy="430" r="4"/><circle cx="215" cy="436" r="4"/><circle cx="262" cy="438" r="4"/><circle cx="310" cy="440" r="4"/>
+    <circle cx="352" cy="436" r="4"/><circle cx="395" cy="446" r="4"/><circle cx="440" cy="440" r="4"/><circle cx="480" cy="428" r="4"/><circle cx="300" cy="360" r="4"/><circle cx="340" cy="364" r="4"/>
+  </g>
+  <g transform="translate(620 400)">
+    <ellipse cx="0" cy="62" rx="105" ry="22" fill="#fffdf8"/>
+    <path d="M-62-10h124v52a62 52 0 0 1-124 0z" fill="#fffdf8"/>
+    <ellipse cx="0" cy="-10" rx="62" ry="14" fill="#6b3f1d"/>
+    <path d="M62 8h24a22 22 0 0 1 0 44h-26" fill="none" stroke="#fffdf8" stroke-width="12"/>
+    <path d="M-20-40q-14-18 0-34M10-40q-14-18 0-34" fill="none" stroke="#152f3b" stroke-width="5" stroke-linecap="round" opacity=".3"/>
+  </g>
+  <text x="400" y="70" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="38" fill="#152f3b">Alfajores con dulce de leche</text>
+</svg>

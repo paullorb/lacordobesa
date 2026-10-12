@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Illustration des Lokals La Cordobesa">
+  <rect width="800" height="600" fill="#bfe3f2"/>
+  <circle cx="660" cy="100" r="46" fill="#fff3c4"/>
+  <circle cx="120" cy="370" r="120" fill="#7fb57a"/><circle cx="60" cy="430" r="100" fill="#5f9b4a"/>
+  <circle cx="700" cy="380" r="130" fill="#7fb57a"/><circle cx="760" cy="440" r="100" fill="#5f9b4a"/>
+  <rect y="500" width="800" height="100" fill="#cfc7b8"/>
+  <rect x="150" y="190" width="500" height="320" fill="#f5f1e9"/>
+  <rect x="150" y="190" width="500" height="320" fill="none" stroke="#152f3b" stroke-opacity=".15" stroke-width="3"/>
+  <rect x="150" y="150" width="500" height="64" fill="#152f3b"/>
+  <text x="400" y="194" text-anchor="middle" font-family="Georgia,serif" font-size="36" font-weight="600" fill="#fffdf8">La Cordobesa</text>
+  <g>
+    <path d="M130 250h540l-30 70H160z" fill="#fffdf8"/>
+    <path d="M130 250h60l-10 70h-20zM250 250h60l-5 70h-50zM370 250h60l0 70h-60zM490 250h60l5 70h-50zM610 250h60l-10 70h-20z" fill="#52a8d2"/>
+    <path d="M160 320q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0q20 24 40 0z" fill="#fffdf8" stroke="#52a8d2" stroke-width="3"/>
+  </g>
+  <rect x="190" y="360" width="230" height="130" rx="6" fill="#e9f2f2" stroke="#152f3b" stroke-opacity=".3" stroke-width="4"/>
+  <path d="M305 360v130M190 425h230" stroke="#152f3b" stroke-opacity=".25" stroke-width="3"/>
+  <circle cx="250" cy="470" r="14" fill="#e68061"/><circle cx="360" cy="400" r="12" fill="#f2c94c"/>
+  <rect x="470" y="350" width="130" height="150" rx="6" fill="#277fae"/>
+  <circle cx="580" cy="430" r="6" fill="#fffdf8"/>
+  <rect x="490" y="372" width="90" height="50" rx="4" fill="#9ed8f2" opacity=".7"/>
+  <g transform="translate(150 530)"><rect x="0" y="-26" width="64" height="26" rx="4" fill="#a8703e"/><circle cx="32" cy="-40" r="22" fill="#e68061"/><circle cx="14" cy="-34" r="14" fill="#f2c94c"/><circle cx="50" cy="-34" r="14" fill="#52a8d2"/></g>
+  <path d="M100 150Q400 90 700 150" fill="none" stroke="#152f3b" stroke-opacity=".5" stroke-width="2"/>
+  <g fill="#fff3c4"><circle cx="190" cy="132" r="7"/><circle cx="260" cy="118" r="7"/><circle cx="330" cy="108" r="7"/><circle cx="400" cy="105" r="7"/><circle cx="470" cy="108" r="7"/><circle cx="540" cy="118" r="7"/><circle cx="610" cy="132" r="7"/></g>
+</svg>

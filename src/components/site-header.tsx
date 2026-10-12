@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EmpanadaIcon } from "@/components/empanada-icon";
 import { Logo } from "@/components/logo";
 
 const LINKS = [
   { href: "/#geschichte", label: "Unsere Geschichte" },
   { href: "/karte", label: "Carta / Karte" },
+  { href: "/gallery", label: "Galerie" },
   { href: "/#besuch", label: "Besuch uns" },
 ];
 
@@ -57,7 +59,7 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
             aria-controls="navigation"
             onClick={() => setOpen((o) => !o)}
           >
-            {open ? "×" : "☰"}
+            {open ? <span className="menu-close" aria-hidden="true">×</span> : <EmpanadaIcon />}
           </button>
         </div>
       </div>

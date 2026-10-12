@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { VenueMap } from "@/components/venue-map";
 import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
@@ -290,6 +291,11 @@ export default async function HomePage() {
               <span className="photo-caption">Seguinos · {CONTACT.instagramHandle}</span>
             </a>
           </div>
+          <VenueMap
+            query={`${CONTACT.name}, ${CONTACT.street}, ${CONTACT.city}`}
+            label={`${CONTACT.street}, ${CONTACT.city}`}
+            openUrl={CONTACT.mapsUrl}
+          />
         </section>
       </main>
 

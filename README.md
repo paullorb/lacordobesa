@@ -3,7 +3,8 @@
 Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 
 - **Public site** (`/`): German-first landing page with menu, specials, opening hours and a table reservation form.
-- **Staff app** (`/admin`): installable PWA where the team confirms reservations and edits menu, specials, hours and settings.
+- **Gallery** (`/gallery`): photos of the venue, food and events, uploaded by staff under `/admin/gallery`.
+- **Staff app** (`/admin`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
 
 ## Stack
 
@@ -56,7 +57,14 @@ How reservations work:
 - Staff confirm/cancel in the admin; the WhatsApp button pre-fills a confirmation message.
 - Rules (capacity, slot size, lead time, …) are edited under *Einstellungen* and stored in `site_settings`.
 
-Public content (menu, specials, hours) is cached with `use cache` and invalidated from the admin actions, so the
+Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
+upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
+The seed rows point at illustrations in `public/assets/gallery/` — staff can delete them once real photos are in.
+
+The contact section embeds Google Maps as a click-to-load iframe (no request to Google until the visitor clicks, see
+the Datenschutz page and the `frame-src` entry in the CSP in `next.config.ts`).
+
+Public content (menu, specials, hours, gallery) is cached with `use cache` and invalidated from the admin actions, so the
 landing page stays a static shell served from the CDN.
 
 ## Not yet done

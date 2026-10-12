@@ -14,6 +14,7 @@ export function SiteFooter() {
         <div className="footer-links">
           <Link href="/#geschichte">Nuestra historia</Link>
           <Link href="/karte">Carta / Karte</Link>
+          <Link href="/gallery">Galerie</Link>
           <Link href="/#reservieren">Reservieren</Link>
           <Link href="/#besuch">Kontakt</Link>
           <a href={CONTACT.instagram} target="_blank" rel="noreferrer">

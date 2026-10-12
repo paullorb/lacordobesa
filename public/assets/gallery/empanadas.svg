@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Empanadas auf einem Holzbrett">
+  <defs>
+    <g id="emp">
+      <path d="M-105 34C-105-70 105-70 105 34Z" fill="#d99a4e"/>
+      <path d="M-84 20C-80-40 80-40 84 20C40-6-40-6-84 20Z" fill="#e8b66d" opacity=".75"/>
+      <line x1="-96" y1="34" x2="96" y2="34" stroke="#c27d34" stroke-width="13" stroke-linecap="round" stroke-dasharray="0 16"/>
+      <path d="M-105 34H105" stroke="#c27d34" stroke-width="4"/>
+      <circle cx="-30" cy="-22" r="4" fill="#b86f2a"/><circle cx="10" cy="-30" r="3.5" fill="#b86f2a"/><circle cx="46" cy="-14" r="4" fill="#b86f2a"/>
+    </g>
+  </defs>
+  <rect width="800" height="600" fill="#e9f2f2"/>
+  <circle cx="680" cy="90" r="150" fill="#d6e9ee"/>
+  <rect x="70" y="130" width="660" height="400" rx="40" fill="#a8703e"/>
+  <rect x="70" y="130" width="660" height="400" rx="40" fill="none" stroke="#8c5a2f" stroke-width="6"/>
+  <path d="M90 230H710M90 330H710M90 430H710" stroke="#94602f" stroke-width="3" opacity=".6"/>
+  <ellipse cx="400" cy="500" rx="300" ry="18" fill="#152f3b" opacity=".12"/>
+  <use href="#emp" x="250" y="300"/>
+  <use href="#emp" x="470" y="250" transform="translate(0 0)"/>
+  <use href="#emp" x="550" y="410"/>
+  <g transform="translate(160 430)">
+    <ellipse cx="0" cy="30" rx="70" ry="16" fill="#152f3b" opacity=".15"/>
+    <path d="M-62 -4h124a0 0 0 0 1 0 0c0 40-28 56-62 56s-62-16-62-56z" fill="#fffdf8"/>
+    <ellipse cx="0" cy="-4" rx="62" ry="14" fill="#5f9b4a"/>
+    <circle cx="-18" cy="-6" r="4" fill="#3f7a35"/><circle cx="14" cy="-2" r="4" fill="#3f7a35"/><circle cx="26" cy="-8" r="3" fill="#8bbf6a"/>
+  </g>
+  <g transform="translate(655 170) rotate(20)"><path d="M0 0a50 50 0 0 1 0 100z" fill="#f2c94c"/><path d="M0 12a38 38 0 0 1 0 76z" fill="#f7dc7a"/></g>
+  <text x="400" y="80" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="38" fill="#152f3b">Empanadas hechas a mano</text>
+</svg>

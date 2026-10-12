@@ -8,6 +8,7 @@ import type { Tables } from "@/lib/database.types";
 export const TAG = {
   content: "site-content", // menu, specials, announcement
   hours: "opening-hours",
+  gallery: "gallery",
 } as const;
 
 export type ReservationSettings = {
@@ -93,6 +94,15 @@ export async function getReservationSettings(): Promise<ReservationSettings> {
   const supabase = createPublicClient();
   const { data } = await supabase.from("site_settings").select("value").eq("key", "reservations").maybeSingle();
   return { ...DEFAULT_RESERVATION_SETTINGS, ...((data?.value as Partial<ReservationSettings>) ?? {}) };
+}
+
+export async function getGalleryItems(): Promise<Tables<"gallery_items">[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.gallery);
+  const supabase = createPublicClient();
+  const { data } = await supabase.from("gallery_items").select("*").order("created_at", { ascending: false }).limit(200);
+  return data ?? [];
 }
 
 export const WEEKDAYS_DE = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
