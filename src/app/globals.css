@@ -45,8 +45,11 @@ a { color: inherit; }
 .brand-copy { display: grid; gap: .15rem; }
 .brand-copy strong { font-family: var(--serif); font-size: 1.08rem; font-weight: 600; letter-spacing: -.02em; }
 .brand-copy small { font-size: .58rem; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
-.site-nav { display: flex; align-items: center; gap: 2rem; }
-.site-nav a:not(.nav-cta) { font-size: .78rem; text-decoration: none; font-weight: 600; color: var(--ink); transition: color .2s; }
+.site-nav { display: flex; align-items: center; gap: 1.45rem; }
+/* nowrap is the whole point: without it flex shrinks each label until "Unsere Geschichte" and
+   "Besuch uns" break over two lines, which made the row 86px tall and the navigation look
+   accidental at every desktop width. */
+.site-nav a:not(.nav-cta) { white-space: nowrap; font-size: .78rem; text-decoration: none; font-weight: 600; color: var(--ink); transition: color .2s; }
 .nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: .75rem; font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s; }
 .button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .nav-actions { display: flex; align-items: center; gap: .6rem; }
@@ -57,10 +60,11 @@ a { color: inherit; }
 .hero-image { position: absolute; inset: 0; z-index: 0; object-fit: cover; }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(13,35,45,.91) 0%, rgba(13,35,45,.77) 34%, rgba(13,35,45,.18) 77%, rgba(13,35,45,.04) 100%); }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(14,35,45,.3), transparent 35%); pointer-events: none; }
-.hero-content { z-index: 2; position: relative; max-width: 680px; padding: 5.5rem 4rem; color: var(--paper); }
+.hero-content { z-index: 2; position: relative; max-width: 820px; padding: 5.5rem 4rem; color: var(--paper); }
 .eyebrow { display: flex; align-items: center; gap: .65rem; margin: 0 0 1.3rem; color: #b8e5f7; font-size: .65rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--coral); }
-.site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; }
+/* text-wrap: balance so a heading never leaves one short word stranded on its own line. */
+.site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; text-wrap: balance; }
 .site h1 em { color: #aadcf1; font-weight: 500; }
 .hero-text { max-width: 440px; margin-bottom: 2rem; color: rgba(255,253,248,.84); font-size: 1rem; line-height: 1.8; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
@@ -75,13 +79,13 @@ a { color: inherit; }
 /* Each copy is at least a viewport wide, which is what guarantees the loop never shows a gap:
    after sliding half the track, copy two already covers the screen on its own. Without this the
    phrases are ~700px and a 1280px window sees empty space on every cycle. */
-.marquee-inner { display: flex; flex: 0 0 auto; min-width: 100vw; align-items: center; justify-content: space-around; gap: .8rem 2rem; padding: 1.15rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: .95rem; font-style: italic; white-space: nowrap; }
+.marquee-inner { display: flex; flex: 0 0 auto; min-width: 100vw; align-items: center; justify-content: flex-start; gap: .8rem 2.6rem; padding: 1.15rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: .95rem; font-style: italic; white-space: nowrap; }
 .marquee-inner span::after { content: "✳"; margin-left: 2rem; color: var(--coral); font-size: .72rem; font-style: normal; }
 .section { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 112px 0; }
 .section-heading { max-width: 640px; margin: 0 auto 3.5rem; text-align: center; }
 .section-heading .eyebrow { justify-content: center; color: var(--blue-dark); }
-.site h2 { margin-bottom: 1rem; font-family: var(--serif); font-size: clamp(2.35rem, 4.5vw, 3.8rem); font-weight: 500; line-height: 1.08; letter-spacing: -.04em; }
-.section-heading h1 { color: var(--ink); font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1.05; }
+.site h2 { text-wrap: balance; margin-bottom: 1rem; font-family: var(--serif); font-size: clamp(2.35rem, 4.5vw, 3.8rem); font-weight: 500; line-height: 1.08; letter-spacing: -.04em; }
+.section-heading h1 { color: var(--ink); font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1.05; text-wrap: balance; }
 .section-heading > p:last-child { margin-bottom: 0; color: var(--muted); line-height: 1.8; font-size: .94rem; }
 .intro-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 5rem; align-items: center; }
 .intro-art { position: relative; min-height: 420px; border-radius: 48% 48% 8px 8px; background: #a8d7e8; display: grid; place-items: center; overflow: hidden; }
@@ -349,7 +353,11 @@ a { color: inherit; }
   .lightbox-close:hover, .lightbox-nav:hover { background: rgba(255,255,255,.3); }
 }
 
-@media (max-width: 800px) {
+/* The navigation collapses before it has to, not after. Six labels, a write-to-us button, three
+   language codes and a reserve button need about 1040px laid out in a row; below that they would
+   start crowding, and a crowded row reads worse than a menu button. The rest of the layout keeps
+   its own 800px breakpoint. */
+@media (max-width: 1080px) {
   .nav { width: min(100% - 32px, 1200px); height: 74px; }
   .menu-toggle { display: inline-flex; padding: 0 .2rem; }
   .nav { gap: 1rem; }
@@ -359,6 +367,9 @@ a { color: inherit; }
   .site-nav.open { display: flex; }
   .site-nav a:not(.nav-cta) { padding: .9rem 0; border-bottom: 1px solid var(--line); }
   .site-nav .nav-cta { margin-top: 1rem; justify-content: center; border: 0; }
+}
+
+@media (max-width: 800px) {
   .hero { width: calc(100% - 24px); min-height: 630px; margin-top: 12px; }
   /* Narrow screens need a heavier wash for the text to hold up; the photo itself is the <img>. */
   .hero::before { background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)); }
@@ -479,9 +490,18 @@ a { color: inherit; }
   outline-color: #9ed8f2;
 }
 
-/* Off-screen until focused, then the first thing on the page. */
-.skip-link { position: absolute; left: 50%; top: 0; z-index: 50; transform: translate(-50%, -150%); padding: .7rem 1.3rem; border-radius: 0 0 8px 8px; background: var(--ink); color: #fffdf8; font-size: .8rem; font-weight: 700; text-decoration: none; transition: transform .18s ease; }
-.skip-link:focus-visible { transform: translate(-50%, 0); }
+/* Hidden the same way .sr-only is, rather than by offset.
+   An offset cannot be trusted here: .site-header carries backdrop-filter, which makes it the
+   containing block for fixed-position descendants, so `top: 0` resolved to the header rather than
+   the viewport and left a 15px sliver of the pill showing at the top of every page. Clipping has
+   no such dependency. On focus it becomes a real pill floating over the header. */
+.skip-link { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip-link:focus-visible {
+  position: absolute; top: .6rem; left: 50%; translate: -50% 0; z-index: 50;
+  width: auto; height: auto; overflow: visible; clip-path: none;
+  padding: .7rem 1.3rem; border-radius: 999px; background: var(--ink); color: #fffdf8;
+  font-size: .8rem; font-weight: 700; text-decoration: none;
+}
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }
