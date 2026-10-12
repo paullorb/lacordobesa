@@ -29,9 +29,9 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    // The menu only exists below 1080px; widening the window past that would leave the page
+    // The menu only exists below 1320px; widening the window past that would leave the page
     // scroll-locked behind a menu that is no longer there.
-    const wide = window.matchMedia("(min-width: 1081px)");
+    const wide = window.matchMedia("(min-width: 1321px)");
     const onWide = () => wide.matches && setOpen(false);
     // Lock the page behind the open menu, so a swipe scrolls the menu rather than the page under it.
     const root = document.documentElement;
