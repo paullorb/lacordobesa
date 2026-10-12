@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import type { ActionResult } from "@/app/admin/actions";
+import type { ActionResult } from "@/app/staff/actions";
 
 export function SubmitButton({
   children,

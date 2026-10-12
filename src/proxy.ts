@@ -7,5 +7,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Only the staff area needs a session; the public site stays fully static.
-  matcher: ["/admin/:path*"],
+  matcher: ["/staff/:path*"],
 };

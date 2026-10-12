@@ -11,7 +11,7 @@ begin
   return new;
 end $$;
 
--- Key/value settings edited from the admin (announcement text, reservation rules, ...)
+-- Key/value settings edited from the staff area (announcement text, reservation rules, ...)
 create table public.site_settings (
   key text primary key,
   value jsonb not null,

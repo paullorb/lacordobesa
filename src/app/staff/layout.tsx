@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { RegisterServiceWorker } from "@/components/admin/register-sw";
+import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
-import { AdminNav } from "./nav";
+import { StaffNav } from "./nav";
 import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
@@ -16,12 +16,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#152f3b" };
 
-export default function AdminLayout({ children }: LayoutProps<"/admin">) {
+export default function StaffLayout({ children }: LayoutProps<"/staff">) {
   return (
-    <div className="admin">
+    <div className="staff">
       <header className="sticky top-0 z-10 border-b border-line bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <Link href="/admin" className="flex items-center gap-2 font-serif text-lg">
+          <Link href="/staff" className="flex items-center gap-2 font-serif text-lg">
             <Logo className="h-8 w-8" />
             La Cordobesa <span className="text-xs font-sans font-bold uppercase tracking-wider text-muted">Team</span>
           </Link>
@@ -62,5 +62,5 @@ async function UserMenu() {
 async function NavIfSignedIn() {
   const user = await currentUser();
   if (!user) return null;
-  return <AdminNav />;
+  return <StaffNav />;
 }

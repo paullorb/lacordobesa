@@ -33,13 +33,13 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
     return { ok: false, error: "Dieser Zugang ist nicht für das Team freigeschaltet." };
   }
   const next = str(formData, "next");
-  redirect(next.startsWith("/admin") ? next : "/admin");
+  redirect(next.startsWith("/staff") ? next : "/staff");
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/admin/login");
+  redirect("/staff/login");
 }
 
 // ---------------------------------------------------------------- reservations
