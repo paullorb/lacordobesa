@@ -168,6 +168,10 @@ export const en: Dictionary = {
     footerMiddle2: ". Or give us a call on ",
     footerAfter: ".",
   },
+  /** Chrome shared by every step-based form; see src/components/wizard.tsx. */
+  wizard: {
+    stepOf: (step: number, total: number) => `Step ${step} of ${total}`,
+  },
   reservation: {
     steps: {
       1: "When would you like to come?",
@@ -175,7 +179,6 @@ export const en: Dictionary = {
       3: "For how many people?",
       4: "Who's coming?",
     },
-    stepOf: (step: number, total: number) => `Step ${step} of ${total}`,
     weekdayHeads: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     pickDate: "Choose a date",
     moreDates: "Show more dates",
@@ -259,6 +262,19 @@ export const en: Dictionary = {
     successAfter: " you can view or cancel your order at any time. Best to keep it.",
   },
   inquiryForm: {
+    steps: {
+      1: "What are you celebrating?",
+      2: "When, and for how many?",
+      3: "What budget works?",
+      4: "Who are you?",
+    },
+    changeOccasion: "Change the occasion",
+    changeWhen: "Change date and guests",
+    changeBudget: "Change the budget",
+    continueLabel: "Continue",
+    dateOpen: "Date still open",
+    guestsAboutBefore: "about ",
+    guestsAboutAfter: " guests",
     occasion: "What are you celebrating?",
     date: "Date (if you have one)",
     guests: "People (roughly)",

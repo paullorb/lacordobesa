@@ -170,6 +170,10 @@ export const de = {
     footerMiddle2: ". Oder ruf uns an unter ",
     footerAfter: ".",
   },
+  /** Chrome shared by every step-based form; see src/components/wizard.tsx. */
+  wizard: {
+    stepOf: (step: number, total: number) => `Schritt ${step} von ${total}`,
+  },
   reservation: {
     steps: {
       1: "Wann möchtest du kommen?",
@@ -177,7 +181,6 @@ export const de = {
       3: "Für wie viele Personen?",
       4: "Wer kommt?",
     },
-    stepOf: (step: number, total: number) => `Schritt ${step} von ${total}`,
     weekdayHeads: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
     pickDate: "Datum wählen",
     moreDates: "Weitere Termine zeigen",
@@ -261,6 +264,19 @@ export const de = {
     successAfter: " kannst du deine Bestellung jederzeit ansehen oder absagen. Bewahr ihn am besten auf.",
   },
   inquiryForm: {
+    steps: {
+      1: "Was feiert ihr?",
+      2: "Wann und für wie viele?",
+      3: "Welcher Rahmen passt?",
+      4: "Wer seid ihr?",
+    },
+    changeOccasion: "Anlass ändern",
+    changeWhen: "Datum und Personen ändern",
+    changeBudget: "Rahmen ändern",
+    continueLabel: "Weiter",
+    dateOpen: "Datum noch offen",
+    guestsAboutBefore: "ca. ",
+    guestsAboutAfter: " Personen",
     occasion: "Was feiert ihr?",
     date: "Datum (falls schon klar)",
     guests: "Personen (ungefähr)",

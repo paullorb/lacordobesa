@@ -6,6 +6,7 @@ import { fmtDate } from "@/lib/dates";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { Wizard, type WizardStep } from "@/components/wizard";
 import {
   getAvailability,
   getFirstAvailableDay,
@@ -125,39 +126,12 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   // The request can only be sent once we know who to call back, so the button only appears then.
   const contactReady = contact.name.trim().length >= 2 && contact.phone.trim().length >= 5;
 
-  return (
-    <div className="form wizard">
-      <p className="sr-only">{t.stepOf(step, 4)}</p>
-      <div className="wizard-dots" aria-hidden="true">
-        {([1, 2, 3, 4] as const).map((n) => (
-          <span key={n} className={n <= step ? "on" : undefined} />
-        ))}
-      </div>
-
-      {step > 1 && (
-        <div className="wizard-summary">
-          <button type="button" className="chip" onClick={() => setStep(1)}>
-            {fmtDate(date, locale)} <span aria-hidden="true">✎</span>
-            <span className="sr-only">{t.changeDate}</span>
-          </button>
-          {step > 2 && (
-            <button type="button" className="chip" onClick={() => setStep(2)}>
-              {time} {t.at} <span aria-hidden="true">✎</span>
-              <span className="sr-only">{t.changeTime}</span>
-            </button>
-          )}
-          {step > 3 && partySize && (
-            <button type="button" className="chip" onClick={() => setStep(3)}>
-              {people(partySize)} <span aria-hidden="true">✎</span>
-              <span className="sr-only">{t.changeParty}</span>
-            </button>
-          )}
-        </div>
-      )}
-
-      <h3 className="wizard-title">{t.steps[step]}</h3>
-
-      {step === 1 && (
+  const steps: WizardStep[] = [
+    {
+      title: t.steps[1],
+      summary: date ? fmtDate(date, locale) : null,
+      changeLabel: t.changeDate,
+      body: (
         <div className="wizard-body">
           <div className="calendar" role="group" aria-label={t.pickDate}>
             {months.map((month) => (
@@ -214,9 +188,13 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
             </div>
           )}
         </div>
-      )}
-
-      {step === 2 && (
+      ),
+    },
+    {
+      title: t.steps[2],
+      summary: time ? `${time} ${t.at}` : null,
+      changeLabel: t.changeTime,
+      body: (
         <div className="wizard-body">
           <div className="slots times" role="group" aria-label={t.pickTime}>
             {slots.map((s) => (
@@ -235,9 +213,13 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           </div>
           {loading && <p className="form-note">{t.loading}</p>}
         </div>
-      )}
-
-      {step === 3 && (
+      ),
+    },
+    {
+      title: t.steps[3],
+      summary: partySize ? people(partySize) : null,
+      changeLabel: t.changeParty,
+      body: (
         <div className="wizard-body">
           <div className="slots" role="group" aria-label={t.pickParty}>
             {Array.from({ length: maxForSlot }, (_, i) => i + 1).map((n) => (
@@ -261,9 +243,11 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
             <a href={phoneHref}>{phoneLabel}</a>
           </p>
         </div>
-      )}
-
-      {step === 4 && partySize && (
+      ),
+    },
+    {
+      title: t.steps[4],
+      body: partySize ? (
         <form
           className="wizard-body wizard-contact"
           action={(fd) => {
@@ -356,16 +340,26 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           )}
           <p className="form-note">{t.nonBinding}</p>
         </form>
-      )}
+      ) : null,
+    },
+  ];
 
-      {step > 1 && step < 4 && bookable.length === 0 && !loading && (
-        <p className="form-note">
-          {t.unavailable.nothingLeft}
-          {t.callUs}
-          <a href={phoneHref}>{phoneLabel}</a>
-        </p>
-      )}
-    </div>
+  return (
+    <Wizard
+      step={step}
+      setStep={(n) => setStep(n as Step)}
+      steps={steps}
+      stepLabel={getDictionary(locale).wizard.stepOf}
+      footer={
+        step > 1 && step < 4 && bookable.length === 0 && !loading ? (
+          <p className="form-note">
+            {t.unavailable.nothingLeft}
+            {t.callUs}
+            <a href={phoneHref}>{phoneLabel}</a>
+          </p>
+        ) : null
+      }
+    />
   );
 }
 
