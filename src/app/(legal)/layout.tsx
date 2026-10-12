@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 export default function LegalLayout({ children }: LayoutProps<"/"> ) {
   return (
@@ -6,7 +7,7 @@ export default function LegalLayout({ children }: LayoutProps<"/"> ) {
       <header className="site-header">
         <div className="nav">
           <Link className="brand" href="/" aria-label="Zur Startseite">
-            <img src="/assets/logo.svg" alt="" />
+            <Logo />
             <span className="brand-copy">
               <strong>La Cordobesa</strong>
               <small>Pastelería Argentina</small>
@@ -21,7 +22,7 @@ export default function LegalLayout({ children }: LayoutProps<"/"> ) {
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <img src="/assets/logo.svg" alt="" /> La Cordobesa
+            <Logo /> La Cordobesa
           </div>
           <div className="footer-links">
             <Link href="/impressum">Impressum</Link>

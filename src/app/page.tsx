@@ -1,5 +1,7 @@
 import { cacheLife } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ReservationForm } from "@/components/reservation-form";
@@ -71,7 +73,7 @@ export default async function HomePage() {
           </div>
           <div className="hero-note">
             <span>Pastelería Argentina · Frankfurt</span>
-            <img src="/assets/logo.svg" alt="" />
+            <Logo />
           </div>
         </section>
 
@@ -86,7 +88,7 @@ export default async function HomePage() {
         <section className="section" id="geschichte">
           <div className="intro-grid">
             <div className="intro-art">
-              <img src="/assets/logo.svg" alt="La Cordobesa Pastelería Argentina" />
+              <Logo alt="La Cordobesa Pastelería Argentina" />
               <span className="art-caption">Sabores de nuestra casa</span>
             </div>
             <div className="intro-copy">
@@ -279,10 +281,11 @@ export default async function HomePage() {
               </div>
             </div>
             <a className="visit-photo" href={CONTACT.instagram} target="_blank" rel="noreferrer" aria-label="La Cordobesa auf Instagram besuchen">
-              <img
+              <Image
                 src="/assets/hero-pasteleria.jpg"
                 alt="Illustratives Stimmungsbild mit argentinischen Empanadas, Alfajores und Gebäck"
-                loading="lazy"
+                fill
+                sizes="(max-width: 800px) 100vw, 55vw"
               />
               <span className="photo-caption">Seguinos · {CONTACT.instagramHandle}</span>
             </a>

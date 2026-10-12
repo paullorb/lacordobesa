@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/logo";
 
 const LINKS = [
   { href: "/#geschichte", label: "Unsere Geschichte" },
@@ -25,7 +26,7 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
     <header className="site-header">
       <div className="nav">
         <Link className="brand" href="/" aria-label="La Cordobesa Startseite">
-          <img src="/assets/logo.svg" alt="" />
+          <Logo />
           <span className="brand-copy">
             <strong>La Cordobesa</strong>
             <small>Pastelería Argentina</small>

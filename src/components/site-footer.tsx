@@ -2,13 +2,14 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CONTACT } from "@/lib/contact";
 import { todayISO } from "@/lib/dates";
+import { Logo } from "@/components/logo";
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-brand">
-          <img src="/assets/logo.svg" alt="" /> La Cordobesa
+          <Logo /> La Cordobesa
         </div>
         <div className="footer-links">
           <Link href="/#geschichte">Nuestra historia</Link>
