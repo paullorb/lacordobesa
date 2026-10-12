@@ -2,32 +2,19 @@
 
 import { useActionState } from "react";
 import { cancelPreorder, type GuestPreorder } from "@/app/vorbestellen/actions";
-import { fmtDateDE } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
 
-const NOTE: Record<GuestPreorder["status"], string> = {
-  pending: "Wir prüfen deine Bestellung und melden uns, um sie zu bestätigen.",
-  confirmed: "Deine Bestellung ist bestätigt. Wir haben alles für dich notiert.",
-  ready: "Deine Bestellung liegt zum Abholen bereit. ¡Hasta pronto!",
-  collected: "Abgeholt. Danke für deine Bestellung, ¡gracias!",
-  cancelled: "Diese Vorbestellung ist storniert. Du kannst jederzeit neu bestellen.",
-};
-
-const LABEL: Record<GuestPreorder["status"], string> = {
-  pending: "Offen",
-  confirmed: "Bestätigt",
-  ready: "Zum Abholen bereit",
-  collected: "Abgeholt",
-  cancelled: "Storniert",
-};
-
-export function ManagePreorder({ token, order }: { token: string; order: GuestPreorder }) {
+export function ManagePreorder({ locale, token, order }: { locale: Locale; token: string; order: GuestPreorder }) {
   const [state, cancelAction, cancelling] = useActionState(cancelPreorder, null);
+  const t = getDictionary(locale).managePreorder;
 
   if (state?.ok) {
     return (
       <div className="form-success" role="status">
-        <strong>Vorbestellung storniert.</strong>
-        <p>Danke, dass du uns Bescheid gegeben hast. Du kannst jederzeit neu bestellen.</p>
+        <strong>{t.cancelledTitle}</strong>
+        <p>{t.cancelledText}</p>
       </div>
     );
   }
@@ -39,20 +26,22 @@ export function ManagePreorder({ token, order }: { token: string; order: GuestPr
     <div className="manage">
       <dl className="manage-facts">
         <div>
-          <dt>Name</dt>
+          <dt>{t.name}</dt>
           <dd>{order.name}</dd>
         </div>
         <div>
-          <dt>Abholung</dt>
-          <dd>{fmtDateDE(order.pickupDate)}</dd>
+          <dt>{t.pickup}</dt>
+          <dd>{fmtDate(order.pickupDate, locale)}</dd>
         </div>
         <div>
-          <dt>Uhrzeit</dt>
-          <dd>{order.pickupTime} Uhr</dd>
+          <dt>{t.time}</dt>
+          <dd>
+            {order.pickupTime} {t.at}
+          </dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>{LABEL[order.status]}</dd>
+          <dt>{t.status}</dt>
+          <dd>{t.statuses[order.status].label}</dd>
         </div>
       </dl>
 
@@ -64,7 +53,7 @@ export function ManagePreorder({ token, order }: { token: string; order: GuestPr
                 {l.quantity} × {l.label}
               </strong>
               <small>
-                pro {l.unit}
+                {t.per(l.unit)}
                 {l.price ? ` · ${l.price}` : ""}
               </small>
             </span>
@@ -72,7 +61,7 @@ export function ManagePreorder({ token, order }: { token: string; order: GuestPr
         ))}
       </ul>
 
-      <p className="manage-note">{NOTE[order.status]}</p>
+      <p className="manage-note">{t.statuses[order.status].note}</p>
       {order.notes && <p className="manage-guest-note">„{order.notes}“</p>}
 
       {state && !state.ok && (
@@ -85,16 +74,16 @@ export function ManagePreorder({ token, order }: { token: string; order: GuestPr
         <form
           action={cancelAction}
           onSubmit={(e) => {
-            if (!window.confirm("Vorbestellung wirklich stornieren?")) e.preventDefault();
+            if (!window.confirm(t.confirmCancel)) e.preventDefault();
           }}
         >
           <input type="hidden" name="token" value={token} />
           <button type="submit" className="button button-quiet" disabled={cancelling}>
-            {cancelling ? "Wird storniert …" : "Vorbestellung stornieren"}
+            {cancelling ? t.cancelling : t.cancel}
           </button>
         </form>
       )}
-      <p className="manage-hint">Bezahlt wird bei der Abholung.</p>
+      <p className="manage-hint">{t.payAtPickup}</p>
     </div>
   );
 }

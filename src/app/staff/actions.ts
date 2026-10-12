@@ -229,6 +229,14 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     ...(formData.has("codes_field")
       ? { allergens: cleanAllergens(list(formData, "allergens")), additives: cleanAdditives(list(formData, "additives")) }
       : {}),
+    // Only sent once migration 20261012102608 added the columns. Empty means "no translation yet",
+    // which the public menu falls back from, so it is stored as null rather than "".
+    ...(formData.has("translations_field")
+      ? {
+          description_es: str(formData, "description_es") || null,
+          description_en: str(formData, "description_en") || null,
+        }
+      : {}),
     // Likewise only sent once migration 20261012094815 added the columns.
     ...(formData.has("preorder_field")
       ? {

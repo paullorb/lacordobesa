@@ -2,15 +2,18 @@
 
 import { useActionState } from "react";
 import { unsubscribeFromSpecials } from "@/app/specials/actions";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
 
-export function UnsubscribeButton({ token }: { token: string }) {
+export function UnsubscribeButton({ locale, token }: { locale: Locale; token: string }) {
   const [state, formAction, pending] = useActionState(unsubscribeFromSpecials, null);
+  const t = getDictionary(locale).unsubscribe;
 
   if (state?.ok) {
     return (
       <div className="form-success" role="status">
-        <strong>Abgemeldet.</strong>
-        <p>Wir schreiben dir nichts mehr über Specials. Danke, dass du da warst, ¡gracias!</p>
+        <strong>{t.doneTitle}</strong>
+        <p>{t.doneText}</p>
       </div>
     );
   }
@@ -19,7 +22,7 @@ export function UnsubscribeButton({ token }: { token: string }) {
     <form action={formAction}>
       <input type="hidden" name="token" value={token} />
       <button type="submit" className="button" disabled={pending}>
-        {pending ? "Wird abgemeldet …" : "Jetzt abmelden"}
+        {pending ? t.submitting : t.submit}
       </button>
     </form>
   );

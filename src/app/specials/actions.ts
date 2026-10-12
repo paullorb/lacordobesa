@@ -1,6 +1,8 @@
 "use server";
 
-import { CONSENT_TEXT, isBroadcastChannel } from "@/lib/broadcast";
+import { isBroadcastChannel } from "@/lib/broadcast";
+import { getDictionary } from "@/lib/dictionaries";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -17,6 +19,11 @@ const ERRORS: Record<string, string> = {
 
 export async function subscribeToSpecials(_prev: SubscribeState, formData: FormData): Promise<SubscribeState> {
   const channel = String(formData.get("channel") ?? "");
+  // The locale decides which consent sentence is recorded. Resolved here rather than submitted as
+  // text, so the stored evidence is the wording the form actually displayed and nothing a crafted
+  // POST could choose.
+  const submitted = String(formData.get("locale") ?? "");
+  const locale = isLocale(submitted) ? submitted : DEFAULT_LOCALE;
   const name = String(formData.get("name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -31,7 +38,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   const { error } = await supabase.rpc("subscribe_broadcast", {
     p_channel: channel,
     // Stored verbatim, so the record says exactly what was agreed to rather than just "true".
-    p_consent_text: CONSENT_TEXT[channel],
+    p_consent_text: getDictionary(locale).optin.consent[channel],
     p_name: name || undefined,
     p_phone: channel === "whatsapp" ? phone : undefined,
     p_email: channel === "email" ? email : undefined,

@@ -215,6 +215,14 @@ a { color: inherit; }
 .form-note-box { padding: 1.2rem 1.4rem; background: var(--mint); font-size: .9rem; line-height: 1.7; }
 .form-note-box p { margin: 0; }
 
+/* Language switch in the header. Two-letter codes, because the nav has no room for full names and
+   the sr-only name carries the meaning. */
+.lang-switch ul { list-style: none; display: flex; gap: .1rem; margin: 0; padding: 0; align-items: center; }
+.lang-switch li { display: flex; }
+.lang-switch a, .lang-switch span[aria-current] { font-size: .66rem; font-weight: 700; letter-spacing: .08em; padding: .3rem .4rem; border-radius: 3px; text-decoration: none; color: var(--muted); }
+.lang-switch span[aria-current] { color: var(--ink); background: var(--mint); }
+.lang-switch a:hover { color: var(--ink); }
+
 /* The photo strip on the landing page: Instagram when configured, else featured gallery photos. */
 .photo-strip-section .inner { max-width: 1100px; margin: 0 auto; }
 .photo-strip { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }

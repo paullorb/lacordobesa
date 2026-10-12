@@ -2,20 +2,23 @@
 
 import { useActionState, useState } from "react";
 import { subscribeToSpecials } from "@/app/specials/actions";
-import { BROADCAST_CHANNELS, CHANNEL_LABEL, CONSENT_TEXT, type BroadcastChannel } from "@/lib/broadcast";
+import { BROADCAST_CHANNELS, CHANNEL_LABEL, type BroadcastChannel } from "@/lib/broadcast";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 /** Opt-in for the weekly special. One contact detail, one explicit consent checkbox, nothing else:
  *  every extra field here costs sign-ups, and none of them would be used. */
-export function SpecialsOptin() {
+export function SpecialsOptin({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(subscribeToSpecials, null);
   const [channel, setChannel] = useState<BroadcastChannel>("whatsapp");
+  const t = getDictionary(locale).optin;
 
   if (state?.ok) {
     return (
       <div className="optin optin-done" role="status">
-        <strong>¡Listo! Du bist dabei.</strong>
-        <p>Wir melden uns, wenn es etwas Besonderes gibt. Abmelden kannst du dich jederzeit über den Link in der Nachricht.</p>
+        <strong>{t.doneTitle}</strong>
+        <p>{t.doneText}</p>
       </div>
     );
   }
@@ -23,16 +26,13 @@ export function SpecialsOptin() {
   return (
     <form action={formAction} className="optin">
       <div className="optin-copy">
-        <p className="eyebrow">No te lo pierdas</p>
-        <h2>Specials nicht verpassen</h2>
-        <p>
-          Locro im Winter, Empanadas-Aktionen, ein neuer Kuchen: wir sagen dir Bescheid, wenn es etwas Besonderes gibt.
-          Höchstens ein paar Nachrichten im Monat.
-        </p>
+        <p className="eyebrow">{t.eyebrow}</p>
+        <h2>{t.title}</h2>
+        <p>{t.text}</p>
       </div>
 
       <div className="optin-fields">
-        <div className="slots" role="group" aria-label="Wie dürfen wir dich erreichen?">
+        <div className="slots" role="group" aria-label={t.channelLabel}>
           {BROADCAST_CHANNELS.map((c) => (
             <button
               key={c}
@@ -46,15 +46,16 @@ export function SpecialsOptin() {
           ))}
         </div>
         <input type="hidden" name="channel" value={channel} />
+        <input type="hidden" name="locale" value={locale} />
 
         <div>
-          <label htmlFor="optin-name">Name (optional)</label>
+          <label htmlFor="optin-name">{t.name}</label>
           <input id="optin-name" name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" />
         </div>
 
         {channel === "whatsapp" ? (
           <div>
-            <label htmlFor="optin-phone">Handynummer</label>
+            <label htmlFor="optin-phone">{t.phone}</label>
             <input
               id="optin-phone"
               name="phone"
@@ -67,14 +68,14 @@ export function SpecialsOptin() {
           </div>
         ) : (
           <div>
-            <label htmlFor="optin-email">E-Mail</label>
+            <label htmlFor="optin-email">{t.emailLabel}</label>
             <input id="optin-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" required />
           </div>
         )}
 
         <label className="optin-consent">
           <input type="checkbox" name="consent" required />
-          <span>{CONSENT_TEXT[channel]}</span>
+          <span>{t.consent[channel]}</span>
         </label>
 
         {state && !state.ok && (
@@ -84,7 +85,7 @@ export function SpecialsOptin() {
         )}
 
         <button type="submit" className="button" disabled={pending}>
-          {pending ? "Wird gespeichert …" : "Bescheid geben"}
+          {pending ? t.submitting : t.submit}
         </button>
       </div>
     </form>
