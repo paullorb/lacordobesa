@@ -43,8 +43,13 @@ const ICONS: Record<string, string> = {
 
 export const HOME_PATH = "/";
 
-/** Spanish in every locale on purpose: it is the shop talking, not the page. */
-const MARQUEE = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
+/** Spanish in every locale on purpose: it is the shop talking, not the page.
+ *
+ *  Repeated so one copy of the track is wider than any viewport. Three phrases alone are about
+ *  700px, which left half a screen of nothing between them on a desktop and read as scattered
+ *  words rather than a ribbon. */
+const PHRASES = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
+const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `${i}-${p}`, text: p }))).flat();
 
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
@@ -104,18 +109,20 @@ export async function HomeView({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <div className="marquee" aria-label={t.marqueeLabel}>
-          <div className="marquee-track">
+        {/* Decorative: the visual track repeats the phrases six times so it is wider than any
+            viewport, which would mean hearing each one six times. The track is hidden from
+            assistive technology and the phrases are offered once, in order, instead. */}
+        <div className="marquee">
+          <p className="sr-only">{`${t.marqueeLabel}: ${PHRASES.join(". ")}.`}</p>
+          <div className="marquee-track" aria-hidden="true">
             <div className="marquee-inner">
               {MARQUEE.map((phrase) => (
-                <span key={phrase}>{phrase}</span>
+                <span key={phrase.key}>{phrase.text}</span>
               ))}
             </div>
-            {/* The seam-free half of the loop. Hidden from assistive tech so the phrases are not
-                announced twice. */}
-            <div className="marquee-inner" aria-hidden="true">
+            <div className="marquee-inner">
               {MARQUEE.map((phrase) => (
-                <span key={phrase}>{phrase}</span>
+                <span key={phrase.key}>{phrase.text}</span>
               ))}
             </div>
           </div>

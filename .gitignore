@@ -46,3 +46,4 @@ next-env.d.ts
 
 # Screenshots from `npm run shots`
 .shots/
+.audit/
