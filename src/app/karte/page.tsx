@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { JsonLd } from "@/components/json-ld";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
+import { menuJsonLd } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
   title: "Carta / Karte",
@@ -15,6 +17,7 @@ export default async function KartePage() {
 
   return (
     <div className="site">
+      <JsonLd data={menuJsonLd(menu)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} />
 

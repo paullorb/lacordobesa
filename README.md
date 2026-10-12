@@ -75,6 +75,12 @@ Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket 
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
 The seed rows point at illustrations in `public/assets/gallery/` — staff can delete them once real photos are in.
 
+Both public pages emit schema.org JSON-LD ([`src/lib/structured-data.ts`](src/lib/structured-data.ts)): the landing
+page a `Restaurant` graph with address and opening hours, `/karte` a `Menu` graph. That is what lets Google show the
+hours and a menu link in the search result; check changes with the
+[Rich Results Test](https://search.google.com/test/rich-results). Facts we do not have (coordinates, a price range)
+are left out on purpose rather than guessed.
+
 The contact section embeds Google Maps as a click-to-load iframe (no request to Google until the visitor clicks, see
 the Datenschutz page and the `frame-src` entry in the CSP in `next.config.ts`).
 

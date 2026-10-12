@@ -4,12 +4,14 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
+import { JsonLd } from "@/components/json-ld";
 import { ShareButton } from "@/components/share-button";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
 import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
+import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
   getActiveSpecials,
@@ -49,6 +51,7 @@ export default async function HomePage() {
 
   return (
     <div className="site">
+      <JsonLd data={restaurantJsonLd(hours)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} />
 
