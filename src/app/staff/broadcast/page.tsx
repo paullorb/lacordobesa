@@ -1,31 +1,24 @@
 import { Suspense } from "react";
 import { CopyButton } from "@/components/staff/copy-button";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { whatsappHref } from "@/lib/contact";
+import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
-import { SITE_URL } from "@/lib/site";
+import { SITE_URL, unsubscribeUrl as unsubscribeLink } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Specials verschicken" };
 
 export default function BroadcastPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Broadcast />
     </Suspense>
   );
 }
 
-/** Turns a stored phone number into the digits wa.me expects. */
-function waNumber(phone: string) {
-  const digits = phone.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) return digits.slice(1);
-  if (digits.startsWith("0")) return `49${digits.slice(1)}`;
-  return digits;
-}
-
-const unsubscribeUrl = (o: Tables<"broadcast_optins">) => `${SITE_URL}/abmelden/${o.unsubscribe_token}`;
+const unsubscribeUrl = (o: Tables<"broadcast_optins">) => unsubscribeLink(o.unsubscribe_token);
 
 /** The message staff send. Carries the unsubscribe link, because consent has to stay as easy to
  *  withdraw as it was to give. */
@@ -106,10 +99,7 @@ async function Broadcast() {
                   {special && (
                     <a
                       className="btn-ghost !py-1"
-                      href={whatsappHref(messageFor(special, unsubscribeUrl(o))).replace(
-                        /wa\.me\/\d+/,
-                        `wa.me/${waNumber(o.phone!)}`,
-                      )}
+                      href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o)))}
                       target="_blank"
                       rel="noreferrer"
                     >

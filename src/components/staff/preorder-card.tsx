@@ -1,15 +1,14 @@
 import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
 import type { PreorderWithLines } from "@/app/staff/vorbestellungen/page";
-import { whatsappHref } from "@/lib/contact";
+import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
-import { PREORDER_STATUS_LABEL } from "@/lib/preorders";
-import { SITE_URL } from "@/lib/site";
-import type { Enums } from "@/lib/database.types";
+import { preorderUrl } from "@/lib/site";
+import { PREORDER_STATUS_LABEL } from "@/lib/statuses";
 
 export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
   const lines = [...o.preorder_lines].sort((a, b) => a.label.localeCompare(b.label, "de"));
-  const guestLink = `${SITE_URL}/vorbestellung/${o.manage_token}`;
+  const guestLink = preorderUrl(o.manage_token);
   const confirmText = [
     `Hola ${o.name}! Deine Vorbestellung bei La Cordobesa ist bestätigt:`,
     ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
@@ -20,13 +19,6 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
     "",
     "¡Hasta pronto!",
   ].join("\n");
-
-  const phoneDigits = o.phone.replace(/[^\d+]/g, "");
-  const waNumber = phoneDigits.startsWith("+")
-    ? phoneDigits.slice(1)
-    : phoneDigits.startsWith("0")
-      ? `49${phoneDigits.slice(1)}`
-      : phoneDigits;
 
   return (
     <article className="card grid gap-3">
@@ -54,24 +46,21 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {waNumber.length >= 8 && (
-            <a
-              className="btn-ghost"
-              href={whatsappHref(confirmText).replace(/wa\.me\/\d+/, `wa.me/${waNumber}`)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp ↗
-            </a>
+          <WhatsAppButton phone={o.phone} text={confirmText} />
+          {o.status === "pending" && (
+            <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Bestätigen" primary />
           )}
-          {o.status === "pending" && <StatusButton id={o.id} status="confirmed" label="Bestätigen" primary />}
-          {o.status === "confirmed" && <StatusButton id={o.id} status="ready" label="Bereit" primary />}
-          {o.status === "ready" && <StatusButton id={o.id} status="collected" label="Abgeholt" />}
+          {o.status === "confirmed" && (
+            <StatusButton action={setPreorderStatus} id={o.id} status="ready" label="Bereit" primary />
+          )}
+          {o.status === "ready" && (
+            <StatusButton action={setPreorderStatus} id={o.id} status="collected" label="Abgeholt" />
+          )}
           {(o.status === "pending" || o.status === "confirmed" || o.status === "ready") && (
-            <StatusButton id={o.id} status="cancelled" label="Stornieren" danger />
+            <StatusButton action={setPreorderStatus} id={o.id} status="cancelled" label="Stornieren" danger />
           )}
           {(o.status === "cancelled" || o.status === "collected") && (
-            <StatusButton id={o.id} status="confirmed" label="Wieder öffnen" />
+            <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Wieder öffnen" />
           )}
         </div>
       </div>
@@ -88,33 +77,12 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
       </ul>
       {o.notes && <p className="rounded bg-mint px-3 py-2 text-sm">„{o.notes}“</p>}
 
-      <form action={savePreorderNotes} className="flex gap-2">
-        <input type="hidden" name="id" value={o.id} />
-        <input name="staff_notes" defaultValue={o.staff_notes ?? ""} placeholder="Interne Notiz (Backplan, Hinweise …)" />
-        <button className="btn-ghost shrink-0">OK</button>
-      </form>
+      <StaffNotesForm
+        action={savePreorderNotes}
+        id={o.id}
+        value={o.staff_notes}
+        placeholder="Interne Notiz (Backplan, Hinweise …)"
+      />
     </article>
-  );
-}
-
-function StatusButton({
-  id,
-  status,
-  label,
-  primary,
-  danger,
-}: {
-  id: string;
-  status: Enums<"preorder_status">;
-  label: string;
-  primary?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <form action={setPreorderStatus}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="status" value={status} />
-      <button className={primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"}>{label}</button>
-    </form>
   );
 }

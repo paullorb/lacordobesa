@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import type { DayInfo } from "@/components/staff/month-calendar";
-import { monthRange } from "@/components/staff/month-calendar";
+import { isMonth, monthRange } from "@/lib/dates";
 
 /** Reservation counts, closures and weekly closing days for one month's calendar. */
 export async function loadCalendarMonth(supabase: SupabaseClient<Database>, month: string) {
@@ -33,7 +33,11 @@ export async function loadCalendarMonth(supabase: SupabaseClient<Database>, mont
   return { days, weeklyClosed };
 }
 
+/** The `?monat=` parameter, or the month of `fallback`.
+ *
+ *  Validated with isMonth() rather than a shape regex: "2026-99" matches /^\d{4}-\d{2}$/ and then
+ *  reaches MonthCalendar as an invalid Date, where building the grid throws RangeError. A
+ *  hand-edited query string should give you the current month, not a 500. */
 export function monthParam(sp: Record<string, string | string[] | undefined>, fallback: string) {
-  const m = sp.monat;
-  return typeof m === "string" && /^\d{4}-\d{2}$/.test(m) ? m : fallback.slice(0, 7);
+  return isMonth(sp.monat) ? sp.monat : fallback.slice(0, 7);
 }

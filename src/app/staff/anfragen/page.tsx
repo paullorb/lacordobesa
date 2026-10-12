@@ -1,16 +1,17 @@
 import { Suspense } from "react";
 import { saveInquiryNotes, setInquiryStatus } from "@/app/staff/actions";
+import { StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { whatsappHref } from "@/lib/contact";
 import { fmtDateDE } from "@/lib/dates";
-import { budgetLabel, INQUIRY_STATUS_LABEL, occasionLabel } from "@/lib/events";
-import type { Enums, Tables } from "@/lib/database.types";
+import { budgetLabel, occasionLabel } from "@/lib/events";
+import { INQUIRY_STATUS_LABEL } from "@/lib/statuses";
+import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Feier-Anfragen" };
 
 export default function InquiriesPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Inquiries />
     </Suspense>
   );
@@ -73,12 +74,6 @@ async function Inquiries() {
 }
 
 function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
-  const phoneDigits = i.phone.replace(/[^\d+]/g, "");
-  const waNumber = phoneDigits.startsWith("+")
-    ? phoneDigits.slice(1)
-    : phoneDigits.startsWith("0")
-      ? `49${phoneDigits.slice(1)}`
-      : phoneDigits;
   const greeting = `Hola ${i.name}! Danke für deine Anfrage bei La Cordobesa. Wir schauen uns das gern an, ein paar Fragen dazu:`;
 
   return (
@@ -110,52 +105,30 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
           <div className="text-xs text-muted">Angefragt am {fmtDateDE(i.created_at.slice(0, 10))}</div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {waNumber.length >= 8 && (
-            <a
-              className="btn-ghost"
-              href={whatsappHref(greeting).replace(/wa\.me\/\d+/, `wa.me/${waNumber}`)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp ↗
-            </a>
+          <WhatsAppButton phone={i.phone} text={greeting} />
+          {i.status === "new" && (
+            <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Übernehmen" primary />
           )}
-          {i.status === "new" && <StatusButton id={i.id} status="in_progress" label="Übernehmen" primary />}
-          {(i.status === "new" || i.status === "in_progress") && <StatusButton id={i.id} status="quoted" label="Angebot raus" />}
-          {i.status !== "won" && <StatusButton id={i.id} status="won" label="Gewonnen" primary />}
-          {i.status !== "lost" && <StatusButton id={i.id} status="lost" label="Verloren" danger />}
+          {(i.status === "new" || i.status === "in_progress") && (
+            <StatusButton action={setInquiryStatus} id={i.id} status="quoted" label="Angebot raus" />
+          )}
+          {i.status !== "won" && (
+            <StatusButton action={setInquiryStatus} id={i.id} status="won" label="Gewonnen" primary />
+          )}
+          {i.status !== "lost" && (
+            <StatusButton action={setInquiryStatus} id={i.id} status="lost" label="Verloren" danger />
+          )}
         </div>
       </div>
 
       {i.message && <p className="rounded bg-cream px-3 py-2 text-sm whitespace-pre-line">„{i.message}“</p>}
 
-      <form action={saveInquiryNotes} className="flex gap-2">
-        <input type="hidden" name="id" value={i.id} />
-        <input name="staff_notes" defaultValue={i.staff_notes ?? ""} placeholder="Interne Notiz (Angebot, Rückruf …)" />
-        <button className="btn-ghost shrink-0">OK</button>
-      </form>
+      <StaffNotesForm
+        action={saveInquiryNotes}
+        id={i.id}
+        value={i.staff_notes}
+        placeholder="Interne Notiz (Angebot, Rückruf …)"
+      />
     </article>
-  );
-}
-
-function StatusButton({
-  id,
-  status,
-  label,
-  primary,
-  danger,
-}: {
-  id: string;
-  status: Enums<"inquiry_status">;
-  label: string;
-  primary?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <form action={setInquiryStatus}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="status" value={status} />
-      <button className={primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"}>{label}</button>
-    </form>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { WEEKDAYS_DE } from "@/lib/data";
-import { addDays, fmtDateDE } from "@/lib/dates";
+import { fmtDateDE, monthRange, shiftMonth } from "@/lib/dates";
 
 export type DayInfo = {
   /** confirmed + pending reservations */
@@ -25,22 +25,6 @@ type Props = {
   /** builds the link for the prev/next month buttons */
   hrefForMonth: (month: string) => string;
 };
-
-export function monthOf(date: string) {
-  return date.slice(0, 7);
-}
-
-export function shiftMonth(month: string, by: number) {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + by, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-export function monthRange(month: string) {
-  const first = `${month}-01`;
-  const last = addDays(shiftMonth(month, 1) + "-01", -1);
-  return { first, last };
-}
 
 /** Server-rendered month grid. Mondays first, like every German calendar. */
 export function MonthCalendar({ month, today, selected, days, weeklyClosed = [], hrefForDay, hrefForMonth }: Props) {

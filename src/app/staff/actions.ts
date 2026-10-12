@@ -6,13 +6,14 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
 import { staffEmail } from "@/lib/staff";
-import { addDays } from "@/lib/dates";
+import { addDays, isISODate } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { cleanAdditives, cleanAllergens } from "@/lib/allergens";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
+import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -126,27 +127,54 @@ export async function saveStaffNotes(formData: FormData) {
   refresh();
 }
 
-/** Walk-in / phone reservation entered by staff. Bypasses the public capacity check on purpose. */
+/** Walk-in / phone reservation entered by staff.
+ *
+ *  Bypasses the public capacity check on purpose: a walk-in on a full evening is exactly the
+ *  booking the restaurant wants to take. Inserting straight into the table rather than calling
+ *  request_reservation() is also what keeps the anon-shaped abuse limits (3 per phone per 24 h, the
+ *  site-wide hourly cap) off somebody who is simply answering the phone. */
 export async function createReservationManually(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const name = str(formData, "name");
   const phone = str(formData, "phone");
+  const email = str(formData, "email");
+  const notes = str(formData, "notes");
   const date = str(formData, "date");
   const time = str(formData, "time");
   const party_size = num(formData, "party_size");
-  if (!name || !date || !time || party_size < 1) return { ok: false, error: "Name, Datum, Uhrzeit und Personen sind Pflicht." };
+
+  if (!name || !date || !time || party_size < 1) {
+    return { ok: false, error: "Name, Datum, Uhrzeit und Personen sind Pflicht." };
+  }
+  // The same caps the table and the public RPC enforce. Without them an over-long note comes back
+  // as a raw Postgres constraint error, which is not something to hand a staff member mid-call.
+  if (
+    name.length > FIELD_LIMITS.name ||
+    phone.length > FIELD_LIMITS.phone ||
+    email.length > FIELD_LIMITS.email ||
+    notes.length > FIELD_LIMITS.notes
+  ) {
+    return { ok: false, error: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig." };
+  }
+  if (!isISODate(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    return { ok: false, error: "Datum oder Uhrzeit sind ungültig." };
+  }
+
   const { error } = await supabase.from("reservations").insert({
     name,
     phone: phone || "",
-    email: str(formData, "email") || null,
+    email: email || null,
     party_size,
     date,
     start_time: time,
-    notes: str(formData, "notes") || null,
+    notes: notes || null,
     status: "confirmed",
     source: "staff",
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("createReservationManually", error);
+    return { ok: false, error: "Die Reservierung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
+  }
   refresh();
   return { ok: true };
 }

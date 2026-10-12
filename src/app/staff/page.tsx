@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
 import { ReservationCard } from "@/components/staff/reservation-card";
 import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
@@ -9,7 +10,7 @@ export const metadata = { title: "Heute" };
 
 export default function DashboardPage(props: PageProps<"/staff">) {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Dashboard searchParams={props.searchParams} />
     </Suspense>
   );

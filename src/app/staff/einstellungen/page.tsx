@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { saveSettings } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
@@ -9,7 +10,7 @@ export const metadata = { title: "Einstellungen" };
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Settings />
     </Suspense>
   );
