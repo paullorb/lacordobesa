@@ -9,6 +9,8 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 - **Feiern & Catering** (`/catering`): inquiries for birthdays, Firmenfeiern, Taufen and catering, worked as a small
   lead pipeline under `/staff/anfragen`.
 - **Staff app** (`/staff`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
+- **Numbers** (`/staff/zahlen`): covers per day/week/month, no-show and cancellation rates, the weekday and time-of-day
+  pattern, and the most pre-ordered dishes.
 
 ## Stack
 
@@ -112,6 +114,12 @@ undeclared. The allowed codes are also a check constraint, so no write path can 
 
 The contact section embeds Google Maps as a click-to-load iframe (no request to Google until the visitor clicks, see
 the Datenschutz page and the `frame-src` entry in the CSP in `next.config.ts`).
+
+The numbers page aggregates in TypeScript ([`src/lib/staff-stats.ts`](src/lib/staff-stats.ts)) over one bounded query
+per table rather than in SQL: a 20-seat bakery produces a few hundred reservations a quarter, so the window fits in
+memory and no migration stands between the team and their numbers. The functions are pure, so they can be exercised on
+their own. A "cover" counts seats, not bookings, and never counts a cancelled or no-show booking. Rates keep their
+denominator ("3 von 48") and report `null` rather than 0 % when there is nothing to divide by.
 
 Public content (menu, specials, hours, gallery) is cached with `use cache` and invalidated from the staff actions, so the
 landing page stays a static shell served from the CDN.

@@ -17,6 +17,18 @@ export function addDays(iso: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Monday of the week containing `iso`. German weeks start on Monday, while Date#getUTCDay and the
+ *  opening_hours table use 0 = Sunday, hence the shift. */
+export function startOfWeek(iso: string): string {
+  const weekday = new Date(`${iso}T12:00:00Z`).getUTCDay();
+  return addDays(iso, -((weekday + 6) % 7));
+}
+
+/** First day of the month containing `iso`. */
+export function startOfMonth(iso: string): string {
+  return `${iso.slice(0, 7)}-01`;
+}
+
 /** "2026-10-12" -> "Mo., 12.10.2026" */
 export function fmtDateDE(iso: string, opts: Intl.DateTimeFormatOptions = {}): string {
   return new Intl.DateTimeFormat("de-DE", {
