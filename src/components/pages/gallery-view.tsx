@@ -30,6 +30,7 @@ export async function GalleryView({ locale }: { locale: Locale }) {
             </div>
             {items.length > 0 ? (
               <GalleryGrid
+                locale={locale}
                 photos={items.map((i) => ({ id: i.id, url: i.image_url, caption: i.caption, category: i.category }))}
               />
             ) : (

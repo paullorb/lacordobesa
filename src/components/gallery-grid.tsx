@@ -2,11 +2,15 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { GALLERY_CATEGORIES, categoryLabel } from "@/lib/gallery";
+import { getDictionary } from "@/lib/dictionaries";
+import { GALLERY_CATEGORIES } from "@/lib/gallery";
+import type { Locale } from "@/lib/i18n";
 
 export type GalleryPhoto = { id: string; url: string; caption: string | null; category: string };
 
-export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
+export function GalleryGrid({ locale, photos }: { locale: Locale; photos: GalleryPhoto[] }) {
+  const t = getDictionary(locale).gallery;
+  const categoryLabel = (value: string) => t.categories[value] ?? value;
   const [filter, setFilter] = useState<string>("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -31,8 +35,8 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
   return (
     <>
       {present.length > 1 && (
-        <div className="gallery-filters" role="group" aria-label="Kategorie filtern">
-          {[{ value: "all", label: "Alle" }, ...present].map((c) => (
+        <div className="gallery-filters" role="group" aria-label={t.filterLabel}>
+          {[{ value: "all", label: t.all }, ...present.map((c) => ({ value: c.value, label: categoryLabel(c.value) }))].map((c) => (
             <button key={c.value} type="button" className="chip" aria-pressed={filter === c.value} onClick={() => setFilter(c.value)}>
               {c.label}
             </button>
@@ -46,7 +50,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
             <button type="button" className="gallery-tile" onClick={() => setOpenId(p.id)}>
               <Image
                 src={p.url}
-                alt={p.caption ?? `${categoryLabel(p.category)} bei La Cordobesa`}
+                alt={p.caption ?? t.photoAlt(categoryLabel(p.category))}
                 fill
                 sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 360px"
                 priority={i < 2}
@@ -60,7 +64,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
       <dialog
         ref={dialog}
         className="lightbox"
-        aria-label="Bildansicht"
+        aria-label={t.lightbox}
         onClose={() => setOpenId(null)}
         onClick={(e) => e.target === dialog.current && setOpenId(null)}
         onKeyDown={(e) => {
@@ -81,15 +85,15 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
             </figcaption>
           </figure>
         )}
-        <button type="button" className="lightbox-close" aria-label="Schließen" onClick={() => setOpenId(null)}>
+        <button type="button" className="lightbox-close" aria-label={t.close} onClick={() => setOpenId(null)}>
           ×
         </button>
         {visible.length > 1 && (
           <>
-            <button type="button" className="lightbox-nav prev" aria-label="Vorheriges Bild" onClick={() => step(-1)}>
+            <button type="button" className="lightbox-nav prev" aria-label={t.previous} onClick={() => step(-1)}>
               ‹
             </button>
-            <button type="button" className="lightbox-nav next" aria-label="Nächstes Bild" onClick={() => step(1)}>
+            <button type="button" className="lightbox-nav next" aria-label={t.next} onClick={() => step(1)}>
               ›
             </button>
           </>

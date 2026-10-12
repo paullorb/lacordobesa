@@ -24,7 +24,7 @@ export const de = {
     language: "Sprache",
   },
   footer: {
-    story: "Nuestra historia",
+    story: "Unsere Geschichte",
     menu: "Carta / Karte",
     preorder: "Vorbestellen",
     celebrate: "Feiern & Catering",
@@ -97,6 +97,7 @@ export const de = {
     writeLabel: "Schreib uns",
     instagramAria: "La Cordobesa auf Instagram besuchen",
     weekdays: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+    shareTitle: (name: string) => `${name} · Pastelería Argentina in Frankfurt am Main`,
     shareText: "Argentinische Empanadas, Alfajores und Kuchen, hausgemacht in Frankfurt am Main.",
   },
   error: {
@@ -181,7 +182,7 @@ export const de = {
       },
       {
         title: "Catering zum Abholen",
-        text: "Empanadas blechweise, Empanadas für das Büro, Platten für zu Hause. Frisch gebacken und zur verabredeten Zeit bereit.",
+        text: "Empanadas blechweise für das Büro, Platten für zu Hause. Frisch gebacken und zur verabredeten Zeit bereit.",
       },
     ],
     footerBefore: "Nur ein Tisch für heute Abend? ",
@@ -286,10 +287,10 @@ export const de = {
   },
   inquiryForm: {
     steps: {
-      1: "Was feiert ihr?",
+      1: "Was möchtest du feiern?",
       2: "Wann und für wie viele?",
-      3: "Welcher Rahmen passt?",
-      4: "Wer seid ihr?",
+      3: "Welcher Rahmen passt dir?",
+      4: "Wie erreichen wir dich?",
     },
     changeOccasion: "Anlass ändern",
     changeWhen: "Datum und Personen ändern",
@@ -298,18 +299,18 @@ export const de = {
     dateOpen: "Datum noch offen",
     guestsAboutBefore: "ca. ",
     guestsAboutAfter: " Personen",
-    occasion: "Was feiert ihr?",
+    occasion: "Was möchtest du feiern?",
     date: "Datum (falls schon klar)",
     guests: "Personen (ungefähr)",
     guestsPlaceholder: "z. B. 25",
-    budget: "Welcher Rahmen passt?",
+    budget: "Welcher Rahmen passt dir?",
     budgetNote: "Nur zur Orientierung, damit wir dir gleich etwas Passendes vorschlagen können.",
     name: "Name",
     phone: "Telefon",
     email: "E-Mail (optional)",
     message: "Erzähl uns von deiner Feier",
     messagePlaceholder:
-      "Bei uns im Lokal oder bei euch? Warmes Essen, Fingerfood oder eine mesa dulce? Gibt es Allergien oder vegetarische Gäste?",
+      "Bei uns im Lokal oder bei dir? Warmes Essen, Fingerfood oder eine mesa dulce? Gibt es Allergien oder vegetarische Gäste?",
     submit: "Anfrage senden",
     submitting: "Wird gesendet …",
     note: "Eine Anfrage ist noch keine Buchung. Wir melden uns mit einem Vorschlag, dann besprechen wir alles in Ruhe.",
@@ -433,6 +434,30 @@ export const de = {
     againBefore: "Versehen? Du kannst dich auf der ",
     againLink: "Startseite",
     againAfter: " jederzeit wieder anmelden. Fragen? ",
+  },
+  share: {
+    button: "Seite teilen",
+    shared: "Danke fürs Teilen!",
+    copied: "Link kopiert, jetzt einfach einfügen.",
+    failed: "Teilen hat nicht geklappt. Kopier den Link bitte aus der Adressleiste.",
+  },
+  map: {
+    consentBefore:
+      "Die Karte wird von Google Maps bereitgestellt. Beim Laden werden Daten (u. a. deine IP-Adresse) an Google übertragen, siehe ",
+    privacy: "Datenschutz",
+    consentAfter: ".",
+    load: "Karte laden",
+    open: "In Google Maps öffnen",
+  },
+  gallery: {
+    filterLabel: "Kategorie filtern",
+    all: "Alle",
+    categories: { venue: "Lokal", food: "Essen", events: "Events" } as Record<string, string>,
+    photoAlt: (category: string) => `${category} bei La Cordobesa`,
+    lightbox: "Bildansicht",
+    close: "Schließen",
+    previous: "Vorheriges Bild",
+    next: "Nächstes Bild",
   },
 };
 

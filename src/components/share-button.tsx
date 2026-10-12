@@ -1,22 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
 
-type Props = { title: string; text: string; className?: string };
+type Props = { locale: Locale; title: string; text: string; className?: string };
 
 type Done = "shared" | "copied" | "failed" | null;
-
-const MESSAGES: Record<Exclude<Done, null>, string> = {
-  shared: "Danke fürs Teilen!",
-  copied: "Link kopiert, jetzt einfach einfügen.",
-  failed: "Teilen hat nicht geklappt. Kopier den Link bitte aus der Adressleiste.",
-};
 
 /**
  * Hands the page to the OS share sheet where there is one (every mobile browser), and falls back to
  * copying the link on desktop. The URL is read at click time so it also works on /karte and /gallery.
  */
-export function ShareButton({ title, text, className = "button secondary" }: Props) {
+export function ShareButton({ locale, title, text, className = "button secondary" }: Props) {
+  const t = getDictionary(locale).share;
   const [done, setDone] = useState<Done>(null);
 
   async function share() {
@@ -39,10 +36,10 @@ export function ShareButton({ title, text, className = "button secondary" }: Pro
   return (
     <>
       <button type="button" className={className} onClick={share}>
-        <span aria-hidden="true">↗</span> Seite teilen
+        <span aria-hidden="true">↗</span> {t.button}
       </button>
       <p className="share-note" role="status">
-        {done ? MESSAGES[done] : ""}
+        {done ? t[done] : ""}
       </p>
     </>
   );
