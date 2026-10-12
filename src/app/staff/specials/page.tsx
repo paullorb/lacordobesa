@@ -45,7 +45,7 @@ async function Specials() {
               </span>
               <span className="text-xs text-muted">
                 {fmtDateDE(s.starts_on)}
-                {s.ends_on ? ` – ${fmtDateDE(s.ends_on)}` : " – offen"}
+                {s.ends_on ? ` bis ${fmtDateDE(s.ends_on)}` : ", ohne Enddatum"}
               </span>
             </summary>
             <div className="mt-4 grid gap-4">

@@ -13,12 +13,12 @@ const serif = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "La Cordobesa — Ein Stück Argentinien in Frankfurt", template: "%s · La Cordobesa" },
+  title: { default: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main", template: "%s · La Cordobesa" },
   description:
     "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
   icons: { icon: "/assets/favicon.svg", apple: "/icons/apple-touch-icon.png" },
   openGraph: {
-    title: "La Cordobesa — Ein Stück Argentinien in Frankfurt",
+    title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description: "Hausgemacht, authentisch und mit viel Liebe. Entdecke argentinische Spezialitäten in Frankfurt am Main.",
     images: ["/assets/hero-pasteleria.jpg"],
     locale: "de_DE",

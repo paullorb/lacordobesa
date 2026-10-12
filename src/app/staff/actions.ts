@@ -74,7 +74,7 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   if (!name || !date || !time || party_size < 1) return { ok: false, error: "Name, Datum, Uhrzeit und Personen sind Pflicht." };
   const { error } = await supabase.from("reservations").insert({
     name,
-    phone: phone || "—",
+    phone: phone || "",
     email: str(formData, "email") || null,
     party_size,
     date,

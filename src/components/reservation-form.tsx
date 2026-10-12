@@ -46,7 +46,6 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   const [partySize, setPartySize] = useState<number | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [reason, setReason] = useState<UnavailableReason | null>(null);
-  const [movedFrom, setMovedFrom] = useState(false);
   const [contact, setContact] = useState({ name: "", phone: "", email: "", notes: "" });
   // Date + time the last submit was made for, so a slot error stops showing once the guest picks another slot.
   const [attempt, setAttempt] = useState("");
@@ -61,7 +60,6 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
       if (id !== request.current || !first) return;
       setDate(first.date);
       setSlots(first.slots);
-      setMovedFrom(first.date !== minDate);
     });
   }, [minDate, maxDate]);
 
@@ -87,7 +85,6 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
     setTime("");
     setPartySize(null);
     setSlots([]);
-    setMovedFrom(false);
     loadDay(value, 2);
   }
 
@@ -123,18 +120,16 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   const blocker = date
     ? unavailableMessage(date, reason, slots.length > 0 && bookable.length === 0, phoneHref, phoneLabel)
     : null;
-  // The request can only be sent once we know who to call back – so the button only appears then.
+  // The request can only be sent once we know who to call back, so the button only appears then.
   const contactReady = contact.name.trim().length >= 2 && contact.phone.trim().length >= 5;
 
   return (
     <div className="form wizard">
-      <div className="wizard-head">
-        <p className="wizard-step">Schritt {step} von 4</p>
-        <div className="wizard-dots" aria-hidden="true">
-          {([1, 2, 3, 4] as const).map((n) => (
-            <span key={n} className={n <= step ? "on" : undefined} />
-          ))}
-        </div>
+      <p className="sr-only">Schritt {step} von 4</p>
+      <div className="wizard-dots" aria-hidden="true">
+        {([1, 2, 3, 4] as const).map((n) => (
+          <span key={n} className={n <= step ? "on" : undefined} />
+        ))}
       </div>
 
       {step > 1 && (
@@ -162,12 +157,6 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
 
       {step === 1 && (
         <div className="wizard-body">
-          {movedFrom && (
-            <p className="form-note" role="status">
-              Heute ist keine Online-Reservierung möglich (Ruhetag oder zu kurzfristig) – wir haben den nächsten Tag
-              mit freien Plätzen vorausgewählt.
-            </p>
-          )}
           <div className="calendar" role="group" aria-label="Datum wählen">
             {months.map((month) => (
               <div className="calendar-month" key={month.key}>
@@ -353,7 +342,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
             </button>
           ) : (
             <p className="form-note" role="status">
-              Name und Telefonnummer eintragen – danach kannst du den Tisch anfragen.
+              Name und Telefonnummer eintragen, danach kannst du den Tisch anfragen.
             </p>
           )}
           <p className="form-note">Deine Anfrage ist unverbindlich, bis wir sie bestätigen.</p>

@@ -32,9 +32,13 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           {showDate && <div className="text-xs text-muted">{fmtDateDE(r.date)}</div>}
           <div className="mt-1 font-semibold">{r.name}</div>
           <div className="text-sm text-muted">
-            <a href={`tel:${r.phone}`} className="hover:text-blue-dark">
-              {r.phone}
-            </a>
+            {r.phone ? (
+              <a href={`tel:${r.phone}`} className="hover:text-blue-dark">
+                {r.phone}
+              </a>
+            ) : (
+              "keine Nummer"
+            )}
             {r.email && (
               <>
                 {" · "}

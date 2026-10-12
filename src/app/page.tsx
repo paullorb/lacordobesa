@@ -55,15 +55,15 @@ export default async function HomePage() {
       <main id="start">
         <section className="hero" aria-labelledby="hero-title">
           <div className="hero-content">
-            <p className="eyebrow">Ein Stück Argentinien in Frankfurt</p>
+            <p className="eyebrow">Ein Stück 🇦🇷 in Frankfurt am Main</p>
             <h1 id="hero-title">
               Wie zuhause.
               <br />
               <em>Con mucho amor.</em>
             </h1>
             <p className="hero-text">
-              Empanadas, süße Klassiker und hausgemachte Spezialitäten – nach argentinischer Art zubereitet und in
-              Frankfurt mit viel Liebe serviert.
+              Empanadas, süße Klassiker und hausgemachte Spezialitäten, nach argentinischer Art zubereitet und mit
+              viel Liebe serviert.
             </p>
             <div className="hero-actions">
               <a className="button button-light" href="#reservieren">
@@ -98,7 +98,7 @@ export default async function HomePage() {
               <p className="eyebrow">Unsere kleine Welt</p>
               <h2>Mit Geschmack, der Erinnerungen weckt.</h2>
               <p>
-                La Cordobesa ist ein Familienprojekt – mit argentinischen Rezepten, ehrlichem Handwerk und dem Wunsch,
+                La Cordobesa ist ein Familienprojekt mit argentinischen Rezepten, ehrlichem Handwerk und dem Wunsch,
                 ein Stück Heimat mit allen zu teilen. Bei uns duftet es nach frisch gebackenem Teig, süßen Alfajores
                 und den Aromen eines langen Mittagessens am Familientisch.
               </p>
@@ -115,7 +115,7 @@ export default async function HomePage() {
             <div className="section-heading">
               <p className="eyebrow">De nuestra cocina</p>
               <h2>Ein paar Lieblingsstücke</h2>
-              <p>Von Empanadas über Steaks vom Grill bis zum Flan – alles hausgemacht. Hier ein paar unserer Highlights – die ganze Karte findest du auf einer eigenen Seite.</p>
+              <p>Von Empanadas über Steaks vom Grill bis zum Flan: alles hausgemacht. Die ganze Karte findest du auf einer eigenen Seite.</p>
             </div>
 
             {specials.length > 0 && (
@@ -167,8 +167,8 @@ export default async function HomePage() {
               <p className="eyebrow">Hecho a mano</p>
               <h2>Jede Empanada bekommt ihren eigenen Rand.</h2>
               <p>
-                Teig ausrollen, füllen, verschließen – bei hausgemachten Spezialitäten steckt die Liebe oft in den
-                kleinen Handgriffen. Genau diese Sorgfalt schmeckt man in jedem Bissen.
+                Teig ausrollen, füllen, verschließen: bei hausgemachten Spezialitäten steckt die Liebe in den kleinen
+                Handgriffen. Genau diese Sorgfalt schmeckt man in jedem Bissen.
               </p>
               <a className="text-link inline-icon" href={CONTACT.instagram} target="_blank" rel="noreferrer">
                 <InstagramIcon /> Mehr aus unserer Backstube auf Instagram
@@ -186,14 +186,6 @@ export default async function HomePage() {
             <div className="reserve-copy">
               <p className="eyebrow">Reservá tu mesa</p>
               <h2>Tisch reservieren.</h2>
-              <p>
-                Such dir in vier kurzen Schritten Datum, Uhrzeit und Personenzahl aus – wir melden uns kurz, um die Reservierung zu bestätigen. Für
-                Caterings, große Gruppen oder kurzfristige Wünsche erreichst du uns am schnellsten per{" "}
-                <a href={whatsappHref()} target="_blank" rel="noreferrer">
-                  WhatsApp
-                </a>
-                .
-              </p>
             </div>
             {reservation.enabled ? (
               <ReservationForm
@@ -281,8 +273,8 @@ export default async function HomePage() {
                     Route planen <span aria-hidden="true">↗</span>
                   </a>
                   <ShareButton
-                    title={`${CONTACT.name} — Pastelería Argentina in Frankfurt`}
-                    text="Argentinische Empanadas, Alfajores und Kuchen – hausgemacht in Frankfurt."
+                    title={`${CONTACT.name} · Pastelería Argentina in Frankfurt am Main`}
+                    text="Argentinische Empanadas, Alfajores und Kuchen, hausgemacht in Frankfurt am Main."
                   />
                 </div>
               </div>

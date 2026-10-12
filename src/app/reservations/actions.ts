@@ -60,11 +60,11 @@ const RETRY_TIME = new Set(["slot_full", "slot_unavailable", "too_soon"]);
 
 const ERRORS: Record<string, string> = {
   reservations_disabled: "Online-Reservierungen sind gerade nicht möglich. Ruf uns gern an.",
-  invalid_contact: "Bitte gib deinen Namen, eine gültige Telefonnummer und – falls angegeben – eine gültige E-Mail-Adresse an.",
+  invalid_contact: "Bitte gib deinen Namen, eine gültige Telefonnummer und, falls angegeben, eine gültige E-Mail-Adresse an.",
   field_too_long: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig.",
   too_many_requests: "Dazu gibt es schon mehrere Anfragen. Bitte ruf uns kurz an, dann klären wir alles direkt.",
   duplicate_booking: "Für diesen Tag liegt schon eine Anfrage mit dieser Telefonnummer vor. Wir melden uns bei dir.",
-  party_too_large: "Für so große Gruppen ruf uns bitte kurz an – wir finden eine Lösung.",
+  party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
   too_far_ahead: "So weit im Voraus können wir noch nicht reservieren.",
   too_soon: "Für diese Uhrzeit ist es leider zu kurzfristig. Ruf uns gern direkt an.",
   slot_unavailable: "Diese Uhrzeit ist nicht buchbar. Bitte wähle eine andere.",

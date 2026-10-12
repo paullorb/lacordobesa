@@ -24,7 +24,7 @@ export function VenueMap({ query, label, openUrl }: Props) {
           <strong>{label}</strong>
           <p>
             Die Karte wird von Google Maps bereitgestellt. Beim Laden werden Daten (u. a. deine IP-Adresse) an Google
-            übertragen – siehe <Link href="/datenschutz">Datenschutz</Link>.
+            übertragen, siehe <Link href="/datenschutz">Datenschutz</Link>.
           </p>
           <div className="visit-actions">
             <button type="button" className="button" onClick={() => setLoaded(true)}>

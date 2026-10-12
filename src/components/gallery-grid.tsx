@@ -46,7 +46,7 @@ export function GalleryGrid({ photos }: { photos: GalleryPhoto[] }) {
             <button type="button" className="gallery-tile" onClick={() => setOpenId(p.id)}>
               <Image
                 src={p.url}
-                alt={p.caption ?? `${categoryLabel(p.category)} – La Cordobesa`}
+                alt={p.caption ?? `${categoryLabel(p.category)} bei La Cordobesa`}
                 fill
                 sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 360px"
                 priority={i < 2}
