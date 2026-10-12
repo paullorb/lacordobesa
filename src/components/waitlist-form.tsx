@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { joinWaitlist } from "@/app/reservations/actions";
+import { joinWaitlist } from "@/app/reservierung/actions";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
@@ -40,6 +40,7 @@ export function WaitlistForm({
       <form action={formAction} className="waitlist-form">
         <p className="manage-hint">{t.explain}</p>
         <input type="hidden" name="date" value={date} />
+        <input type="hidden" name="locale" value={locale} />
         <div>
           <label htmlFor="wl-name">{t.name}</label>
           <input id="wl-name" name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" required />

@@ -63,6 +63,7 @@ export function PreorderForm({
 
   return (
     <form action={formAction} className="form preorder-form">
+      <input type="hidden" name="locale" value={locale} />
       <fieldset className="preorder-items">
         <legend className="manage-label">{t.legend}</legend>
         {categories.map((category) => (

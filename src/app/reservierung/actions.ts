@@ -1,8 +1,136 @@
 "use server";
 
+import { addDays, isISODate, isTime } from "@/lib/dates";
+import { formErrors } from "@/lib/form-errors";
+import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
 
+// Everything a guest does with a table: finding a slot, asking for it, the waitlist when the day is
+// full, and later moving or cancelling the booking through its manage link.
+
+// ---------------------------------------------------------------- availability
+export type Slot = { time: string; seatsLeft: number };
+export type UnavailableReason = "closed" | "holiday" | "late" | "error";
+export type Availability = { slots: Slot[]; reason: UnavailableReason | null };
+
+async function fetchSlots(date: string): Promise<Slot[] | null> {
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("reservation_availability", { p_date: date });
+  if (error) return null;
+  return (data ?? []).map((s) => ({ time: s.slot.slice(0, 5), seatsLeft: s.seats_left }));
+}
+
+/** Bookable time slots for a day, or why there are none. Public: backed by the SECURITY DEFINER RPC. */
+export async function getAvailability(date: string): Promise<Availability> {
+  if (!isISODate(date)) return { slots: [], reason: "error" };
+  const slots = await fetchSlots(date);
+  if (!slots) return { slots: [], reason: "error" };
+  if (slots.length > 0) return { slots, reason: null };
+
+  const supabase = createPublicClient();
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  const [{ data: hours }, { data: closure }] = await Promise.all([
+    supabase.from("opening_hours").select("is_closed").eq("weekday", weekday).maybeSingle(),
+    supabase.from("closures").select("date").eq("date", date).maybeSingle(),
+  ]);
+  if (closure) return { slots: [], reason: "holiday" };
+  if (!hours || hours.is_closed) return { slots: [], reason: "closed" };
+  // Open day, but every slot is already inside the lead time (e.g. asking in the evening for today).
+  return { slots: [], reason: "late" };
+}
+
+const SEARCH_DAYS = 10;
+
+/**
+ * First day on or after `from` (within 10 days) that still has a free slot. `until` is the last bookable
+ * date (`max_days_ahead`): searching past it would preselect a day the calendar doesn't offer and
+ * `request_reservation` rejects as `too_far_ahead`.
+ */
+export async function getFirstAvailableDay(from: string, until: string): Promise<{ date: string; slots: Slot[] } | null> {
+  if (!isISODate(from) || !isISODate(until) || until < from) return null;
+  const days = Array.from({ length: SEARCH_DAYS }, (_, i) => addDays(from, i)).filter((d) => d <= until);
+  const results = await Promise.all(days.map(fetchSlots));
+  for (let i = 0; i < days.length; i++) {
+    const slots = results[i];
+    if (slots?.some((s) => s.seatsLeft > 0)) return { date: days[i], slots };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------- booking
+export type RequestState = { ok: true; id: string } | { ok: false; error: string; retryTime?: boolean } | null;
+
+const RETRY_TIME = new Set(["slot_full", "slot_unavailable", "too_soon"]);
+
+export async function requestReservation(_prev: RequestState, formData: FormData): Promise<RequestState> {
+  const errorFor = formErrors(formData, (d) => d.reservation.errors);
+  const name = String(formData.get("name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const partySize = Number(formData.get("party_size"));
+  const date = String(formData.get("date") ?? "");
+  const time = String(formData.get("time") ?? "");
+  const notes = String(formData.get("notes") ?? "").trim();
+
+  if (
+    name.length > FIELD_LIMITS.name ||
+    phone.length > FIELD_LIMITS.phone ||
+    email.length > FIELD_LIMITS.email ||
+    notes.length > FIELD_LIMITS.notes
+  ) {
+    return { ok: false, error: errorFor("field_too_long") };
+  }
+  if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
+  if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("request_reservation", {
+    p_name: name,
+    p_phone: phone,
+    p_email: email,
+    p_party_size: partySize,
+    p_date: date,
+    p_time: time,
+    p_notes: notes || undefined,
+  });
+  if (error) return { ok: false, error: errorFor(error.message), retryTime: RETRY_TIME.has(error.message) };
+  return { ok: true, id: data };
+}
+
+// ---------------------------------------------------------------- waitlist
+export type WaitlistState = { ok: true } | { ok: false; error: string } | null;
+
+/** Puts a guest on the waitlist for a day that is already full. */
+export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Promise<WaitlistState> {
+  const errorFor = formErrors(formData, (d) => d.waitlist.errors);
+  const name = String(formData.get("name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const date = String(formData.get("date") ?? "");
+  const partySize = Number(formData.get("party_size"));
+  const preference = String(formData.get("time_preference") ?? "").trim();
+
+  if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
+    return { ok: false, error: errorFor("field_too_long") };
+  }
+  if (!isISODate(date)) return { ok: false, error: errorFor("invalid_date") };
+  if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
+
+  const supabase = createPublicClient();
+  const { error } = await supabase.rpc("join_waitlist", {
+    p_name: name,
+    p_phone: phone,
+    p_email: email,
+    p_date: date,
+    p_party_size: partySize,
+    p_time_preference: preference || undefined,
+  });
+  if (error) return { ok: false, error: errorFor(error.message) };
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------- managing a booking
 /** What the guest is allowed to see about their own booking. Mirrors reservation_by_token(). */
 export type GuestReservation = {
   name: string;
@@ -34,42 +162,26 @@ export async function getReservationByToken(token: string): Promise<GuestReserva
 
 export type ManageState = { ok: true; action: "cancelled" | "moved" } | { ok: false; error: string } | null;
 
-const ERRORS: Record<string, string> = {
-  not_found: "Dieser Link gehört zu keiner Reservierung mehr. Bitte ruf uns kurz an.",
-  not_cancellable: "Diese Reservierung lässt sich nicht mehr ändern. Bitte ruf uns kurz an.",
-  in_the_past: "Dieser Termin liegt bereits in der Vergangenheit.",
-  too_many_changes: "Diese Reservierung wurde schon mehrmals verschoben. Bitte ruf uns kurz an, dann finden wir einen Termin.",
-  reservations_disabled: "Online-Änderungen sind gerade nicht möglich. Ruf uns gern an.",
-  party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
-  too_far_ahead: "So weit im Voraus können wir noch nicht reservieren.",
-  too_soon: "Für diese Uhrzeit ist es leider zu kurzfristig. Ruf uns gern direkt an.",
-  slot_unavailable: "Diese Uhrzeit ist nicht buchbar. Bitte wähle eine andere.",
-  slot_full: "Zu dieser Zeit sind wir leider schon voll. Bitte wähle eine andere Uhrzeit.",
-};
-
-const message = (code: string) => ERRORS[code] ?? "Das hat leider nicht geklappt. Bitte versuch es noch einmal oder ruf uns an.";
-
 export async function cancelReservation(_prev: ManageState, formData: FormData): Promise<ManageState> {
+  const errorFor = formErrors(formData, (d) => d.manage.errors);
   const token = String(formData.get("token") ?? "");
-  if (!isManageToken(token)) return { ok: false, error: ERRORS.not_found };
+  if (!isManageToken(token)) return { ok: false, error: errorFor("not_found") };
   const supabase = createPublicClient();
   const { error } = await supabase.rpc("cancel_reservation_by_token", { p_token: token });
-  if (error) return { ok: false, error: message(error.message) };
+  if (error) return { ok: false, error: errorFor(error.message) };
   return { ok: true, action: "cancelled" };
 }
 
 export async function moveReservation(_prev: ManageState, formData: FormData): Promise<ManageState> {
+  const errorFor = formErrors(formData, (d) => d.manage.errors);
   const token = String(formData.get("token") ?? "");
   const date = String(formData.get("date") ?? "");
   const time = String(formData.get("time") ?? "");
   const partySize = Number(formData.get("party_size"));
-  if (!isManageToken(token)) return { ok: false, error: ERRORS.not_found };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
-    return { ok: false, error: "Bitte wähle Datum und Uhrzeit." };
-  }
-  if (!Number.isInteger(partySize) || partySize < 1) {
-    return { ok: false, error: "Bitte gib die Anzahl der Personen an." };
-  }
+  if (!isManageToken(token)) return { ok: false, error: errorFor("not_found") };
+  if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
+  if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
+
   const supabase = createPublicClient();
   const { error } = await supabase.rpc("move_reservation_by_token", {
     p_token: token,
@@ -77,6 +189,6 @@ export async function moveReservation(_prev: ManageState, formData: FormData): P
     p_time: time,
     p_party_size: partySize,
   });
-  if (error) return { ok: false, error: message(error.message) };
+  if (error) return { ok: false, error: errorFor(error.message) };
   return { ok: true, action: "moved" };
 }

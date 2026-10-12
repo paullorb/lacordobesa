@@ -78,6 +78,7 @@ export function ManagePreorder({ locale, token, order }: { locale: Locale; token
           }}
         >
           <input type="hidden" name="token" value={token} />
+          <input type="hidden" name="locale" value={locale} />
           <button type="submit" className="button button-quiet" disabled={cancelling}>
             {cancelling ? t.cancelling : t.cancel}
           </button>

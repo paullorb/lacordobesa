@@ -145,6 +145,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       body: (
         <form className="wizard-body wizard-contact" action={formAction}>
           <input type="hidden" name="occasion" value={occasion ?? "andere"} />
+          <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="event_date" value={eventDate} />
           <input type="hidden" name="guests" value={guests} />
           <input type="hidden" name="budget_band" value={budget ?? "unsicher"} />

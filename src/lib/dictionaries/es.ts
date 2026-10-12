@@ -193,7 +193,26 @@ export const es: Dictionary = {
   wizard: {
     stepOf: (step: number, total: number) => `Paso ${step} de ${total}`,
   },
+  formErrors: {
+    generic: "Algo salió mal. Probá de nuevo o llamanos, por favor.",
+    field_too_long: "Uno de los campos es demasiado largo. Acortalo un poco, por favor.",
+    invalid_contact: "Poné tu nombre, un teléfono válido y, si lo agregás, un email válido.",
+    invalid_date: "Ingresá una fecha válida, por favor.",
+    invalid_datetime: "Elegí fecha y hora, por favor.",
+    invalid_party_size: "Indicá cuántas personas vienen, por favor.",
+    in_the_past: "Esa fecha ya pasó.",
+    too_many_requests: "Ya hay varias solicitudes con estos datos. Llamanos y lo resolvemos directamente.",
+    too_far_ahead: "Todavía no tomamos reservas con tanta anticipación.",
+    too_soon: "Para ese horario ya es muy sobre la hora. Llamanos directamente, si querés.",
+    party_too_large: "Para grupos tan grandes, llamanos y buscamos una solución.",
+    slot_unavailable: "Ese horario no está disponible. Elegí otro, por favor.",
+    slot_full: "A esa hora ya estamos completos. Elegí otro horario, por favor.",
+  },
   reservation: {
+    errors: {
+      reservations_disabled: "Por ahora no se puede reservar online. Llamanos, por favor.",
+      duplicate_booking: "Ya tenemos una solicitud para ese día con este teléfono. Te vamos a contactar.",
+    },
     steps: {
       1: "¿Cuándo querés venir?",
       2: "¿A qué hora?",
@@ -242,6 +261,13 @@ export const es: Dictionary = {
     },
   },
   waitlist: {
+    errors: {
+      invalid_contact: "Poné tu nombre y un teléfono válido, por favor.",
+      invalid_date: "Elegí un día, por favor.",
+      too_far_ahead: "Todavía no armamos lista de espera con tanta anticipación.",
+      already_on_list: "Ya estás en la lista de espera para ese día. Te avisamos apenas se libere algo.",
+      too_many_requests: "Ya estás en varias listas de espera. Llamanos y buscamos un día juntos.",
+    },
     summary: (date: string) => `Anotate en la lista de espera para el ${date}`,
     explain:
       "Si alguien cancela, te llamamos. No es una promesa, pero es una chance real: las cancelaciones pasan más seguido de lo que parece.",
@@ -258,6 +284,18 @@ export const es: Dictionary = {
       `Si se libera una mesa para el ${date}, te avisamos. No es una promesa, pero las cancelaciones pasan más seguido de lo que parece.`,
   },
   preorderForm: {
+    errors: {
+      preorders_disabled: "Por ahora no se pueden hacer encargos online. Llamanos, por favor.",
+      invalid_datetime: "Elegí día y hora de retiro, por favor.",
+      too_far_ahead: "Todavía no planificamos con tanta anticipación.",
+      too_soon: "Es muy sobre la hora para nosotros. Elegí un retiro más tarde o llamanos.",
+      closed_that_day: "Ese día está cerrado. Elegí otro día, por favor.",
+      outside_hours: "A esa hora no estamos abiertos. Elegí otro horario, por favor.",
+      empty_order: "Elegí al menos un producto.",
+      too_many_lines: "Son demasiados productos distintos para un encargo. Llamanos, por favor.",
+      invalid_quantity: "Revisá las cantidades, por favor.",
+      item_unavailable: "Uno de los productos elegidos no se puede encargar por ahora. Recargá la página, por favor.",
+    },
     legend: "¿Qué querés encargar?",
     per: (unit: string) => `por ${unit}`,
     quantityLabel: (name: string, unit: string) => `Cantidad de ${name} (${unit})`,
@@ -283,6 +321,12 @@ export const es: Dictionary = {
     successAfter: " podés ver o cancelar tu encargo cuando quieras. Mejor guardalo.",
   },
   inquiryForm: {
+    errors: {
+      too_many_requests: "Ya tenemos una consulta tuya. Te escribimos pronto, o llamanos directamente.",
+      invalid_occasion: "Elegí un motivo, por favor.",
+      invalid_budget: "Elegí un presupuesto, por favor.",
+      invalid_guests: "Indicá entre 1 y 500 personas, por favor.",
+    },
     steps: {
       1: "¿Qué querés festejar?",
       2: "¿Cuándo y para cuántos?",
@@ -331,6 +375,12 @@ export const es: Dictionary = {
     },
   },
   optin: {
+    errors: {
+      invalid_channel: "Elegí cómo podemos contactarte.",
+      invalid_contact: "Ingresá un teléfono o email válido, por favor.",
+      invalid_consent: "Aceptá recibir los avisos, por favor.",
+      too_many_requests: "Ahora mismo hay muchísimas inscripciones. Probá de nuevo más tarde, por favor.",
+    },
     eyebrow: "No te lo pierdas",
     title: "No te pierdas los especiales",
     text:
@@ -351,6 +401,13 @@ export const es: Dictionary = {
     },
   },
   manage: {
+    errors: {
+      not_found: "Este enlace ya no corresponde a ninguna reserva. Llamanos, por favor.",
+      not_cancellable: "Esta reserva ya no se puede cambiar. Llamanos, por favor.",
+      in_the_past: "Esa reserva ya pasó.",
+      too_many_changes: "Esta reserva ya se cambió varias veces. Llamanos y buscamos un horario juntos.",
+      reservations_disabled: "Por ahora no se pueden hacer cambios online. Llamanos, por favor.",
+    },
     title: "Tu reserva",
     eyebrow: "Tu reserva",
     loading: "Cargando la reserva…",
@@ -395,6 +452,11 @@ export const es: Dictionary = {
     },
   },
   managePreorder: {
+    errors: {
+      not_found: "Este enlace ya no corresponde a ningún encargo. Llamanos, por favor.",
+      not_cancellable: "Ya estamos preparando este encargo. Llamanos y lo resolvemos directamente.",
+      in_the_past: "La fecha de retiro ya pasó.",
+    },
     title: "Tu encargo",
     eyebrow: "Tu encargo",
     loading: "Cargando el encargo…",

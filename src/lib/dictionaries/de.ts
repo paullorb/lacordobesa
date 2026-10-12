@@ -1,6 +1,6 @@
 /** German copy: the source of truth for the dictionary's shape.
  *
- *  `es.ts` and `en.ts` are typed against `Dictionary`, so a missing or misspelled key is a build
+ *  `es.ts` is typed against `Dictionary`, so a missing or misspelled key is a build
  *  error rather than a blank spot on the page. Interpolation is done with functions rather than
  *  `{placeholder}` strings, for the same reason: the compiler checks the arguments.
  *
@@ -196,7 +196,29 @@ export const de = {
   wizard: {
     stepOf: (step: number, total: number) => `Schritt ${step} von ${total}`,
   },
+  /** What a Server Action says when a form is refused. Keyed by the code the RPC raises (or the
+   *  action's own check), so every form shares one wording for the same problem. A form section's
+   *  own `errors` overrides an entry where its context needs different words. */
+  formErrors: {
+    generic: "Das hat leider nicht geklappt. Bitte versuch es noch einmal oder ruf uns an.",
+    field_too_long: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig.",
+    invalid_contact: "Bitte gib deinen Namen, eine gültige Telefonnummer und, falls angegeben, eine gültige E-Mail-Adresse an.",
+    invalid_date: "Bitte gib ein gültiges Datum an.",
+    invalid_datetime: "Bitte wähle Datum und Uhrzeit.",
+    invalid_party_size: "Bitte gib die Anzahl der Personen an.",
+    in_the_past: "Dieses Datum liegt in der Vergangenheit.",
+    too_many_requests: "Dazu gibt es schon mehrere Anfragen. Bitte ruf uns kurz an, dann klären wir alles direkt.",
+    too_far_ahead: "So weit im Voraus können wir noch nicht reservieren.",
+    too_soon: "Für diese Uhrzeit ist es leider zu kurzfristig. Ruf uns gern direkt an.",
+    party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
+    slot_unavailable: "Diese Uhrzeit ist nicht buchbar. Bitte wähle eine andere.",
+    slot_full: "Zu dieser Zeit sind wir leider schon voll. Bitte wähle eine andere Uhrzeit.",
+  },
   reservation: {
+    errors: {
+      reservations_disabled: "Online-Reservierungen sind gerade nicht möglich. Ruf uns gern an.",
+      duplicate_booking: "Für diesen Tag liegt schon eine Anfrage mit dieser Telefonnummer vor. Wir melden uns bei dir.",
+    },
     steps: {
       1: "Wann möchtest du kommen?",
       2: "Um wie viel Uhr?",
@@ -245,6 +267,13 @@ export const de = {
     },
   },
   waitlist: {
+    errors: {
+      invalid_contact: "Bitte gib deinen Namen und eine gültige Telefonnummer an.",
+      invalid_date: "Bitte wähle einen Tag.",
+      too_far_ahead: "So weit im Voraus führen wir noch keine Warteliste.",
+      already_on_list: "Für diesen Tag stehst du schon auf der Warteliste. Wir melden uns, sobald etwas frei wird.",
+      too_many_requests: "Du stehst schon auf mehreren Wartelisten. Bitte ruf uns kurz an, dann finden wir einen Termin.",
+    },
     summary: (date: string) => `Auf die Warteliste für ${date}`,
     explain:
       "Wenn jemand absagt, rufen wir dich an. Keine Zusage, aber eine echte Chance: Absagen kommen öfter vor als man denkt.",
@@ -261,6 +290,18 @@ export const de = {
       `Wird für ${date} ein Tisch frei, melden wir uns bei dir. Das ist keine Zusage, aber Absagen kommen öfter vor als man denkt.`,
   },
   preorderForm: {
+    errors: {
+      preorders_disabled: "Vorbestellungen sind gerade nicht möglich. Ruf uns gern an.",
+      invalid_datetime: "Bitte wähle Abholtag und Uhrzeit.",
+      too_far_ahead: "So weit im Voraus können wir noch nicht planen.",
+      too_soon: "Das ist uns zu kurzfristig. Bitte wähle einen späteren Abholtermin oder ruf uns an.",
+      closed_that_day: "An diesem Tag haben wir geschlossen. Bitte wähle einen anderen Tag.",
+      outside_hours: "Zu dieser Uhrzeit haben wir nicht geöffnet. Bitte wähle eine andere Zeit.",
+      empty_order: "Bitte wähle mindestens ein Gericht aus.",
+      too_many_lines: "Das sind zu viele verschiedene Gerichte für eine Vorbestellung. Ruf uns bitte kurz an.",
+      invalid_quantity: "Bitte prüfe die Mengen.",
+      item_unavailable: "Eines der gewählten Gerichte ist gerade nicht vorbestellbar. Bitte lade die Seite neu.",
+    },
     legend: "Was möchtest du vorbestellen?",
     per: (unit: string) => `pro ${unit}`,
     quantityLabel: (name: string, unit: string) => `Menge ${name} (${unit})`,
@@ -286,6 +327,12 @@ export const de = {
     successAfter: " kannst du deine Bestellung jederzeit ansehen oder absagen. Bewahr ihn am besten auf.",
   },
   inquiryForm: {
+    errors: {
+      too_many_requests: "Dazu liegt uns schon eine Anfrage vor. Wir melden uns, oder ruf uns gern direkt an.",
+      invalid_occasion: "Bitte wähle einen Anlass aus.",
+      invalid_budget: "Bitte wähle einen Rahmen aus.",
+      invalid_guests: "Bitte gib eine Personenzahl zwischen 1 und 500 an.",
+    },
     steps: {
       1: "Was möchtest du feiern?",
       2: "Wann und für wie viele?",
@@ -334,6 +381,12 @@ export const de = {
     },
   },
   optin: {
+    errors: {
+      invalid_channel: "Bitte wähle, wie wir dich erreichen dürfen.",
+      invalid_contact: "Bitte gib eine gültige Telefonnummer beziehungsweise E-Mail-Adresse an.",
+      invalid_consent: "Bitte stimme der Benachrichtigung zu.",
+      too_many_requests: "Gerade kommen sehr viele Anmeldungen. Bitte versuch es später noch einmal.",
+    },
     eyebrow: "No te lo pierdas",
     title: "Specials nicht verpassen",
     text:
@@ -355,6 +408,13 @@ export const de = {
     },
   },
   manage: {
+    errors: {
+      not_found: "Dieser Link gehört zu keiner Reservierung mehr. Bitte ruf uns kurz an.",
+      not_cancellable: "Diese Reservierung lässt sich nicht mehr ändern. Bitte ruf uns kurz an.",
+      in_the_past: "Dieser Termin liegt bereits in der Vergangenheit.",
+      too_many_changes: "Diese Reservierung wurde schon mehrmals verschoben. Bitte ruf uns kurz an, dann finden wir einen Termin.",
+      reservations_disabled: "Online-Änderungen sind gerade nicht möglich. Ruf uns gern an.",
+    },
     title: "Deine Reservierung",
     eyebrow: "Tu reserva",
     loading: "Reservierung wird geladen …",
@@ -399,6 +459,11 @@ export const de = {
     },
   },
   managePreorder: {
+    errors: {
+      not_found: "Dieser Link gehört zu keiner Vorbestellung mehr. Bitte ruf uns kurz an.",
+      not_cancellable: "Diese Vorbestellung ist schon in Arbeit. Bitte ruf uns kurz an, dann klären wir das direkt.",
+      in_the_past: "Dieser Abholtermin liegt bereits in der Vergangenheit.",
+    },
     title: "Deine Vorbestellung",
     eyebrow: "Tu encargo",
     loading: "Vorbestellung wird geladen …",
@@ -461,6 +526,6 @@ export const de = {
   },
 };
 
-/** Widened on purpose: `as const` would turn every German string into a literal type that es.ts and
- *  en.ts could never satisfy. */
+/** Widened on purpose: `as const` would turn every German string into a literal type that es.ts could
+ *  never satisfy. */
 export type Dictionary = typeof de;

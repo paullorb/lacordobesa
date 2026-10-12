@@ -4,7 +4,7 @@ import { alternates, localeHref, OG_LOCALE, type Locale } from "@/lib/i18n";
 
 /** Metadata for one public page in one locale.
  *
- *  `alternates.languages` is what tells Google that the three URLs are the same page in different
+ *  `alternates.languages` is what tells Google that the two URLs are the same page in different
  *  languages, and `canonical` keeps each one pointing at itself. Both matter more than the document's
  *  `lang` attribute for language targeting, which is why the single root layout staying German is
  *  tolerable. */
