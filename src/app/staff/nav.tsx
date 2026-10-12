@@ -7,6 +7,7 @@ const ITEMS = [
   { href: "/staff", label: "Heute" },
   { href: "/staff/reservierungen", label: "Reservierungen" },
   { href: "/staff/vorbestellungen", label: "Vorbestellungen" },
+  { href: "/staff/anfragen", label: "Feier-Anfragen" },
   { href: "/staff/karte", label: "Karte" },
   { href: "/staff/specials", label: "Specials" },
   { href: "/staff/gallery", label: "Galerie" },

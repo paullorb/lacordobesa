@@ -171,6 +171,26 @@ export async function savePreorderNotes(formData: FormData) {
   refresh();
 }
 
+// ---------------------------------------------------------------- event inquiries
+const INQUIRY_STATUSES: Enums<"inquiry_status">[] = ["new", "in_progress", "quoted", "won", "lost"];
+
+export async function setInquiryStatus(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const status = str(formData, "status") as Enums<"inquiry_status">;
+  if (!INQUIRY_STATUSES.includes(status)) return;
+  await supabase.from("event_inquiries").update({ status }).eq("id", str(formData, "id"));
+  refresh();
+}
+
+export async function saveInquiryNotes(formData: FormData) {
+  const { supabase } = await requireStaff();
+  await supabase
+    .from("event_inquiries")
+    .update({ staff_notes: str(formData, "staff_notes") || null })
+    .eq("id", str(formData, "id"));
+  refresh();
+}
+
 // ---------------------------------------------------------------- menu
 export async function saveMenuItem(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();

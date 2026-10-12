@@ -6,6 +6,8 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 - **Gallery** (`/gallery`): photos of the venue, food and events, uploaded by staff under `/staff/gallery`.
 - **Pre-orders** (`/vorbestellen`): empanadas by the dozen, a torta for Saturday. Staff mark dishes as pre-orderable
   per dish under `/staff/karte` and work the inbox under `/staff/vorbestellungen`.
+- **Feiern & Catering** (`/catering`): inquiries for birthdays, Firmenfeiern, Taufen and catering, worked as a small
+  lead pipeline under `/staff/anfragen`.
 - **Staff app** (`/staff`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
 
 ## Stack
@@ -86,6 +88,11 @@ at order time, so a later menu edit or a deleted dish cannot rewrite what a gues
 order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not cancellable online, because they are
 already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
 guests pay at pickup.
+
+Event inquiries (migration `20261012095610`) are leads, not bookings: there is no capacity to check and no slot to
+hold, so `event_inquiries` is a pipeline (`new`, `in_progress`, `quoted`, `won`, `lost`). Date and headcount are both
+nullable, because those are usually what the guest wants to discuss. Occasion and budget band are check-constrained to
+the sets in [`src/lib/events.ts`](src/lib/events.ts) so the staff list can group on them.
 
 Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
