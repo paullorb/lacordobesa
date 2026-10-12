@@ -35,13 +35,15 @@ export const de = {
     privacy: "Datenschutz",
     back: "Zurück zur Startseite",
     backHome: "Zur Startseite",
-    madeWith: "Con mucho ❤️, desde Frankfurt am Main.",
+    madeWithBefore: "Con mucho ",
+    madeWithAfter: ", desde Frankfurt am Main.",
   },
   home: {
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
-    heroEyebrow: "Ein Stück 🇦🇷 in Frankfurt am Main",
+    heroEyebrowBefore: "Ein Stück ",
+    heroEyebrowAfter: " in Frankfurt am Main",
     heroTitleLine1: "Wie zuhause.",
     heroTitleLine2: "Con mucho amor.",
     heroText:
@@ -78,6 +80,7 @@ export const de = {
     visitEyebrow: "Visitanos",
     visitTitle: "Besuch uns",
     visitHours: "Öffnungszeiten",
+    hoursRange: (from: string, to: string) => `${from} bis ${to}`,
     visitClosed: "Ruhetag",
     visitAddress: "Adresse",
     visitRoute: "Route planen",
@@ -95,6 +98,13 @@ export const de = {
     instagramAria: "La Cordobesa auf Instagram besuchen",
     weekdays: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
     shareText: "Argentinische Empanadas, Alfajores und Kuchen, hausgemacht in Frankfurt am Main.",
+  },
+  error: {
+    eyebrow: "Uy",
+    title: "Da ist etwas schiefgelaufen",
+    text: "Die Seite konnte nicht geladen werden. Meistens hilft es, es noch einmal zu versuchen. Wenn du reservieren möchtest, ruf uns gern direkt an.",
+    retry: "Noch einmal versuchen",
+    home: "Zur Startseite",
   },
   notFound: {
     title: "Diese Seite gibt es nicht",

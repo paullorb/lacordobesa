@@ -33,13 +33,15 @@ export const es: Dictionary = {
     privacy: "Privacidad",
     back: "Volver al inicio",
     backHome: "Ir al inicio",
-    madeWith: "Con mucho ❤️, desde Frankfurt am Main.",
+    madeWithBefore: "Con mucho ",
+    madeWithAfter: ", desde Frankfurt am Main.",
   },
   home: {
     title: "La Cordobesa · Un pedacito de Argentina en Frankfurt am Main",
     description:
       "Especialidades argentinas caseras en Frankfurt: empanadas, alfajores, tortas y más. Hechas con amor en La Cordobesa.",
-    heroEyebrow: "Un pedacito de 🇦🇷 en Frankfurt am Main",
+    heroEyebrowBefore: "Un pedacito de ",
+    heroEyebrowAfter: " en Frankfurt am Main",
     heroTitleLine1: "Como en casa.",
     heroTitleLine2: "Con mucho amor.",
     heroText:
@@ -76,6 +78,7 @@ export const es: Dictionary = {
     visitEyebrow: "Visitanos",
     visitTitle: "Visitanos",
     visitHours: "Horarios",
+    hoursRange: (from: string, to: string) => `${from} a ${to}`,
     visitClosed: "Cerrado",
     visitAddress: "Dirección",
     visitRoute: "Cómo llegar",
@@ -92,6 +95,13 @@ export const es: Dictionary = {
     instagramAria: "Visitar La Cordobesa en Instagram",
     weekdays: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
     shareText: "Empanadas argentinas, alfajores y tortas, caseras, en Frankfurt am Main.",
+  },
+  error: {
+    eyebrow: "Uy",
+    title: "Algo salió mal",
+    text: "No se pudo cargar la página. Casi siempre alcanza con volver a intentarlo. Si querés reservar, llamanos sin problema.",
+    retry: "Intentar de nuevo",
+    home: "Ir al inicio",
   },
   notFound: {
     title: "Esta página no existe",
