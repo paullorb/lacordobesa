@@ -43,6 +43,9 @@ const ICONS: Record<string, string> = {
 
 export const HOME_PATH = "/";
 
+/** Spanish in every locale on purpose: it is the shop talking, not the page. */
+const MARQUEE = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
+
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
@@ -102,10 +105,19 @@ export async function HomeView({ locale }: { locale: Locale }) {
         </section>
 
         <div className="marquee" aria-label={t.marqueeLabel}>
-          <div className="marquee-inner">
-            <span>Empanadas hechas a mano</span>
-            <span>Pastelería argentina</span>
-            <span>Un pedacito de Argentina</span>
+          <div className="marquee-track">
+            <div className="marquee-inner">
+              {MARQUEE.map((phrase) => (
+                <span key={phrase}>{phrase}</span>
+              ))}
+            </div>
+            {/* The seam-free half of the loop. Hidden from assistive tech so the phrases are not
+                announced twice. */}
+            <div className="marquee-inner" aria-hidden="true">
+              {MARQUEE.map((phrase) => (
+                <span key={phrase}>{phrase}</span>
+              ))}
+            </div>
           </div>
         </div>
 
