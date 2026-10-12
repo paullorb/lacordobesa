@@ -26,8 +26,11 @@ export function GalleryUpload() {
   const [prepared, setPrepared] = useState<Blob | null>(null);
   const [busy, setBusy] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+  // Counts selections so a slow resize of an earlier file cannot overwrite a newer one.
+  const selection = useRef(0);
 
   async function onFile(file: File | undefined) {
+    const id = ++selection.current;
     if (preview) URL.revokeObjectURL(preview);
     setPrepared(null);
     setPreview(null);
@@ -35,10 +38,11 @@ export function GalleryUpload() {
     setBusy(true);
     try {
       const blob = await shrink(file);
+      if (id !== selection.current) return;
       setPrepared(blob);
       setPreview(URL.createObjectURL(blob));
     } finally {
-      setBusy(false);
+      if (id === selection.current) setBusy(false);
     }
   }
 
@@ -51,6 +55,7 @@ export function GalleryUpload() {
         fd.set("file", new File([prepared], "photo.jpg", { type: prepared.type || "image/jpeg" }));
         action(fd);
         form.current?.reset();
+        selection.current++;
         setPrepared(null);
         setPreview(null);
       }}

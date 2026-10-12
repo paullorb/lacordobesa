@@ -36,10 +36,16 @@ export async function getAvailability(date: string): Promise<Availability> {
   return { slots: [], reason: "late" };
 }
 
-/** First day on or after `from` (within 10 days) that still has a free slot. */
-export async function getFirstAvailableDay(from: string): Promise<{ date: string; slots: Slot[] } | null> {
-  if (!ISO_DATE.test(from)) return null;
-  const days = Array.from({ length: 10 }, (_, i) => addDays(from, i));
+const SEARCH_DAYS = 10;
+
+/**
+ * First day on or after `from` (within 10 days) that still has a free slot. `until` is the last bookable
+ * date (`max_days_ahead`): searching past it would preselect a day the calendar doesn't offer and
+ * `request_reservation` rejects as `too_far_ahead`.
+ */
+export async function getFirstAvailableDay(from: string, until: string): Promise<{ date: string; slots: Slot[] } | null> {
+  if (!ISO_DATE.test(from) || !ISO_DATE.test(until) || until < from) return null;
+  const days = Array.from({ length: SEARCH_DAYS }, (_, i) => addDays(from, i)).filter((d) => d <= until);
   const results = await Promise.all(days.map(fetchSlots));
   for (let i = 0; i < days.length; i++) {
     const slots = results[i];

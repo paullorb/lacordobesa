@@ -27,10 +27,22 @@ Open http://localhost:3000. The admin is at http://localhost:3000/admin.
 Staff sign in with a short **name** and password (no e-mail). Supabase Auth is e-mail based, so each name maps
 to `<name>@staff.lacordobesa.local` (see [`src/lib/staff.ts`](src/lib/staff.ts)).
 
-To add a staff member: Supabase dashboard → **Authentication → Users → Add user**, e-mail
-`maria@staff.lacordobesa.local`, a password, and **Auto Confirm** on. They then log in as `maria`.
-Keep "Allow new users to sign up" turned off under Authentication → Providers → Email. Every authenticated
-user is staff.
+Being signed in is not enough: the account also needs a row in `public.staff` (the allowlist from migration
+0004, which `is_staff()` checks). There is intentionally no API path that inserts one, so adding a staff member
+is two steps in the Supabase dashboard:
+
+1. **Authentication → Users → Add user**, e-mail `maria@staff.lacordobesa.local`, a password, **Auto Confirm** on.
+2. **SQL Editor** — allow-list that user (copy the UUID from the users table, or match on the e-mail):
+
+   ```sql
+   insert into public.staff (user_id)
+   select id from auth.users where email = 'maria@staff.lacordobesa.local'
+   on conflict do nothing;
+   ```
+
+Skipping step 2 leaves an account that logs in and is then rejected everywhere ("Dieser Zugang ist nicht für
+das Team freigeschaltet"). To revoke access, delete the `public.staff` row (the login itself keeps working but
+sees nothing). Keep "Allow new users to sign up" turned off under Authentication → Providers → Email.
 
 Auth hardening (dashboard settings, not in migrations): Authentication → Sign In / Providers → Email → set
 **Minimum password length to 8** (raise it later if you want) and turn on **Prevent use of leaked passwords** (HaveIBeenPwned; Pro plan).
@@ -50,10 +62,12 @@ How reservations work:
 - Guests call the `request_reservation` RPC (via a Server Action). It checks opening hours, closures, lead time,
   party size and seat capacity (overlapping reservations × duration) inside one transaction and inserts a
   `pending` row. Guests can never read the reservations table.
-- Abuse limits live inside `request_reservation` (migration 0005), because anon can call it straight through the
-  REST API: text length caps, max 3 requests per phone/e-mail per 24 h, one open booking per phone per day, and a
-  site-wide cap of 15/hour and 80/24 h. Tune the constants at the top of the function. A Vercel firewall rate-limit
-  rule on `POST /` (the Server Actions) sits in front of the form as a first line of defence.
+- Abuse limits live inside `request_reservation` (migrations 0005 and 0009), because anon can call it straight
+  through the REST API: text length caps, max 3 requests per phone/e-mail per 24 h, one open booking per phone per
+  day, and a site-wide cap of 15/hour and 80/24 h. The quota checks, the capacity check and the insert all run under
+  one site-wide advisory lock (0009), so a concurrent burst cannot slip past the counts. Tune the constants at the
+  top of the function. A Vercel firewall rate-limit rule on `POST /` (the Server Actions) sits in front of the form
+  as a first line of defence.
 - Staff confirm/cancel in the admin; the WhatsApp button pre-fills a confirmation message.
 - Rules (capacity, slot size, lead time, …) are edited under *Einstellungen* and stored in `site_settings`.
 

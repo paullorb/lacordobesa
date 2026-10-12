@@ -287,6 +287,12 @@ a { color: inherit; }
   .footer-inner { flex-direction: column; align-items: flex-start; }
   .copyright { text-align: left; }
 }
+@media (max-width: 430px) {
+  /* The wordmark plus call, reserve and menu controls no longer fit `100% - 32px` here: show the logo alone. */
+  .brand-copy { display: none; }
+  .nav-reserve { padding: 0 .75rem; }
+  .nav-actions { gap: .3rem; }
+}
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; } }
 
 /* ------------------------------------------------------------------ admin (Tailwind utilities + a few helpers) */
