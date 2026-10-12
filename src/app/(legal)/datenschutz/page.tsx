@@ -39,7 +39,7 @@ export default function DatenschutzPage() {
       <p>
         Wenn du über das Reservierungsformular einen Tisch anfragst, verarbeiten wir die von dir eingegebenen Daten:
         Name, Telefonnummer, optional E-Mail-Adresse und Anmerkungen, sowie Datum, Uhrzeit und Personenzahl. Wir
-        nutzen diese Daten ausschließlich, um die Reservierung zu bearbeiten, zu bestätigen und – bei Bedarf –
+        nutzen diese Daten ausschließlich, um die Reservierung zu bearbeiten, zu bestätigen und, bei Bedarf,
         Rückfragen zu stellen, zum Beispiel per Telefon, WhatsApp oder E-Mail.
       </p>
       <p>

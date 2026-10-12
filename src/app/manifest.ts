@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 // Installable staff app: opens straight into the staff area.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "La Cordobesa — Team",
+    name: "La Cordobesa · Team",
     short_name: "Cordobesa",
     description: "Reservierungen, Karte und Öffnungszeiten verwalten.",
     start_url: "/staff",

@@ -81,7 +81,7 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
       <section className="card">
         <h2 className="mb-1 font-semibold">Geschlossene Tage</h2>
         <p className="mb-4 text-sm text-muted">
-          Feiertage, Urlaub, Betriebsferien – ein einzelner Tag oder ein Zeitraum. An diesen Tagen sind keine Reservierungen möglich.
+          Feiertage, Urlaub, Betriebsferien: ein einzelner Tag oder ein Zeitraum. An diesen Tagen sind keine Reservierungen möglich.
         </p>
         <ul className="mb-4 grid gap-2">
           {ranges.map((r) => (
@@ -89,7 +89,7 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
               <span>
                 <strong>
                   {fmtDateDE(r.from)}
-                  {r.to !== r.from && ` – ${fmtDateDE(r.to)}`}
+                  {r.to !== r.from && ` bis ${fmtDateDE(r.to)}`}
                 </strong>
                 {r.reason && <span className="ml-2 text-muted">{r.reason}</span>}
               </span>

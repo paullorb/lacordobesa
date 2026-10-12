@@ -72,7 +72,7 @@ type SectionLinkProps = { href: string; className?: string; children: ReactNode 
 
 /**
  * A `/#anchor` link. `next/link` only scrolls when the route actually changes, so on the page the
- * anchor already lives on the jump is done here instead – otherwise the link does nothing at all.
+ * anchor already lives on the jump is done here instead; otherwise the link does nothing at all.
  */
 function SectionLink({ href, className, children }: SectionLinkProps) {
   const pathname = usePathname();

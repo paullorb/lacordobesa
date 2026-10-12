@@ -8,7 +8,7 @@ type Done = "shared" | "copied" | "failed" | null;
 
 const MESSAGES: Record<Exclude<Done, null>, string> = {
   shared: "Danke fürs Teilen!",
-  copied: "Link kopiert – jetzt einfach einfügen.",
+  copied: "Link kopiert, jetzt einfach einfügen.",
   failed: "Teilen hat nicht geklappt. Kopier den Link bitte aus der Adressleiste.",
 };
 
@@ -31,7 +31,7 @@ export function ShareButton({ title, text, className = "button secondary" }: Pro
       await navigator.clipboard.writeText(url);
       setDone("copied");
     } catch (error) {
-      // Dismissing the share sheet rejects with AbortError – that is not a failure worth reporting.
+      // Dismissing the share sheet rejects with AbortError, which is not a failure worth reporting.
       if (!(error instanceof DOMException && error.name === "AbortError")) setDone("failed");
     }
   }

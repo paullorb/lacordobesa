@@ -92,7 +92,7 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
               key={date}
               href={hrefForDay(date)}
               className={cls}
-              title={`${fmtDateDE(date)}${info.closedReason ? ` – ${info.closedReason}` : closed ? " – geschlossen" : ""}`}
+              title={`${fmtDateDE(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": geschlossen" : ""}`}
             >
               <span className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral px-1.5 text-white" : ""}`}>
                 {Number(date.slice(8, 10))}

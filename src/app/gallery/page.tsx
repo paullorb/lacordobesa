@@ -24,7 +24,7 @@ export default async function GalleryPage() {
             <div className="section-heading">
               <p className="eyebrow">Momentos</p>
               <h1>Galerie</h1>
-              <p>Unser Lokal, frisch Gebackenes und Feiern bei uns – ein kleiner Einblick.</p>
+              <p>Unser Lokal, frisch Gebackenes und Feiern bei uns: ein kleiner Einblick.</p>
             </div>
             {items.length > 0 ? (
               <GalleryGrid

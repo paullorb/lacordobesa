@@ -7,7 +7,7 @@ import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Carta / Karte",
-  description: "Die komplette Karte von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke – alles hausgemacht.",
+  description: "Die komplette Karte von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
 };
 
 export default async function KartePage() {
