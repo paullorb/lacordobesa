@@ -2,6 +2,7 @@ import { setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
 import { whatsappHref } from "@/lib/contact";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
+import { manageUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
 const LABEL: Record<Tables<"reservations">["status"], string> = {
@@ -13,7 +14,14 @@ const LABEL: Record<Tables<"reservations">["status"], string> = {
 };
 
 export function ReservationCard({ r, showDate = false }: { r: Tables<"reservations">; showDate?: boolean }) {
-  const confirmText = `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`;
+  // manage_token arrives with migration 20261012093558; before that there is no guest link to share.
+  const guestLink = r.manage_token ? manageUrl(r.manage_token) : null;
+  const confirmText = [
+    `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
+    guestLink && `Falls du absagen oder verschieben musst: ${guestLink}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   const phoneDigits = r.phone.replace(/[^\d+]/g, "");
   const waNumber = phoneDigits.startsWith("+") ? phoneDigits.slice(1) : phoneDigits.startsWith("0") ? `49${phoneDigits.slice(1)}` : phoneDigits;
 
@@ -67,6 +75,14 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           )}
         </div>
       </div>
+      {guestLink && (r.status === "pending" || r.status === "confirmed") && (
+        <p className="text-xs text-muted">
+          Gäste-Link zum Absagen/Verschieben:{" "}
+          <a href={guestLink} className="break-all underline hover:text-blue-dark" target="_blank" rel="noreferrer">
+            {guestLink}
+          </a>
+        </p>
+      )}
       <form action={saveStaffNotes} className="flex gap-2">
         <input type="hidden" name="id" value={r.id} />
         <input name="staff_notes" defaultValue={r.staff_notes ?? ""} placeholder="Interne Notiz (Tisch, Hinweise …)" />

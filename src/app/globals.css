@@ -199,6 +199,22 @@ a { color: inherit; }
 .text-button { font: inherit; font-size: .75rem; font-weight: 700; padding: 0; border: 0; background: none; color: var(--blue-dark); text-decoration: underline; cursor: pointer; justify-self: start; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .form-note { font-size: .75rem; color: var(--muted); line-height: 1.6; margin: 0; }
+/* /reservierung/<token>: the guest's own view of one booking. */
+.manage-shell { max-width: 620px; margin: 0 auto; display: grid; gap: 1.6rem; }
+.manage { display: grid; gap: 1.1rem; }
+.manage-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .9rem; margin: 0; padding: 1.2rem 1.3rem; background: var(--paper); }
+.manage-facts dt { font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.manage-facts dd { margin: .2rem 0 0; font-family: var(--serif); font-size: 1.05rem; }
+.manage-note { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.7; }
+.manage-guest-note { margin: 0; padding: .7rem 1rem; background: var(--cream); font-size: .85rem; font-style: italic; }
+.manage-actions { display: grid; gap: 1rem; justify-items: start; }
+.manage-move { width: 100%; border: 1px solid var(--line); background: var(--paper); }
+.manage-move summary { cursor: pointer; padding: .8rem 1.1rem; font-size: .85rem; font-weight: 700; }
+.manage-move-form { display: grid; gap: .6rem; padding: 0 1.1rem 1.1rem; }
+.manage-label { font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.manage-hint { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.6; }
+.button.button-quiet { background: none; color: var(--muted); border: 1px solid var(--line); }
+.button.button-quiet:hover { color: var(--ink); border-color: var(--ink); }
 .form-error { padding: .8rem 1rem; background: #fde8e1; color: #8a3414; font-size: .85rem; border-radius: 4px; }
 .form-success { padding: 2rem; background: var(--mint); border: 1px solid var(--line); }
 .form-success strong { display: block; font-family: var(--serif); font-size: 1.5rem; font-weight: 500; margin-bottom: .5rem; }
