@@ -19,17 +19,19 @@ const additivesOf = (i: Tables<"menu_items">) => i.additives ?? [];
 const codes = (i: Tables<"menu_items">) => [...allergensOf(i), ...additivesOf(i)];
 
 /** The description in the reader's language, falling back to German (migration 20261012102608).
- *  A German sentence is more use to a Spanish reader than a blank line. */
+ *  A German sentence is more use to a Spanish reader than a blank line.
+ *
+ *  menu_items.description_en is still in the schema and still editable by staff; the site simply
+ *  no longer offers English, so nothing reads it. Dropping the column would throw away whatever
+ *  has been written into it for the sake of tidiness. */
 function description(item: Tables<"menu_items">, locale: Locale) {
-  if (locale === "es") return item.description_es ?? item.description;
-  if (locale === "en") return item.description_en ?? item.description;
-  return item.description;
+  return locale === "es" ? (item.description_es ?? item.description) : item.description;
 }
 
-/** True when a dish shows German text under a non-German heading, which the page then admits to. */
+/** True when a dish shows German text under a Spanish heading, which the page then admits to. */
 function isUntranslated(item: Tables<"menu_items">, locale: Locale) {
   if (locale === "de" || !item.description) return false;
-  return (locale === "es" ? item.description_es : item.description_en) == null;
+  return item.description_es == null;
 }
 
 export async function MenuView({ locale }: { locale: Locale }) {
@@ -41,7 +43,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
   const anyUntranslated = shown.some((i) => isUntranslated(i, locale));
 
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       <JsonLd data={menuJsonLd(menu)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />

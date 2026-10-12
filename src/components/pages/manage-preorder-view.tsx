@@ -20,7 +20,7 @@ export function ManagePreorderView({
 }) {
   const t = getDictionary(locale).managePreorder;
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       <Suspense fallback={null}>
         <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
       </Suspense>

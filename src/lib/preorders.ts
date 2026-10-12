@@ -71,5 +71,10 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   });
 }
 
+/** A pre-order with the lines the staff list joins in. Lives here rather than in the staff page,
+ *  so the card component does not have to import a type out of a route file. */
+type StaffPreorderLine = Pick<Tables<"preorder_lines">, "id" | "label" | "unit_label" | "price_label" | "quantity">;
+export type PreorderWithLines = Tables<"preorders"> & { preorder_lines: StaffPreorderLine[] };
+
 /** One line of a guest's order, as preorder_by_token() returns it. */
 export type PreorderLine = { label: string; unit: string; price: string | null; quantity: number };

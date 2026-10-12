@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { PreorderCard } from "@/components/staff/preorder-card";
+import type { PreorderWithLines } from "@/lib/preorders";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
-import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Vorbestellungen" };
 
@@ -15,8 +15,6 @@ export default function PreordersPage() {
   );
 }
 
-type Line = Pick<Tables<"preorder_lines">, "id" | "label" | "unit_label" | "price_label" | "quantity">;
-export type PreorderWithLines = Tables<"preorders"> & { preorder_lines: Line[] };
 
 async function Preorders() {
   const { supabase } = await requireStaff();

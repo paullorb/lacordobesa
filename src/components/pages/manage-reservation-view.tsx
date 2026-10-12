@@ -22,7 +22,7 @@ export function ManageReservationView({
 }) {
   const t = getDictionary(locale).manage;
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       {/* SiteHeader reads usePathname() to decide how to link its in-page anchors, which is URL data
           and so needs its own boundary on a dynamic route. */}
       <Suspense fallback={null}>

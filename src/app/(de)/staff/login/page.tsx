@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LoginForm } from "./login-form";
+import { LoginForm } from "@/app/staff/login/login-form";
 
 export const metadata = { title: "Anmelden" };
 

@@ -16,7 +16,7 @@
  *  and the German URLs never moved. Adding a language means adding wrappers, which is cheap next to
  *  writing the dictionary. */
 
-export const LOCALES = ["de", "es", "en"] as const;
+export const LOCALES = ["de", "es"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "de";
@@ -26,14 +26,14 @@ export const isLocale = (value: string): value is Locale => (LOCALES as readonly
 
 /** BCP-47 tags for Intl and the `lang` attribute. Spanish is es-AR: this is an Argentine bakery,
  *  and the difference shows up in wording the team would recognise as their own. */
-export const INTL_LOCALE: Record<Locale, string> = { de: "de-DE", es: "es-AR", en: "en-GB" };
+export const INTL_LOCALE: Record<Locale, string> = { de: "de-DE", es: "es-AR" };
 
 /** What the language switcher shows. Each name is in its own language, which is the convention that
  *  works for a visitor who cannot read the current one. */
-export const LOCALE_NAME: Record<Locale, string> = { de: "Deutsch", es: "Español", en: "English" };
+export const LOCALE_NAME: Record<Locale, string> = { de: "Deutsch", es: "Español" };
 
 /** OpenGraph locale codes. */
-export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR", en: "en_GB" };
+export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR" };
 
 /**
  * A site-root-relative path for a locale.

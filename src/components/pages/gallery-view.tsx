@@ -16,7 +16,7 @@ export async function GalleryView({ locale }: { locale: Locale }) {
     // `lang` on the wrapper, because the single root layout cannot know the locale. See the note in
     // src/lib/i18n.ts: assistive technology and :lang() honour the nearest ancestor, and Google is
     // told through the hreflang alternates in each page's metadata.
-    <div className="site" lang={locale}>
+    <div className="site">
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={GALLERY_PATH} />
 
