@@ -1,3 +1,4 @@
+import { MenuIcon } from "@/components/icons";
 import { GLYPHS, type GlyphName } from "@/components/menu-icons/glyphs";
 
 /** A "0" ring means the dish or drink is the version without: without alcohol, without caffeine.
@@ -98,27 +99,9 @@ const BY_ITEM: Record<string, IconSpec> = {
   prosecco: { glyph: "flute" },
 };
 
-/** What a dish staff add later gets until it is listed above: something true of the whole column,
- *  so a new pizza is a pizza and a new cocktail is a glass rather than a blank or a wrong icon. */
-const BY_CATEGORY: Record<string, GlyphName> = {
-  vorspeise: "platter",
-  empanadas: "empanada",
-  pasta: "ravioli",
-  clasico: "steak",
-  pizzas: "pizza",
-  hauptgerichte: "steak",
-  desserts: "cake_slice",
-  alkoholfrei: "soda",
-  alkoholisch: "beer_pils",
-  heiss: "coffee_cup",
-  cocktails: "coupe_star",
-};
-
-export function menuIconFor(itemName: string, categorySlug: string): IconSpec | null {
-  const exact = BY_ITEM[itemName.trim().toLowerCase()];
-  if (exact) return exact;
-  const fallback = BY_CATEGORY[categorySlug];
-  return fallback ? { glyph: fallback } : null;
+/** The glyph chosen for a dish, or null when it is not one of the items on the card. */
+export function menuIconFor(itemName: string): IconSpec | null {
+  return BY_ITEM[itemName.trim().toLowerCase()] ?? null;
 }
 
 /** The badge needs room, so the dish shrinks towards the top-left and the stroke is scaled back up
@@ -135,8 +118,10 @@ export function MenuItemIcon({
   categorySlug: string;
   size?: number;
 }) {
-  const spec = menuIconFor(itemName, categorySlug);
-  if (!spec) return null;
+  const spec = menuIconFor(itemName);
+  // A dish staff add later is not in the table above, so it falls back to the mark its column
+  // already has on the home page rather than leaving the row short of an icon.
+  if (!spec) return <MenuIcon slug={categorySlug} size={size} className="menu-icon" />;
 
   const glyph = GLYPHS[spec.glyph];
 
@@ -148,7 +133,7 @@ export function MenuItemIcon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -156,7 +141,7 @@ export function MenuItemIcon({
     >
       {spec.badge ? (
         <>
-          <g transform={`scale(${BADGED_SCALE})`} strokeWidth={1.5 / BADGED_SCALE}>
+          <g transform={`scale(${BADGED_SCALE})`} strokeWidth={1.6 / BADGED_SCALE}>
             {glyph}
           </g>
           <circle cx="18" cy="18" r="5.2" fill="var(--menu-icon-bg, var(--cream))" stroke="none" />

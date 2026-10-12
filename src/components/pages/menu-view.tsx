@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { JsonLd } from "@/components/json-ld";
+import { MenuItemIcon } from "@/components/menu-icons";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { codeList, legendFor } from "@/lib/allergens";
@@ -88,6 +89,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
                         const text = description(item, locale);
                         return (
                           <li key={item.id}>
+                            <MenuItemIcon itemName={item.name} categorySlug={c.slug} />
                             <span>
                               <strong>{item.name}</strong>
                               {codes(item).length > 0 && (

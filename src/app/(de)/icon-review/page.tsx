@@ -196,7 +196,7 @@ export default function IconReviewPage() {
                   <li key={name}>
                     <MenuItemIcon itemName={name} categorySlug={slug} size={34} />
                     <strong>{name}</strong>
-                    <code>{menuIconFor(name, slug)?.glyph}</code>
+                    <code>{menuIconFor(name)?.glyph ?? `(${slug})`}</code>
                   </li>
                 ))}
               </ul>
