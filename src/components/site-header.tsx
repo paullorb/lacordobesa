@@ -4,21 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { EmpanadaIcon } from "@/components/empanada-icon";
+import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
+import { getDictionary } from "@/lib/dictionaries";
+import { localeHref, type Locale } from "@/lib/i18n";
 
-const LINKS = [
-  { href: "/#geschichte", label: "Unsere Geschichte" },
-  { href: "/karte", label: "Carta / Karte" },
-  { href: "/vorbestellen", label: "Vorbestellen" },
-  { href: "/catering", label: "Feiern" },
-  { href: "/gallery", label: "Galerie" },
-  { href: "/#besuch", label: "Besuch uns" },
-];
+type Props = { whatsappHref: string; phoneHref: string; locale: Locale; path?: string };
 
-type Props = { whatsappHref: string; phoneHref: string };
-
-export function SiteHeader({ whatsappHref, phoneHref }: Props) {
+/** `path` is the locale-independent path of the current page ("/karte"), which the language switch
+ *  needs to offer the same page in another language rather than always sending people home. */
+export function SiteHeader({ whatsappHref, phoneHref, locale, path = "/" }: Props) {
   const [open, setOpen] = useState(false);
+  const t = getDictionary(locale);
+  const href = (p: string) => localeHref(locale, p);
+  const links = [
+    { href: href("/#geschichte"), label: t.nav.story },
+    { href: href("/karte"), label: t.nav.menu },
+    { href: href("/vorbestellen"), label: t.nav.preorder },
+    { href: href("/catering"), label: t.nav.celebrate },
+    { href: href("/gallery"), label: t.nav.gallery },
+    { href: href("/#besuch"), label: t.nav.visit },
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -30,7 +36,7 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
   return (
     <header className="site-header">
       <div className="nav">
-        <Link className="brand" href="/" aria-label="La Cordobesa Startseite">
+        <Link className="brand" href={href("/")} aria-label={t.nav.home}>
           <Logo />
           <span className="brand-copy">
             <strong>La Cordobesa</strong>
@@ -38,26 +44,27 @@ export function SiteHeader({ whatsappHref, phoneHref }: Props) {
           </span>
         </Link>
         <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
-          {LINKS.map((l) => (
+          {links.map((l) => (
             <SectionLink key={l.href} href={l.href}>
               {l.label}
             </SectionLink>
           ))}
           <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
-            Schreib uns <span aria-hidden="true">↗</span>
+            {t.nav.write} <span aria-hidden="true">↗</span>
           </a>
+          <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
         </nav>
         <div className="nav-actions">
-          <a className="nav-call" href={phoneHref} aria-label="Anrufen">
+          <a className="nav-call" href={phoneHref} aria-label={t.nav.call}>
             <span aria-hidden="true">☎</span>
-            <span className="nav-call-label">Anrufen</span>
+            <span className="nav-call-label">{t.nav.call}</span>
           </a>
-          <SectionLink className="nav-cta nav-reserve" href="/#reservieren">
-            Reservieren
+          <SectionLink className="nav-cta nav-reserve" href={href("/#reservieren")}>
+            {t.nav.reserve}
           </SectionLink>
           <button
             className="menu-toggle"
-            aria-label={open ? "Menü schließen" : "Menü öffnen"}
+            aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={open}
             aria-controls="navigation"
             onClick={() => setOpen((o) => !o)}

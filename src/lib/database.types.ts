@@ -197,6 +197,8 @@ export type Database = {
           category_id: string
           created_at: string
           description: string | null
+          description_en: string | null
+          description_es: string | null
           id: string
           is_available: boolean
           is_preorderable: boolean
@@ -214,6 +216,8 @@ export type Database = {
           category_id: string
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_es?: string | null
           id?: string
           is_available?: boolean
           is_preorderable?: boolean
@@ -231,6 +235,8 @@ export type Database = {
           category_id?: string
           created_at?: string
           description?: string | null
+          description_en?: string | null
+          description_es?: string | null
           id?: string
           is_available?: boolean
           is_preorderable?: boolean

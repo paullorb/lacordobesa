@@ -3,29 +3,26 @@
 import { useActionState, useState, useTransition } from "react";
 import { getAvailability, type Slot } from "@/app/reservations/actions";
 import { cancelReservation, moveReservation, type GuestReservation, type ManageState } from "@/app/reservierung/actions";
-import { fmtDateDE } from "@/lib/dates";
-
-const STATUS: Record<GuestReservation["status"], { label: string; note: string }> = {
-  pending: { label: "Noch offen", note: "Wir melden uns, sobald wir deinen Tisch bestätigen können." },
-  confirmed: { label: "Bestätigt", note: "Dein Tisch ist für dich reserviert. ¡Hasta pronto!" },
-  cancelled: { label: "Storniert", note: "Diese Reservierung ist storniert. Du kannst jederzeit neu anfragen." },
-  no_show: { label: "Nicht erschienen", note: "Zu diesem Termin haben wir dich leider nicht gesehen." },
-  completed: { label: "Erledigt", note: "Danke für deinen Besuch. ¡Gracias!" },
-};
+import { fmtDate } from "@/lib/dates";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
 
 export function ManageReservation({
+  locale,
   token,
   reservation,
   maxPartySize,
   minDate,
   maxDate,
 }: {
+  locale: Locale;
   token: string;
   reservation: GuestReservation;
   maxPartySize: number;
   minDate: string;
   maxDate: string;
 }) {
+  const t = getDictionary(locale).manage;
   const [cancelState, cancelAction, cancelling] = useActionState(cancelReservation, null);
   const [moveState, moveAction, moving] = useActionState(moveReservation, null);
 
@@ -55,11 +52,9 @@ export function ManageReservation({
   if (done) {
     return (
       <div className="form-success" role="status">
-        <strong>{done.action === "cancelled" ? "Reservierung storniert." : "Neuer Termin angefragt."}</strong>
+        <strong>{done.action === "cancelled" ? t.cancelledTitle : t.movedTitle}</strong>
         <p>
-          {done.action === "cancelled"
-            ? "Danke, dass du uns Bescheid gegeben hast. So kann jemand anderes den Tisch bekommen."
-            : `Wir haben deine Anfrage auf ${fmtDateDE(date)} um ${time} Uhr geändert und melden uns, sobald sie bestätigt ist.`}
+          {done.action === "cancelled" ? t.cancelledText : t.movedText(fmtDate(date, locale), time)}
         </p>
       </div>
     );
@@ -69,27 +64,29 @@ export function ManageReservation({
     <div className="manage">
       <dl className="manage-facts">
         <div>
-          <dt>Name</dt>
+          <dt>{t.name}</dt>
           <dd>{reservation.name}</dd>
         </div>
         <div>
-          <dt>Datum</dt>
-          <dd>{fmtDateDE(reservation.date)}</dd>
+          <dt>{t.date}</dt>
+          <dd>{fmtDate(reservation.date, locale)}</dd>
         </div>
         <div>
-          <dt>Uhrzeit</dt>
-          <dd>{reservation.time} Uhr</dd>
+          <dt>{t.time}</dt>
+          <dd>
+            {reservation.time} {t.at}
+          </dd>
         </div>
         <div>
-          <dt>Personen</dt>
+          <dt>{t.people}</dt>
           <dd>{reservation.partySize}</dd>
         </div>
         <div>
-          <dt>Status</dt>
-          <dd>{STATUS[reservation.status].label}</dd>
+          <dt>{t.status}</dt>
+          <dd>{t.statuses[reservation.status].label}</dd>
         </div>
       </dl>
-      <p className="manage-note">{STATUS[reservation.status].note}</p>
+      <p className="manage-note">{t.statuses[reservation.status].note}</p>
       {reservation.notes && <p className="manage-guest-note">„{reservation.notes}“</p>}
 
       {error && (
@@ -102,10 +99,10 @@ export function ManageReservation({
         <div className="manage-actions">
           {changeable && (
             <details className="manage-move">
-              <summary>Termin verschieben</summary>
+              <summary>{t.move}</summary>
               <form action={moveAction} className="manage-move-form">
                 <input type="hidden" name="token" value={token} />
-                <label htmlFor="manage-date">Neues Datum</label>
+                <label htmlFor="manage-date">{t.newDate}</label>
                 <input
                   id="manage-date"
                   type="date"
@@ -118,11 +115,11 @@ export function ManageReservation({
 
                 {date && (
                   <>
-                    <span className="manage-label">Neue Uhrzeit</span>
+                    <span className="manage-label">{t.newTime}</span>
                     {loading ? (
-                      <p className="manage-hint">Freie Zeiten werden geladen …</p>
+                      <p className="manage-hint">{t.loadingSlots}</p>
                     ) : slots.length > 0 ? (
-                      <div className="slots times" role="group" aria-label="Neue Uhrzeit wählen">
+                      <div className="slots times" role="group" aria-label={t.pickNewTime}>
                         {slots.map((s) => (
                           <button
                             key={s.time}
@@ -137,8 +134,9 @@ export function ManageReservation({
                       </div>
                     ) : (
                       <p className="manage-hint">
-                        An diesem Tag ist für {reservation.partySize} {reservation.partySize === 1 ? "Person" : "Personen"} leider
-                        nichts frei. Bitte wähle einen anderen Tag.
+                        {t.nothingFree(
+                          `${reservation.partySize} ${reservation.partySize === 1 ? getDictionary(locale).reservation.person : getDictionary(locale).reservation.people}`,
+                        )}
                       </p>
                     )}
                   </>
@@ -146,7 +144,7 @@ export function ManageReservation({
 
                 <input type="hidden" name="date" value={date} />
                 <input type="hidden" name="time" value={time} />
-                <label htmlFor="manage-party">Personen</label>
+                <label htmlFor="manage-party">{t.partyLabel}</label>
                 <input
                   id="manage-party"
                   name="party_size"
@@ -158,13 +156,11 @@ export function ManageReservation({
                 />
 
                 <button type="submit" className="button" disabled={!time || moving}>
-                  {moving ? "Wird geändert …" : "Termin ändern"}
+                  {moving ? t.moving : t.doMove}
                 </button>
                 <p className="manage-hint">
-                  Nach einer Änderung prüfen wir den neuen Termin noch einmal und bestätigen ihn dir.
-                  {reservation.changesLeft === 1
-                    ? " Das ist die letzte Änderung, die online möglich ist."
-                    : ` Noch ${reservation.changesLeft} Änderungen online möglich.`}
+                  {t.moveNote}
+                  {reservation.changesLeft === 1 ? t.lastChange : t.changesLeft(reservation.changesLeft)}
                 </p>
               </form>
             </details>
@@ -173,12 +169,12 @@ export function ManageReservation({
           <form
             action={cancelAction}
             onSubmit={(e) => {
-              if (!window.confirm("Reservierung wirklich stornieren?")) e.preventDefault();
+              if (!window.confirm(t.confirmCancel)) e.preventDefault();
             }}
           >
             <input type="hidden" name="token" value={token} />
             <button type="submit" className="button button-quiet" disabled={cancelling}>
-              {cancelling ? "Wird storniert …" : "Reservierung stornieren"}
+              {cancelling ? t.cancelling : t.cancel}
             </button>
           </form>
         </div>

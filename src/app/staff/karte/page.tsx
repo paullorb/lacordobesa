@@ -33,6 +33,9 @@ async function Menu() {
   const allergenColumns =
     all.length > 0 ? Array.isArray(all[0].allergens) : !(await supabase.from("menu_items").select("allergens").limit(1)).error;
   const missingCodes = allergenColumns ? all.filter((i) => (i.allergens ?? []).length === 0).length : 0;
+  // And for the translation columns from migration 20261012102608.
+  const translationColumns =
+    all.length > 0 ? "description_es" in all[0] : !(await supabase.from("menu_items").select("description_es").limit(1)).error;
   // And for the pre-order columns from migration 20261012094815.
   const preorderColumns =
     all.length > 0
@@ -46,6 +49,8 @@ async function Menu() {
         <p className="text-sm text-muted">
           Klick auf ein Gericht, um Name, Beschreibung (deutsche Übersetzung) und Preis zu ändern. „Startseite“
           markiert die drei Highlights oben auf der Website; „Ausverkauft“ blendet ein Gericht aus, ohne es zu löschen.
+          Die spanischen und englischen Beschreibungen sind optional: ohne sie zeigen die Seiten /es und /en die
+          deutsche Beschreibung und weisen darauf hin.
         </p>
       </div>
 
@@ -105,6 +110,7 @@ async function Menu() {
                   categories={cats}
                   allergenColumns={allergenColumns}
                   preorderColumns={preorderColumns}
+                  translationColumns={translationColumns}
                 />
               ))}
             </div>
@@ -116,6 +122,7 @@ async function Menu() {
                 nextSort={(catItems.at(-1)?.sort_order ?? 0) + 1}
                 allergenColumns={allergenColumns}
                 preorderColumns={preorderColumns}
+                translationColumns={translationColumns}
               />
             </details>
           </section>
@@ -181,11 +188,13 @@ function ItemRow({
   categories,
   allergenColumns,
   preorderColumns,
+  translationColumns,
 }: {
   item: Tables<"menu_items">;
   categories: Tables<"menu_categories">[];
   allergenColumns: boolean;
   preorderColumns: boolean;
+  translationColumns: boolean;
 }) {
   const codes = [...(item.allergens ?? []), ...(item.additives ?? [])];
   return (
@@ -208,7 +217,13 @@ function ItemRow({
         </form>
       </summary>
       <div className="border-t border-line px-3 pb-3">
-        <ItemForm categories={categories} item={item} allergenColumns={allergenColumns} preorderColumns={preorderColumns} />
+        <ItemForm
+          categories={categories}
+          item={item}
+          allergenColumns={allergenColumns}
+          preorderColumns={preorderColumns}
+          translationColumns={translationColumns}
+        />
       </div>
     </details>
   );
@@ -221,6 +236,7 @@ function ItemForm({
   nextSort,
   allergenColumns,
   preorderColumns,
+  translationColumns,
 }: {
   categories: Tables<"menu_categories">[];
   item?: Tables<"menu_items">;
@@ -228,6 +244,7 @@ function ItemForm({
   nextSort?: number;
   allergenColumns: boolean;
   preorderColumns: boolean;
+  translationColumns: boolean;
 }) {
   const id = item?.id ?? `new-${defaultCategory}`;
   return (
@@ -272,6 +289,33 @@ function ItemForm({
             <input type="checkbox" name="is_featured" defaultChecked={item?.is_featured ?? false} /> Auf Startseite
           </label>
         </div>
+        {/* Before migration 20261012102608 these are hidden and not submitted. Empty is fine and
+            normal: the Spanish and English menu pages fall back to the German description and say so. */}
+        {translationColumns && (
+          <div className="grid gap-3 sm:col-span-6 sm:grid-cols-2">
+            <input type="hidden" name="translations_field" value="1" />
+            <div>
+              <label htmlFor={`${id}-des`}>Beschreibung spanisch (optional)</label>
+              <input
+                id={`${id}-des`}
+                name="description_es"
+                maxLength={500}
+                defaultValue={item?.description_es ?? ""}
+                placeholder="Empanada rellena de carne, cebolla y morrón"
+              />
+            </div>
+            <div>
+              <label htmlFor={`${id}-den`}>Beschreibung englisch (optional)</label>
+              <input
+                id={`${id}-den`}
+                name="description_en"
+                maxLength={500}
+                defaultValue={item?.description_en ?? ""}
+                placeholder="Pastry parcel filled with beef, onion and pepper"
+              />
+            </div>
+          </div>
+        )}
         {/* Before migration 20261012094815 these are hidden and not submitted, so saveMenuItem leaves
             the columns out entirely. */}
         {preorderColumns && (

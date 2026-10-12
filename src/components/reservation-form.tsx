@@ -2,7 +2,9 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
-import { fmtDateDE } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
+import { getDictionary, type Dictionary } from "@/lib/dictionaries";
+import { INTL_LOCALE, type Locale } from "@/lib/i18n";
 import { WaitlistForm } from "@/components/waitlist-form";
 import {
   getAvailability,
@@ -14,6 +16,7 @@ import {
 } from "@/app/reservations/actions";
 
 type Props = {
+  locale: Locale;
   maxPartySize: number;
   minDate: string;
   maxDate: string;
@@ -24,22 +27,15 @@ type Props = {
 
 type Step = 1 | 2 | 3 | 4;
 
-const STEP_TITLES: Record<Step, string> = {
-  1: "Wann möchtest du kommen?",
-  2: "Um wie viel Uhr?",
-  3: "Für wie viele Personen?",
-  4: "Wer kommt?",
-};
-
-/** Monday first, the way a German calendar reads. */
-const WEEKDAY_HEADS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-const weekdayLong = new Intl.DateTimeFormat("de-DE", { timeZone: "UTC", weekday: "long" });
-const monthLong = new Intl.DateTimeFormat("de-DE", { timeZone: "UTC", month: "long", year: "numeric" });
-
 const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 
-export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays, phoneHref, phoneLabel }: Props) {
+export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closedWeekdays, phoneHref, phoneLabel }: Props) {
+  const t = getDictionary(locale).reservation;
+  // Monday first in all three languages: the calendar grid is built that way, and a German, Spanish
+  // or English reader all expect their own week to start where their own calendar starts it.
+  const weekdayLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", weekday: "long" });
+  const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
+  const people = (n: number) => `${n} ${n === 1 ? t.person : t.people}`;
   const [state, formAction, submitting] = useActionState<RequestState, FormData>(requestReservation, null);
   const [step, setStep] = useState<Step>(1);
   const [date, setDate] = useState("");
@@ -104,12 +100,8 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   if (state?.ok) {
     return (
       <div className="form-success" role="status">
-        <strong>¡Gracias! Anfrage erhalten.</strong>
-        <p>
-          {fmtDateDE(date)} um {time} Uhr für {partySize} {partySize === 1 ? "Person" : "Personen"}. Wir melden uns so
-          bald wie möglich telefonisch oder per WhatsApp, um deine Reservierung zu bestätigen. Bis dahin ist der Tisch
-          noch nicht fest zugesagt.
-        </p>
+        <strong>{t.successTitle}</strong>
+        <p>{t.successText(fmtDate(date, locale), time, people(partySize ?? 1))}</p>
       </div>
     );
   }
@@ -117,17 +109,17 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   const selectedSlot = slots.find((s) => s.time === time);
   const maxForSlot = Math.min(maxPartySize, selectedSlot?.seatsLeft ?? maxPartySize);
   const bookable = slots.filter((s) => s.seatsLeft > 0);
-  const months = calendarMonths(minDate, maxDate);
+  const months = calendarMonths(minDate, maxDate, monthLong);
   // Every slot exists but none has a free seat: the day is full, which is the one blocker a waitlist
   // can do something about. "Ruhetag" or "zu kurzfristig" are not helped by waiting.
   const fullyBooked = slots.length > 0 && bookable.length === 0;
-  const blocker = date ? unavailableMessage(date, reason, fullyBooked, phoneHref, phoneLabel) : null;
+  const blocker = date ? unavailableMessage(date, reason, fullyBooked, phoneHref, phoneLabel, t, weekdayLong) : null;
   // The request can only be sent once we know who to call back, so the button only appears then.
   const contactReady = contact.name.trim().length >= 2 && contact.phone.trim().length >= 5;
 
   return (
     <div className="form wizard">
-      <p className="sr-only">Schritt {step} von 4</p>
+      <p className="sr-only">{t.stepOf(step, 4)}</p>
       <div className="wizard-dots" aria-hidden="true">
         {([1, 2, 3, 4] as const).map((n) => (
           <span key={n} className={n <= step ? "on" : undefined} />
@@ -137,34 +129,34 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
       {step > 1 && (
         <div className="wizard-summary">
           <button type="button" className="chip" onClick={() => setStep(1)}>
-            {fmtDateDE(date)} <span aria-hidden="true">✎</span>
-            <span className="sr-only">Datum ändern</span>
+            {fmtDate(date, locale)} <span aria-hidden="true">✎</span>
+            <span className="sr-only">{t.changeDate}</span>
           </button>
           {step > 2 && (
             <button type="button" className="chip" onClick={() => setStep(2)}>
-              {time} Uhr <span aria-hidden="true">✎</span>
-              <span className="sr-only">Uhrzeit ändern</span>
+              {time} {t.at} <span aria-hidden="true">✎</span>
+              <span className="sr-only">{t.changeTime}</span>
             </button>
           )}
           {step > 3 && partySize && (
             <button type="button" className="chip" onClick={() => setStep(3)}>
-              {partySize} {partySize === 1 ? "Person" : "Personen"} <span aria-hidden="true">✎</span>
-              <span className="sr-only">Personenzahl ändern</span>
+              {people(partySize)} <span aria-hidden="true">✎</span>
+              <span className="sr-only">{t.changeParty}</span>
             </button>
           )}
         </div>
       )}
 
-      <h3 className="wizard-title">{STEP_TITLES[step]}</h3>
+      <h3 className="wizard-title">{t.steps[step]}</h3>
 
       {step === 1 && (
         <div className="wizard-body">
-          <div className="calendar" role="group" aria-label="Datum wählen">
+          <div className="calendar" role="group" aria-label={t.pickDate}>
             {months.map((month) => (
               <div className="calendar-month" key={month.key}>
                 <p className="calendar-label">{month.label}</p>
                 <div className="calendar-heads" aria-hidden="true">
-                  {WEEKDAY_HEADS.map((w) => (
+                  {t.weekdayHeads.map((w) => (
                     <span key={w}>{w}</span>
                   ))}
                 </div>
@@ -178,13 +170,13 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
                         type="button"
                         className="day"
                         aria-pressed={date === iso}
-                        aria-label={fmtDateDE(iso, { weekday: "long" })}
+                        aria-label={fmtDate(iso, locale, { weekday: "long" })}
                         disabled={closed || loading}
-                        title={closed ? "Ruhetag" : undefined}
+                        title={closed ? t.restDay : undefined}
                         onClick={() => chooseDate(iso)}
                       >
                         {Number(iso.slice(8))}
-                        {iso === minDate && <small>Heute</small>}
+                        {iso === minDate && <small>{t.today}</small>}
                       </button>
                     );
                   })}
@@ -192,17 +184,19 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
               </div>
             ))}
           </div>
-          {loading && <p className="form-note">Verfügbarkeit wird geladen …</p>}
+          {loading && <p className="form-note">{t.loading}</p>}
           {!loading && blocker && (
             <p className="form-note" role="status">
               {blocker}
             </p>
           )}
-          {!loading && fullyBooked && <WaitlistForm date={date} partySize={partySize} maxPartySize={maxPartySize} />}
+          {!loading && fullyBooked && (
+            <WaitlistForm locale={locale} date={date} partySize={partySize} maxPartySize={maxPartySize} />
+          )}
           {!loading && bookable.length > 0 && (
             <div>
               <button type="button" className="button" onClick={() => setStep(2)}>
-                Weiter mit {fmtDateDE(date, { year: undefined })} <span aria-hidden="true">→</span>
+                {t.continueWith(fmtDate(date, locale, { year: undefined }))} <span aria-hidden="true">→</span>
               </button>
             </div>
           )}
@@ -211,7 +205,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
 
       {step === 2 && (
         <div className="wizard-body">
-          <div className="slots times" role="group" aria-label="Uhrzeit wählen">
+          <div className="slots times" role="group" aria-label={t.pickTime}>
             {slots.map((s) => (
               <button
                 key={s.time}
@@ -219,20 +213,20 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
                 className="slot"
                 aria-pressed={time === s.time}
                 disabled={s.seatsLeft <= 0}
-                title={s.seatsLeft <= 0 ? "Ausgebucht" : undefined}
+                title={s.seatsLeft <= 0 ? t.soldOut : undefined}
                 onClick={() => chooseTime(s.time, s.seatsLeft)}
               >
                 {s.time}
               </button>
             ))}
           </div>
-          {loading && <p className="form-note">Verfügbarkeit wird geladen …</p>}
+          {loading && <p className="form-note">{t.loading}</p>}
         </div>
       )}
 
       {step === 3 && (
         <div className="wizard-body">
-          <div className="slots" role="group" aria-label="Personenzahl wählen">
+          <div className="slots" role="group" aria-label={t.pickParty}>
             {Array.from({ length: maxForSlot }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
@@ -249,10 +243,9 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
             ))}
           </div>
           <p className="form-note">
-            {maxForSlot < maxPartySize
-              ? `Zu dieser Uhrzeit sind nur noch ${maxForSlot} Plätze frei. `
-              : ""}
-            Größere Gruppen (ab {maxPartySize + 1} Personen) bitte telefonisch: <a href={phoneHref}>{phoneLabel}</a>
+            {maxForSlot < maxPartySize ? t.seatsLeft(maxForSlot) : ""}
+            {t.largerGroups(maxPartySize + 1)}
+            <a href={phoneHref}>{phoneLabel}</a>
           </p>
         </div>
       )}
@@ -281,7 +274,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
                 value={contact.name}
                 onChange={(e) => setContact({ ...contact, name: e.target.value })}
               />
-              <label htmlFor="r-name">Name</label>
+              <label htmlFor="r-name">{t.name}</label>
             </div>
             <div className="field-float">
               <input
@@ -296,7 +289,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
                 value={contact.phone}
                 onChange={(e) => setContact({ ...contact, phone: e.target.value })}
               />
-              <label htmlFor="r-phone">Telefon</label>
+              <label htmlFor="r-phone">{t.phone}</label>
             </div>
           </div>
           <div className="field-float">
@@ -310,7 +303,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
               value={contact.email}
               onChange={(e) => setContact({ ...contact, email: e.target.value })}
             />
-            <label htmlFor="r-email">E-Mail (optional)</label>
+            <label htmlFor="r-email">{t.email}</label>
           </div>
           <div className="field-float">
             <textarea
@@ -318,11 +311,11 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
               name="notes"
               rows={2}
               maxLength={FIELD_LIMITS.notes}
-              placeholder="Kinderstuhl, Allergien, Anlass …"
+              placeholder={t.notesPlaceholder}
               value={contact.notes}
               onChange={(e) => setContact({ ...contact, notes: e.target.value })}
             />
-            <label htmlFor="r-notes">Anmerkungen (optional)</label>
+            <label htmlFor="r-notes">{t.notes}</label>
           </div>
 
           {state && !state.ok && attempt === `${date} ${time}` && (
@@ -332,7 +325,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
                 <>
                   {" "}
                   <button type="button" className="text-button" onClick={chooseOtherTime}>
-                    Andere Uhrzeit wählen
+                    {t.otherTime}
                   </button>
                 </>
               )}
@@ -341,20 +334,22 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
 
           {contactReady ? (
             <button className="button" type="submit" disabled={submitting}>
-              {submitting ? "Wird gesendet …" : "Tisch anfragen"}
+              {submitting ? t.submitting : t.submit}
             </button>
           ) : (
             <p className="form-note" role="status">
-              Name und Telefonnummer eintragen, danach kannst du den Tisch anfragen.
+              {t.needContact}
             </p>
           )}
-          <p className="form-note">Deine Anfrage ist unverbindlich, bis wir sie bestätigen.</p>
+          <p className="form-note">{t.nonBinding}</p>
         </form>
       )}
 
       {step > 1 && step < 4 && bookable.length === 0 && !loading && (
         <p className="form-note">
-          Für diesen Tag ist nichts mehr frei. Ruf uns gern an: <a href={phoneHref}>{phoneLabel}</a>
+          {t.unavailable.nothingLeft}
+          {t.callUs}
+          <a href={phoneHref}>{phoneLabel}</a>
         </p>
       )}
     </div>
@@ -367,7 +362,7 @@ type CalendarMonth = { key: string; label: string; pad: number; days: string[] }
  * One Monday-first calendar block per month touched by `minDate`..`maxDate`. Only bookable days get a
  * tile; `pad` is the width of the empty run before the first one, so the weekday columns line up.
  */
-function calendarMonths(minDate: string, maxDate: string): CalendarMonth[] {
+function calendarMonths(minDate: string, maxDate: string, monthLong: Intl.DateTimeFormat): CalendarMonth[] {
   const months: CalendarMonth[] = [];
   let cursor = minDate.slice(0, 7);
   while (cursor <= maxDate.slice(0, 7)) {
@@ -396,17 +391,20 @@ function unavailableMessage(
   fullyBooked: boolean,
   phoneHref: string,
   phoneLabel: string,
+  t: Dictionary["reservation"],
+  weekdayLong: Intl.DateTimeFormat,
 ) {
   const phone = (
     <>
       {" "}
-      Ruf uns gern an: <a href={phoneHref}>{phoneLabel}</a>
+      {t.callUs}
+      <a href={phoneHref}>{phoneLabel}</a>
     </>
   );
-  if (reason === "closed") return <>{weekdayLong.format(at(date))}s ist Ruhetag. Bitte wähle einen anderen Tag.</>;
-  if (reason === "holiday") return <>An diesem Tag haben wir geschlossen. Bitte wähle einen anderen Tag.</>;
-  if (reason === "late") return <>Für diesen Tag ist es für eine Online-Reservierung zu kurzfristig.{phone}</>;
-  if (reason === "error") return <>Die Verfügbarkeit konnte nicht geladen werden. Bitte versuch es noch einmal.{phone}</>;
-  if (fullyBooked) return <>An diesem Tag ist leider alles ausgebucht.{phone}</>;
+  if (reason === "closed") return <>{t.unavailable.closed(weekdayLong.format(at(date)))}</>;
+  if (reason === "holiday") return <>{t.unavailable.holiday}</>;
+  if (reason === "late") return <>{t.unavailable.late}{phone}</>;
+  if (reason === "error") return <>{t.unavailable.error}{phone}</>;
+  if (fullyBooked) return <>{t.unavailable.full}{phone}</>;
   return null;
 }

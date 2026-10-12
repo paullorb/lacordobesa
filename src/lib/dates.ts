@@ -1,3 +1,5 @@
+import { INTL_LOCALE, type Locale } from "@/lib/i18n";
+
 const TZ = "Europe/Berlin";
 
 /** Today's date (YYYY-MM-DD) in the shop's timezone, regardless of server timezone. */
@@ -29,9 +31,12 @@ export function startOfMonth(iso: string): string {
   return `${iso.slice(0, 7)}-01`;
 }
 
-/** "2026-10-12" -> "Mo., 12.10.2026" */
-export function fmtDateDE(iso: string, opts: Intl.DateTimeFormatOptions = {}): string {
-  return new Intl.DateTimeFormat("de-DE", {
+/** "2026-10-12" -> "Mo., 12.10.2026" (de) / "lun, 12/10/2026" (es) / "Mon, 12/10/2026" (en).
+ *
+ *  Formatted in UTC on purpose: the value is a calendar date, not an instant, so shifting it into a
+ *  timezone is what would make it render as the wrong day. */
+export function fmtDate(iso: string, locale: Locale, opts: Intl.DateTimeFormatOptions = {}): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     timeZone: "UTC",
     weekday: "short",
     day: "2-digit",
@@ -40,3 +45,6 @@ export function fmtDateDE(iso: string, opts: Intl.DateTimeFormatOptions = {}): s
     ...opts,
   }).format(new Date(`${iso}T00:00:00Z`));
 }
+
+/** German dates, for the staff app, which is not translated: the team works in German. */
+export const fmtDateDE = (iso: string, opts: Intl.DateTimeFormatOptions = {}) => fmtDate(iso, "de", opts);

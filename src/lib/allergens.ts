@@ -4,8 +4,9 @@
  *  regulation lists them. Additives: the classes a Gaststätte declares under the
  *  Zusatzstoff-Zulassungsverordnung, numbered the way German menus traditionally number them.
  *
- *  The same codes are constrained in the database (migration 20261012093136), so these two lists
- *  and the check constraints have to stay in step. */
+ *  The same codes are constrained in the database (migration 20261012093136), so these lists and the
+ *  check constraints have to stay in step. */
+import type { Locale } from "@/lib/i18n";
 
 export const ALLERGENS = {
   a: "Glutenhaltiges Getreide",
@@ -40,6 +41,86 @@ export const ADDITIVES = {
   "13": "chininhaltig",
 } as const;
 
+/** The same codes in the other two site languages. Allergen names are regulated terms, so a guest
+ *  reading the English menu needs them in English; the codes themselves are language-independent. */
+const ALLERGENS_ES: Record<keyof typeof ALLERGENS, string> = {
+  a: "Cereales con gluten",
+  b: "Crustáceos",
+  c: "Huevos",
+  d: "Pescado",
+  e: "Maní",
+  f: "Soja",
+  g: "Leche y lactosa",
+  h: "Frutos secos",
+  i: "Apio",
+  j: "Mostaza",
+  k: "Sésamo",
+  l: "Dióxido de azufre y sulfitos",
+  m: "Altramuces",
+  n: "Moluscos",
+};
+
+const ALLERGENS_EN: Record<keyof typeof ALLERGENS, string> = {
+  a: "Cereals containing gluten",
+  b: "Crustaceans",
+  c: "Eggs",
+  d: "Fish",
+  e: "Peanuts",
+  f: "Soybeans",
+  g: "Milk and lactose",
+  h: "Tree nuts",
+  i: "Celery",
+  j: "Mustard",
+  k: "Sesame seeds",
+  l: "Sulphur dioxide and sulphites",
+  m: "Lupin",
+  n: "Molluscs",
+};
+
+const ADDITIVES_ES: Record<keyof typeof ADDITIVES, string> = {
+  "1": "con colorante",
+  "2": "con conservante",
+  "3": "con antioxidante",
+  "4": "con potenciador del sabor",
+  "5": "sulfitado",
+  "6": "con ennegrecedor",
+  "7": "encerado",
+  "8": "con fosfato",
+  "9": "con edulcorante",
+  "10": "contiene una fuente de fenilalanina",
+  "11": "con taurina",
+  "12": "con cafeína",
+  "13": "con quinina",
+};
+
+const ADDITIVES_EN: Record<keyof typeof ADDITIVES, string> = {
+  "1": "with colouring",
+  "2": "with preservative",
+  "3": "with antioxidant",
+  "4": "with flavour enhancer",
+  "5": "sulphited",
+  "6": "with blackening agent",
+  "7": "waxed",
+  "8": "with phosphate",
+  "9": "with sweetener",
+  "10": "contains a source of phenylalanine",
+  "11": "with taurine",
+  "12": "contains caffeine",
+  "13": "contains quinine",
+};
+
+export const ALLERGEN_LABELS: Record<Locale, Record<keyof typeof ALLERGENS, string>> = {
+  de: ALLERGENS,
+  es: ALLERGENS_ES,
+  en: ALLERGENS_EN,
+};
+
+export const ADDITIVE_LABELS: Record<Locale, Record<keyof typeof ADDITIVES, string>> = {
+  de: ADDITIVES,
+  es: ADDITIVES_ES,
+  en: ADDITIVES_EN,
+};
+
 export type AllergenCode = keyof typeof ALLERGENS;
 export type AdditiveCode = keyof typeof ADDITIVES;
 
@@ -63,10 +144,10 @@ export function cleanAdditives(values: string[]): AdditiveCode[] {
 /** "a, c, g" for the superscript next to a dish. */
 export const codeList = (codes: readonly string[]) => codes.join(", ");
 
-/** Legend entries for exactly the codes used on a page, in regulation order. */
-export function legendFor(allergens: readonly string[], additives: readonly string[]) {
+/** Legend entries for exactly the codes used on a page, in regulation order, in one language. */
+export function legendFor(allergens: readonly string[], additives: readonly string[], locale: Locale) {
   return [
-    ...ALLERGEN_CODES.filter((c) => allergens.includes(c)).map((c) => ({ code: c, label: ALLERGENS[c] })),
-    ...ADDITIVE_CODES.filter((c) => additives.includes(c)).map((c) => ({ code: c, label: ADDITIVES[c] })),
+    ...ALLERGEN_CODES.filter((c) => allergens.includes(c)).map((c) => ({ code: c, label: ALLERGEN_LABELS[locale][c] })),
+    ...ADDITIVE_CODES.filter((c) => additives.includes(c)).map((c) => ({ code: c, label: ADDITIVE_LABELS[locale][c] })),
   ];
 }
