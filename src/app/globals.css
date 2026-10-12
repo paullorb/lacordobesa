@@ -69,7 +69,13 @@ a { color: inherit; }
 .hero-note { position: absolute; z-index: 3; right: 30px; bottom: 28px; display: flex; align-items: center; gap: .65rem; color: white; font-size: .69rem; letter-spacing: .06em; }
 .hero-note img { width: 59px; filter: drop-shadow(0 5px 12px #142c37aa); }
 .marquee { overflow: hidden; border-bottom: 1px solid var(--line); }
-.marquee-inner { display: flex; justify-content: center; flex-wrap: wrap; gap: .8rem 2rem; padding: 1.15rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: .95rem; font-style: italic; }
+/* Two identical copies side by side; sliding the track exactly half its width lands copy two where
+   copy one started, so the loop has no seam. The second copy is aria-hidden in the markup. */
+.marquee-track { display: flex; width: max-content; }
+/* Each copy is at least a viewport wide, which is what guarantees the loop never shows a gap:
+   after sliding half the track, copy two already covers the screen on its own. Without this the
+   phrases are ~700px and a 1280px window sees empty space on every cycle. */
+.marquee-inner { display: flex; flex: 0 0 auto; min-width: 100vw; align-items: center; justify-content: space-around; gap: .8rem 2rem; padding: 1.15rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: .95rem; font-style: italic; white-space: nowrap; }
 .marquee-inner span::after { content: "✳"; margin-left: 2rem; color: var(--coral); font-size: .72rem; font-style: normal; }
 .section { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 112px 0; }
 .section-heading { max-width: 640px; margin: 0 auto 3.5rem; text-align: center; }
@@ -402,6 +408,58 @@ a { color: inherit; }
   .nav-actions { gap: .3rem; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+/* ------------------------------------------------------------------ motion
+   Everything here is opt-in twice over: `prefers-reduced-motion: no-preference` so it never runs
+   for somebody who asked for stillness, and `@supports` for the scroll-driven parts so a browser
+   without them simply shows the finished state rather than hiding content it cannot reveal. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track { animation: marquee-scroll 42s linear infinite; }
+  /* Pausing on hover and on keyboard focus lets anyone who wants to actually read it. */
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track { animation-play-state: paused; }
+
+  /* The hero settles rather than arrives: a slow drift out of a slight over-scale. Runs once, so
+     it reads as the page composing itself, not as an effect. */
+  .hero-image { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both; }
+
+  /* Sections lift into place as they enter the viewport. Scroll-driven, so there is no observer,
+     no hydration cost, and nothing to get stuck if JavaScript never arrives. */
+  @supports (animation-timeline: view()) {
+    .site main > section:not(.hero),
+    .site main > .marquee {
+      animation: section-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 26%;
+    }
+  }
+}
+
+/* Paper has no scroll timeline, so a reveal would print as a blank page. */
+@media print {
+  .site main > section,
+  .site main > .marquee,
+  .site main { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
+
+@keyframes marquee-scroll { to { transform: translateX(-50%); } }
+@keyframes hero-settle { from { transform: scale(1.055); } to { transform: scale(1); } }
+@keyframes section-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* ------------------------------------------------------------------ page transitions
+   The arriving page lifts in. <main> is inside the page subtree, so a navigation unmounts it and
+   mounts a new one, which is what replays this; the header and footer persist and stay still, so
+   the eye keeps its anchor.
+
+   Deliberately not React's <ViewTransition>: on Next 16.4 with React 19.3.0 it renders without
+   error and never calls document.startViewTransition, so it animates nothing. See the open issue.
+   A true crossfade also needs the outgoing page to linger, which costs a frame of staleness on
+   every navigation; this is the cheaper half of the effect and the half you actually notice. */
+@media (prefers-reduced-motion: no-preference) {
+  .site main { animation: page-in .34s cubic-bezier(.22,.61,.36,1) both; }
+}
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ------------------------------------------------------------------ 404 */
 .not-found { max-width: 620px; margin: 0 auto; text-align: center; }

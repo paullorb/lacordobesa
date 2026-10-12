@@ -43,3 +43,6 @@ next-env.d.ts
 
 # claude desktop
 /.claude/
+
+# Screenshots from `npm run shots`
+.shots/
