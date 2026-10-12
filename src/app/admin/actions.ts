@@ -6,6 +6,7 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_RESERVATION_SETTINGS, TAG, type ReservationSettings } from "@/lib/data";
 import { staffEmail } from "@/lib/staff";
+import { addDays } from "@/lib/dates";
 import type { Enums } from "@/lib/database.types";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
@@ -124,21 +125,39 @@ export async function toggleMenuItemAvailable(formData: FormData) {
 
 export async function saveCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
+  const id = str(formData, "id");
   const label = str(formData, "label");
   if (!label) return { ok: false, error: "Name ist Pflicht." };
-  const slug =
-    str(formData, "slug") ||
-    label
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  const { error } = await supabase.from("menu_categories").insert({ label, slug, sort_order: num(formData, "sort_order") });
-  if (error) return { ok: false, error: error.message };
+  const row = {
+    label,
+    label_secondary: str(formData, "label_secondary") || null,
+    note: str(formData, "note") || null,
+    sort_order: num(formData, "sort_order"),
+  };
+  const { error } = id
+    ? await supabase.from("menu_categories").update(row).eq("id", id)
+    : await supabase.from("menu_categories").insert({
+        ...row,
+        slug:
+          label
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "") || `kategorie-${Date.now()}`,
+      });
+  if (error) return { ok: false, error: error.code === "23505" ? "Eine Kategorie mit diesem Namen gibt es schon." : error.message };
   updateTag(TAG.content);
   refresh();
   return { ok: true };
+}
+
+/** Only empty categories can be deleted (FK is `on delete restrict`). */
+export async function deleteCategory(formData: FormData) {
+  const { supabase } = await requireStaff();
+  await supabase.from("menu_categories").delete().eq("id", str(formData, "id"));
+  updateTag(TAG.content);
+  refresh();
 }
 
 // ---------------------------------------------------------------- specials
@@ -191,15 +210,33 @@ export async function saveOpeningHours(_prev: ActionResult, formData: FormData):
   return { ok: true };
 }
 
+/** Adds a closure for a single day or a range (one row per day, so availability stays simple). */
 export async function addClosure(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  const date = str(formData, "date");
-  if (!date) return { ok: false, error: "Datum fehlt." };
-  const { error } = await supabase.from("closures").insert({ date, reason: str(formData, "reason") || null });
-  if (error) return { ok: false, error: error.code === "23505" ? "Dieser Tag ist schon eingetragen." : error.message };
+  const from = str(formData, "from");
+  const to = str(formData, "to") || from;
+  const reason = str(formData, "reason") || null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return { ok: false, error: "Datum fehlt." };
+  if (to < from) return { ok: false, error: "„Bis“ liegt vor „Von“." };
+  const rows: { date: string; reason: string | null }[] = [];
+  for (let d = from; d <= to && rows.length < 120; d = addDays(d, 1)) rows.push({ date: d, reason });
+  if (rows.length >= 120) return { ok: false, error: "Bitte höchstens 120 Tage am Stück eintragen." };
+  // Upsert so re-entering an overlapping range just updates the reason.
+  const { error } = await supabase.from("closures").upsert(rows, { onConflict: "date" });
+  if (error) return { ok: false, error: error.message };
   updateTag(TAG.hours);
   refresh();
   return { ok: true };
+}
+
+/** Removes every closure in a contiguous range (used by the "Entfernen" button on a range). */
+export async function deleteClosureRange(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const from = str(formData, "from");
+  const to = str(formData, "to") || from;
+  await supabase.from("closures").delete().gte("date", from).lte("date", to);
+  updateTag(TAG.hours);
+  refresh();
 }
 
 export async function deleteClosure(formData: FormData) {

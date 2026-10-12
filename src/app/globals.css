@@ -97,6 +97,8 @@ a { color: inherit; }
 .menu-card .price { color: var(--ink); font-size: .76rem; font-weight: 700; margin-top: 1.2rem; }
 .full-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem 3rem; max-width: 960px; margin: 4rem auto 0; }
 .full-menu-cat h3 { margin: 0 0 .8rem; font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--blue-dark); border-bottom: 1px solid var(--line); padding-bottom: .5rem; }
+.full-menu-cat h3 small { display: block; font-family: var(--sans); font-size: .6rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }
+.full-menu-note { margin: -.4rem 0 .8rem; font-size: .76rem; font-style: italic; color: var(--muted); }
 .full-menu ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
 .full-menu li { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; font-size: .88rem; }
 .full-menu li em { color: var(--muted); font-style: italic; }

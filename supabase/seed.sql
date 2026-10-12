@@ -13,16 +13,4 @@ insert into public.opening_hours (weekday, opens, closes, is_closed) values
   (5, '16:00', '22:00', false),
   (6, '11:30', '22:00', false);
 
-insert into public.menu_categories (slug, label, sort_order) values
-  ('salado', 'Salado', 1),
-  ('clasicos', 'Clásicos', 2),
-  ('dulce', 'Dulce', 3);
-
-insert into public.menu_items (category_id, name, subtitle, description, price_label, is_featured, sort_order)
-select c.id, v.name, v.subtitle, v.description, v.price_label, true, v.sort_order
-from (values
-  ('salado',   'Empanadas',            'Recién hechas',    'Handgefüllte Teigtaschen – zum Beispiel Criolla, de Pollo, Humita oder Espinaca y Ricota.', 'ab 4,50 €', 1),
-  ('clasicos', 'Facturas & Medialunas','Para la merienda', 'Goldbraun gebacken und perfekt zum Kaffee – ein süßer Moment wie in Argentinien.', 'Hausgemacht', 2),
-  ('dulce',    'Alfajores & Tortas',   'Algo dulce',       'Zarte Alfajores, Kuchen des Tages und weitere süße Spezialitäten aus unserer Backstube.', 'Kuchen des Tages', 3)
-) as v(slug, name, subtitle, description, price_label, sort_order)
-join public.menu_categories c on c.slug = v.slug;
+-- Menu: see seed_menu.sql

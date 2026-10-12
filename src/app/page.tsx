@@ -14,7 +14,19 @@ import {
   WEEKDAYS_DE,
 } from "@/lib/data";
 
-const ICONS: Record<string, string> = { salado: "🥟", clasicos: "🥐", dulce: "🍰" };
+const ICONS: Record<string, string> = {
+  vorspeise: "🫓",
+  empanadas: "🥟",
+  pasta: "🍝",
+  clasico: "🌭",
+  pizzas: "🍕",
+  hauptgerichte: "🥩",
+  desserts: "🍮",
+  alkoholfrei: "🥤",
+  alkoholisch: "🍺",
+  heiss: "☕",
+  cocktails: "🍹",
+};
 
 export default async function HomePage() {
   const [announcement, menu, specials, hours, reservation] = await Promise.all([
@@ -97,7 +109,7 @@ export default async function HomePage() {
             <div className="section-heading">
               <p className="eyebrow">De nuestra cocina</p>
               <h2>Ein paar Lieblingsstücke</h2>
-              <p>Von herzhaft bis süß – vieles wird bei uns selbst gemacht. Unsere vollständige Karte ist auf Spanisch zuerst, wie zuhause.</p>
+              <p>Von Empanadas über Steaks vom Grill bis zum Flan – alles hausgemacht. Unsere drei Highlights, darunter die ganze Karte.</p>
             </div>
 
             {specials.length > 0 && (
@@ -140,7 +152,11 @@ export default async function HomePage() {
                 .filter((c) => c.items.length > 0)
                 .map((c) => (
                   <div className="full-menu-cat" key={c.id}>
-                    <h3>{c.label}</h3>
+                    <h3>
+                      {c.label}
+                      {c.label_secondary && <small>{c.label_secondary}</small>}
+                    </h3>
+                    {c.note && <p className="full-menu-note">{c.note}</p>}
                     <ul>
                       {c.items.map((item) => (
                         <li key={item.id}>
@@ -157,8 +173,8 @@ export default async function HomePage() {
                 ))}
             </div>
             <p className="menu-note">
-              Einige Spezialitäten und Tagesangebote können variieren. Frag uns gern nach der aktuellen Auswahl.{" "}
-              <em>¡Buen provecho!</em>
+              Alle unsere Gerichte sind hausgemacht, ohne Konservierungsstoffe oder Zusatzstoffe. Bei Allergien oder
+              Unverträglichkeiten wende dich bitte an unser Personal. <em>¡Buen provecho!</em>
             </p>
           </div>
         </section>
