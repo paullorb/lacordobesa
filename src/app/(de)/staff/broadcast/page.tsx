@@ -1,14 +1,18 @@
 import { Suspense } from "react";
-import { CopyButton } from "@/components/staff/copy-button";
 import { StaffLoading } from "@/components/staff/card-bits";
+import { confirmBroadcastOptin } from "@/app/staff/actions";
 import { requireStaff } from "@/lib/auth";
 import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
-import { fmtDateDE } from "@/lib/dates";
+import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 import { SITE_URL, unsubscribeUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Specials verschicken" };
+
+/** A sign-up whose WhatsApp never arrived is not going to; after this long it stops being listed.
+ *  Signing up again renews consented_at (subscribe_broadcast), which brings the row back. */
+const PENDING_DAYS = 30;
 
 export default function BroadcastPage() {
   return (
@@ -18,8 +22,9 @@ export default function BroadcastPage() {
   );
 }
 
-/** The message staff send. Carries the unsubscribe link, because consent has to stay as easy to
- *  withdraw as it was to give. */
+/** The message staff send. Each one carries that guest's own unsubscribe link, because consent has
+ *  to stay as easy to withdraw as it was to give. That is also why there is no "copy all numbers"
+ *  any more: a WhatsApp broadcast list sends one identical text, so nobody would get their link. */
 function messageFor(special: Tables<"specials">, unsubscribe: string) {
   return [
     `¡Hola! Bei La Cordobesa gibt es etwas Besonderes: ${special.title}.`,
@@ -36,21 +41,27 @@ function messageFor(special: Tables<"specials">, unsubscribe: string) {
 async function Broadcast() {
   const { supabase } = await requireStaff();
   const [{ data, error }, specials] = await Promise.all([
-    supabase.from("broadcast_optins").select("*").is("unsubscribed_at", null).order("created_at"),
+    supabase
+      .from("broadcast_optins")
+      .select("*")
+      .eq("channel", "whatsapp")
+      .is("unsubscribed_at", null)
+      .order("created_at"),
     getActiveSpecials(),
   ]);
 
   if (error) {
     return (
       <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Die Specials-Liste ist erst verfügbar, sobald die Datenbank-Migration 20261012100835 eingespielt ist.
+        Die Specials-Liste ist erst verfügbar, sobald die Datenbank-Migration 20261012215041 eingespielt ist.
       </p>
     );
   }
 
-  const optins = data ?? [];
-  const whatsapp = optins.filter((o) => o.channel === "whatsapp" && o.phone);
-  const email = optins.filter((o) => o.channel === "email" && o.email);
+  const pendingSince = addDays(todayISO(), -PENDING_DAYS);
+  const optins = (data ?? []).filter((o) => o.phone);
+  const confirmed = optins.filter((o) => o.confirmed_at);
+  const pending = optins.filter((o) => !o.confirmed_at && o.consented_at.slice(0, 10) >= pendingSince);
   const special = specials[0];
 
   return (
@@ -58,10 +69,38 @@ async function Broadcast() {
       <div>
         <h1 className="font-serif text-3xl">Specials verschicken</h1>
         <p className="text-sm text-muted">
-          Gäste, die sich für Specials angemeldet haben. Der WhatsApp-Knopf öffnet den Chat mit einer fertigen
-          Nachricht, in der auch der Abmeldelink steht. Du verschickst, nicht wir: automatisch geht noch nichts raus.
+          Gäste, die Specials per WhatsApp bekommen möchten. Der Knopf „Senden“ öffnet den Chat mit einer fertigen
+          Nachricht, in der der persönliche Abmeldelink dieses Gastes steht. Du verschickst, nicht wir: automatisch geht
+          nichts raus.
         </p>
       </div>
+
+      <section className="card grid gap-3">
+        <h2 className="font-semibold">Warten auf Bestätigung ({pending.length})</h2>
+        <p className="text-sm text-muted">
+          Nach der Anmeldung schickt der Gast uns eine WhatsApp. Bestätige erst, wenn sie <strong>von genau dieser
+          Nummer</strong> angekommen ist: Nur so wissen wir, dass sich niemand mit einer fremden Nummer angemeldet hat.
+          Ohne Bestätigung bekommt die Nummer nichts.
+        </p>
+        {pending.length === 0 ? (
+          <p className="text-sm text-muted">Gerade wartet niemand.</p>
+        ) : (
+          <ul className="grid gap-1.5">
+            {pending.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
+                <span className="min-w-0 flex-1">
+                  <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
+                  <span className="block text-xs text-muted">Angemeldet am {fmtDateDE(o.consented_at.slice(0, 10))}</span>
+                </span>
+                <form action={confirmBroadcastOptin}>
+                  <input type="hidden" name="id" value={o.id} />
+                  <button className="btn-ghost !py-1">Nachricht ist da, bestätigen</button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {!special && (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -70,78 +109,32 @@ async function Broadcast() {
       )}
 
       <section className="card grid gap-3">
-        <h2 className="font-semibold">WhatsApp ({whatsapp.length})</h2>
-        {whatsapp.length === 0 ? (
-          <p className="text-sm text-muted">Noch niemand angemeldet.</p>
+        <h2 className="font-semibold">Bestätigt ({confirmed.length})</h2>
+        {confirmed.length === 0 ? (
+          <p className="text-sm text-muted">Noch niemand bestätigt.</p>
         ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              <CopyButton
-                label="Alle Nummern kopieren"
-                count={whatsapp.length}
-                text={whatsapp.map((o) => o.phone).join("\n")}
-              />
-              {special && (
-                <CopyButton label="Nachricht kopieren" count={1} text={messageFor(special, "DEIN-ABMELDELINK")} />
-              )}
-            </div>
-            <ul className="grid gap-1.5">
-              {whatsapp.map((o) => (
-                <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
-                  <span className="min-w-0 flex-1">
-                    <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
-                    <span className="block text-xs text-muted">
-                      Angemeldet am {fmtDateDE(o.consented_at.slice(0, 10))}
-                    </span>
+          <ul className="grid gap-1.5">
+            {confirmed.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
+                <span className="min-w-0 flex-1">
+                  <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
+                  <span className="block text-xs text-muted">
+                    Bestätigt am {fmtDateDE(o.confirmed_at!.slice(0, 10))}
                   </span>
-                  {special && (
-                    <a
-                      className="btn-ghost !py-1"
-                      href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o.unsubscribe_token)))}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Senden ↗
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-
-      <section className="card grid gap-3">
-        <h2 className="font-semibold">E-Mail ({email.length})</h2>
-        {email.length === 0 ? (
-          <p className="text-sm text-muted">Noch niemand angemeldet.</p>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              <CopyButton label="Alle Adressen kopieren" count={email.length} text={email.map((o) => o.email).join(", ")} />
-            </div>
-            <p className="text-xs text-muted">
-              Bitte als BCC verschicken, damit die Adressen nicht bei allen anderen sichtbar sind. Der Abmeldelink
-              gehört in jede E-Mail.
-            </p>
-            <ul className="grid gap-1.5">
-              {email.map((o) => (
-                <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
-                  <span className="min-w-0 flex-1">
-                    <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.email}</span>
-                  </span>
+                </span>
+                {special && (
                   <a
-                    className="text-xs underline hover:text-blue-dark"
-                    href={unsubscribeUrl(o.unsubscribe_token)}
+                    className="btn-ghost !py-1"
+                    href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o.unsubscribe_token)))}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Abmeldelink
+                    Senden ↗
                   </a>
-                </li>
-              ))}
-            </ul>
-          </>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </section>
     </div>

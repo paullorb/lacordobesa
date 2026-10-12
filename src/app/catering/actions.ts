@@ -3,8 +3,8 @@
 import { isISODate } from "@/lib/dates";
 import { isBudgetBand, isOccasion } from "@/lib/events";
 import { formErrors } from "@/lib/form-errors";
+import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
-import { createPublicClient } from "@/lib/supabase/public";
 
 export type InquiryState = { ok: true } | { ok: false; error: string } | null;
 
@@ -40,7 +40,8 @@ export async function requestEventInquiry(_prev: InquiryState, formData: FormDat
     return { ok: false, error: errorFor("invalid_guests") };
   }
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("inquiry");
+  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
   const { error } = await supabase.rpc("request_event_inquiry", {
     p_name: name,
     p_phone: phone,

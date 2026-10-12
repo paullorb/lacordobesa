@@ -2,6 +2,7 @@
 
 import { addDays, isISODate, isTime } from "@/lib/dates";
 import { formErrors } from "@/lib/form-errors";
+import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -84,7 +85,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
   if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("reservation");
+  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
   const { data, error } = await supabase.rpc("request_reservation", {
     p_name: name,
     p_phone: phone,
@@ -117,7 +119,8 @@ export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Pr
   if (!isISODate(date)) return { ok: false, error: errorFor("invalid_date") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("waitlist");
+  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
   const { error } = await supabase.rpc("join_waitlist", {
     p_name: name,
     p_phone: phone,

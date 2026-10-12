@@ -34,6 +34,12 @@ export default function DatenschutzPage() {
         </a>
         .
       </p>
+      <p>
+        Damit niemand unsere Formulare (Reservierung, Warteliste, Vorbestellung, Feier-Anfrage, Specials)
+        automatisiert überfluten kann, speichern wir beim Absenden einen pseudonymisierten Prüfwert deiner IP-Adresse,
+        nie die Adresse selbst, und löschen ihn nach 24 Stunden. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO
+        (berechtigtes Interesse daran, die Formulare für echte Gäste verfügbar zu halten).
+      </p>
 
       <h2>3. Tischreservierung</h2>
       <p>
@@ -59,12 +65,16 @@ export default function DatenschutzPage() {
         Art. 6 Abs. 1 lit. b DSGVO. Speicherort und Auftragsverarbeitung entsprechen Abschnitt 3.
       </p>
 
-      <h2>3b. Specials per WhatsApp oder E-Mail</h2>
+      <h2>3b. Specials per WhatsApp</h2>
       <p>
-        Wenn du dich für unsere Specials anmeldest, speichern wir die von dir gewählte Kontaktmöglichkeit
-        (Handynummer oder E-Mail-Adresse), optional deinen Namen, den Zeitpunkt deiner Anmeldung und den Wortlaut der
-        Einwilligung, der dir beim Anmelden angezeigt wurde. Den Wortlaut speichern wir, um nachweisen zu können,
-        wozu genau du zugestimmt hast.
+        Wenn du dich für unsere Specials anmeldest, speichern wir deine Handynummer, optional deinen Namen, den
+        Zeitpunkt deiner Anmeldung und den Wortlaut der Einwilligung, der dir beim Anmelden angezeigt wurde. Den
+        Wortlaut speichern wir, um nachweisen zu können, wozu genau du zugestimmt hast.
+      </p>
+      <p>
+        Damit niemand eine fremde Nummer eintragen kann, bestätigst du die Anmeldung, indem du uns von dieser Nummer
+        eine WhatsApp schickst (Double-Opt-in). Erst dann nehmen wir dich in die Liste auf und speichern, wann die
+        Bestätigung eingegangen ist. An eine Nummer ohne Bestätigung schicken wir keine Specials.
       </p>
       <p>
         Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit widerrufen, ohne

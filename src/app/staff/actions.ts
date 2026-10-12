@@ -365,6 +365,22 @@ export async function deleteSpecial(formData: FormData) {
   refresh();
 }
 
+// ---------------------------------------------------------------- specials list
+/** The second opt-in step (migration 20261012215041): the guest's WhatsApp message arrived from the
+ *  number they signed up with. Only confirmed rows are offered for sending. Throws rather than
+ *  returning quietly, so a failed save cannot look like a confirmed guest. */
+export async function confirmBroadcastOptin(formData: FormData) {
+  const { supabase, user } = await requireStaff();
+  const { error } = await supabase
+    .from("broadcast_optins")
+    .update({ confirmed_at: new Date().toISOString(), confirmed_by: user.id })
+    .eq("id", str(formData, "id"))
+    .is("confirmed_at", null)
+    .is("unsubscribed_at", null);
+  if (error) throw new Error(`Die Anmeldung konnte nicht bestätigt werden: ${error.message}`);
+  refresh();
+}
+
 // ---------------------------------------------------------------- hours & closures
 export async function saveOpeningHours(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();

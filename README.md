@@ -101,12 +101,20 @@ How reservations work:
 - Guests call the `request_reservation` RPC (via a Server Action). It checks opening hours, closures, lead time,
   party size and seat capacity (overlapping reservations × duration) inside one transaction and inserts a
   `pending` row. Guests can never read the reservations table.
-- Abuse limits live inside `request_reservation` (migrations 0005 and 0009), because anon can call it straight
-  through the REST API: text length caps, max 3 requests per phone/e-mail per 24 h, one open booking per phone per
-  day, and a site-wide cap of 15/hour and 80/24 h. The quota checks, the capacity check and the insert all run under
-  one site-wide advisory lock (0009), so a concurrent burst cannot slip past the counts. Tune the constants at the
-  top of the function. A Vercel firewall rate-limit rule on `POST /` (the Server Actions) sits in front of the form
-  as a first line of defence.
+- Abuse limits live inside `request_reservation` (migrations 0005 and 0009): text length caps, max 3 requests per
+  phone/e-mail per 24 h, one open booking per phone per day, and a site-wide cap of 15/hour and 80/24 h. The quota
+  checks, the capacity check and the insert all run under one site-wide advisory lock (0009), so a concurrent burst
+  cannot slip past the counts. Guest moves (`move_reservation_by_token`) take the same lock since `20261012215040`.
+  Tune the constants at the top of the function.
+- Per-visitor limits sit in front of every public form (`src/lib/public-forms.ts`, migration `20261012215042`). The
+  phone limits alone do not stop a script that rotates numbers: it fills the evenings with fake pending bookings and
+  then trips the site-wide cap, which turns real guests away. The Server Actions hash the visitor's address (keyed
+  SHA-256, kept 24 h) and take a unit from `take_request_quota` before calling the RPC. This needs
+  `SUPABASE_SECRET_KEY` on the server; without it the forms run on the publishable key with no per-visitor limit.
+- The limit only binds once the form RPCs stop accepting the publishable key, since that key ships in every
+  browser and a script can call the RPCs directly. Revoking anon is a separate migration, to be applied only after
+  `SUPABASE_SECRET_KEY` is set in Vercel and deployed; applying it earlier breaks every public form. There is no
+  Vercel firewall rule in front of the forms.
 - Staff confirm/cancel in the staff area; the WhatsApp button pre-fills a confirmation message that includes the
   guest's own management link.
 - Guests manage their booking at `/reservierung/<manage_token>`: cancel it, or move it to another slot (at most three
@@ -124,9 +132,14 @@ order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not ca
 already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
 guests pay at pickup.
 
-Specials list (migration `20261012100835`): `specials` had no distribution channel, so only a visitor who happened to
-open the site ever saw one. Guests opt in on the landing page, right under the specials, and staff send from
-`/staff/broadcast` with a per-guest `wa.me` link or a copyable BCC list. **Not an automated sender**: the WhatsApp Cloud
+Specials list (migrations `20261012100835`, `20261012215041`): `specials` had no distribution channel, so only a
+visitor who happened to open the site ever saw one. Guests opt in on the landing page, right under the specials, and
+staff send from `/staff/broadcast` with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
+the guest then sends the restaurant a prefilled WhatsApp from that number, and staff press "bestätigen" when it
+arrives. Only confirmed rows are offered for sending, so a stranger's number entered by someone else never gets a
+message. E-mail sign-ups are switched off (in `OPEN_CHANNELS` and in `subscribe_broadcast`) because their second step
+would be a confirmation mail and no mail sender is configured in production; there is deliberately no "copy all
+numbers" or BCC list either, since a group message cannot carry each guest's own unsubscribe link. **Not an automated sender**: the WhatsApp Cloud
 API needs a Meta Business account, a verified number and approved templates, none of which exist yet; swapping the
 sender later does not change the table. Consent is stored as evidence, not a boolean: `consent_text` snapshots the exact
 wording shown ([`src/lib/broadcast.ts`](src/lib/broadcast.ts)), with `consented_at` and `source`, and every message

@@ -1,11 +1,17 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /** Resolves the signed-in staff user or redirects to the login page.
  *  Staff = signed in AND listed in public.staff (see migration 0004). Every staff page and
  *  Server Action calls this; proxy.ts is only an optimistic check. */
 export async function requireStaff() {
+  // A runtime prefetch renders with the cookies but may not read the clock, and getUser() checks the
+  // token's expiry against Date.now(). Without this, every prefetch of a staff page logged "unstable
+  // value Date.now() while prerendering". connection() stops the prefetch here and resolves at once
+  // for a real request or a Server Action.
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

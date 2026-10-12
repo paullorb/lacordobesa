@@ -1,8 +1,9 @@
 "use server";
 
-import { isBroadcastChannel } from "@/lib/broadcast";
+import { isOpenChannel } from "@/lib/broadcast";
 import { getDictionary } from "@/lib/dictionaries";
 import { formErrors, formLocale } from "@/lib/form-errors";
+import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -21,12 +22,15 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   const email = String(formData.get("email") ?? "").trim();
   // The checkbox is the consent. Without it there is nothing to record, so nothing is sent.
   if (formData.get("consent") !== "on") return { ok: false, error: errorFor("invalid_consent") };
-  if (!isBroadcastChannel(channel)) return { ok: false, error: errorFor("invalid_channel") };
+  if (!isOpenChannel(channel)) return { ok: false, error: errorFor("channel_unavailable") };
   if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
     return { ok: false, error: errorFor("field_too_long") };
   }
 
-  const supabase = createPublicClient();
+  const { supabase, allowed } = await publicFormClient("specials");
+  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  // The row goes in unconfirmed. It is only offered for sending once the guest's own WhatsApp
+  // message has arrived and staff confirmed it; the success state tells the guest to send it.
   const { error } = await supabase.rpc("subscribe_broadcast", {
     p_channel: channel,
     // Stored verbatim, so the record says exactly what was agreed to rather than just "true".
