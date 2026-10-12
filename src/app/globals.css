@@ -12,6 +12,7 @@
   --line: rgba(21, 47, 59, 0.13);
   --serif: var(--font-serif), "Playfair Display", Georgia, serif;
   --sans: var(--font-sans), "DM Sans", Arial, sans-serif;
+  --header-h: 86px; /* the sticky header; 74px once the nav collapses */
 
   /* The public site's type scale. Every size below the h1/h2 clamps is one of these, so the page
      reads in a few clear steps instead of the two dozen near-identical sizes it had (.75, .76, .77,
@@ -86,6 +87,15 @@ a { color: inherit; }
 /* text-wrap: balance so a heading never leaves one short word stranded on its own line. */
 .site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; text-wrap: balance; }
 .site h1 em { color: #aadcf1; font-weight: 500; }
+.hero-line { display: block; }
+
+/* ------------------------------------------------------------------ the repulgue
+   The crimped edge an empanada is closed with, drawn by components/repulgue.tsx. It is the site's
+   one recurring flourish: under a section title, along a menu card, across the top of the footer.
+   Drawn by default; the motion block below only ever animates it in from there. */
+.repulgue { display: block; max-width: 100%; height: auto; overflow: visible; }
+.repulgue-divider { width: 168px; margin: .2rem auto 1.4rem; color: var(--coral); }
+.menu-card-edge { position: absolute; left: 2rem; right: 2rem; bottom: .9rem; width: calc(100% - 4rem); color: var(--coral); opacity: .55; }
 .hero-text { max-width: 440px; margin-bottom: 2rem; color: rgba(255,253,248,.84); font-size: var(--fs-lg); line-height: 1.8; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .button.button-light { color: var(--ink); background: var(--paper); }
@@ -130,15 +140,33 @@ a { color: inherit; }
 .menu-card h3 span { display: block; margin-top: .25rem; font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; color: var(--blue-dark); text-transform: uppercase; }
 .menu-card p { margin: 0; max-width: 270px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.7; }
 .menu-card .price { color: var(--ink); font-size: var(--fs-sm); font-weight: 700; margin-top: 1.2rem; }
-.full-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem 3rem; max-width: 960px; margin: 4rem auto 0; }
-.full-menu-cat h2 { margin: 0 0 .8rem; line-height: 1.2; letter-spacing: normal; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; color: var(--blue-dark); border-bottom: 1px solid var(--line); padding-bottom: .5rem; }
-.full-menu-cat h2 small { display: block; font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }
-.full-menu-note { margin: -.4rem 0 .8rem; font-size: var(--fs-sm); font-style: italic; color: var(--muted); }
-.full-menu ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
-.full-menu li { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; font-size: var(--fs-base); }
-.full-menu li em { color: var(--muted); font-style: italic; }
-.full-menu li small { display: block; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin-top: .15rem; }
-.full-menu-price { white-space: nowrap; font-weight: 700; font-size: var(--fs-sm); }
+/* The full carta. Each category is a row: its name set large in a column that stays put while its
+   dishes scroll past, then the dishes as a printed menu, name and price joined by a dotted leader. */
+.menu-page { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 96px 0 112px; }
+.menu-index { position: sticky; z-index: 5; top: var(--header-h); margin: 0 calc(50% - 50vw) 1rem; padding: .7rem 24px; background: rgba(245,241,233,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.menu-index ul { list-style: none; display: flex; gap: .45rem; width: min(1120px, 100%); margin: auto; padding: 0; overflow-x: auto; scrollbar-width: none; }
+/* The row scrolls sideways once the categories outgrow it; fading the trailing edge says so. */
+.menu-index ul { padding-right: 48px; mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+.menu-index a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 1rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); text-decoration: none; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600; transition: background .2s, color .2s; }
+.menu-cats { display: grid; }
+.menu-cat { display: grid; grid-template-columns: minmax(220px, .75fr) 1.6fr; gap: 1.5rem 4rem; padding: 4rem 0; border-top: 1px solid var(--line); scroll-margin-top: calc(var(--header-h) + 72px); }
+.menu-cat:first-child { border-top: 0; }
+.menu-cat-head { align-self: start; position: sticky; top: calc(var(--header-h) + 96px); }
+.menu-cat-num { display: block; margin-bottom: 1rem; color: var(--coral); font-family: var(--serif); font-size: var(--fs-sm); font-style: italic; }
+.menu-cat-icon { display: block; margin-bottom: .8rem; color: var(--coral); }
+.site .menu-cat-head h2 { margin: 0; font-size: clamp(2.2rem, 3.6vw, 3.2rem); line-height: 1.02; }
+.menu-cat-secondary { margin: .6rem 0 0; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-dark); }
+.menu-cat-note { margin: 1rem 0 0; max-width: 260px; font-size: var(--fs-sm); font-style: italic; line-height: 1.6; color: var(--muted); }
+.menu-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.6rem; }
+.menu-items li { display: flex; gap: .9rem; }
+.menu-item-body { flex: 1; min-width: 0; }
+.menu-item-line { display: flex; align-items: baseline; gap: .55rem; margin: 0; }
+.menu-item-line strong { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; line-height: 1.3; }
+.menu-item-leader { flex: 1 1 1.5rem; min-width: 1.5rem; border-bottom: 1px dotted rgba(21,47,59,.35); transform: translateY(-.3em); }
+.menu-item-price { white-space: nowrap; font-size: var(--fs-sm); font-weight: 700; }
+.menu-item-subtitle { display: block; margin-top: .2rem; font-size: var(--fs-sm); color: var(--blue-dark); }
+.menu-item-body small { display: block; max-width: 520px; margin-top: .3rem; color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; }
+.menu-items .menu-icon { margin-top: .3rem; }
 .menu-codes { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-left: .2rem; vertical-align: super; }
 .menu-legend { max-width: 720px; margin: 3rem auto 0; padding: 1.1rem 1.3rem; background: var(--paper); }
 .menu-legend h2 { font-family: var(--serif); font-size: var(--fs-base); font-weight: 500; margin: 0 0 .7rem; }
@@ -332,15 +360,29 @@ a { color: inherit; }
 .legal-copy h2 { font-size: var(--fs-xl); margin: 2.2rem 0 .6rem; }
 .legal-copy p { color: var(--muted); font-size: var(--fs-base); line-height: 1.8; }
 .legal-copy a { color: var(--blue-dark); }
-.site-footer { padding: 2rem 24px; background: #102832; color: var(--paper); }
-.footer-inner { width: min(1120px, 100%); margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
-.footer-brand { display: flex; align-items: center; gap: .7rem; font-family: var(--serif); font-size: var(--fs-base); }
-.footer-brand img { width: 38px; }
-.footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
-.footer-links a { color: rgba(255,253,248,.72); text-decoration: none; font-size: var(--fs-xs); }
-.copyright { color: rgba(255,253,248,.55); font-size: var(--fs-xs); text-align: right; }
+/* The footer is a closing page: address, hours and links over the name set as large as it goes. */
+.site-footer { position: relative; overflow: hidden; padding: 0 24px 1.6rem; background: #102832; color: var(--paper); }
+/* One fold repeated across the window as a mask over a coral fill (see repulgueTile). */
+.footer-edge { height: 11px; margin: 0 -24px; background: var(--coral); opacity: .9; mask-repeat: repeat-x; mask-size: auto 100%; mask-position: left center; -webkit-mask-repeat: repeat-x; -webkit-mask-size: auto 100%; }
+.footer-inner { width: min(1120px, 100%); margin: auto; padding: 4.5rem 0 3rem; display: grid; grid-template-columns: 1.1fr 1fr 1.1fr .9fr; gap: 2.5rem 3rem; align-items: start; }
+.footer-brand img { width: 64px; }
+.footer-brand p { max-width: 220px; margin: 1.1rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; line-height: 1.5; color: rgba(255,253,248,.8); }
 /* The heart sits in a run of text, so it needs to ride the baseline rather than the line box. */
-.copyright svg { display: inline-block; vertical-align: -.18em; margin: 0 .1em; color: var(--coral); }
+.footer-brand svg { display: inline-block; vertical-align: -.18em; margin: 0 .1em; color: var(--coral); }
+.site .footer-col h2 { margin: 0 0 1rem; font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; line-height: 1.4; color: #9ed8f2; }
+.footer-col address, .footer-col p { margin: 0 0 1rem; font-style: normal; font-size: var(--fs-sm); line-height: 1.7; color: rgba(255,253,248,.82); }
+.footer-col a { text-decoration: none; }
+.footer-hours { display: grid; gap: .3rem; margin: 0; font-size: var(--fs-sm); }
+.footer-hours div { display: flex; justify-content: space-between; gap: 1rem; }
+.footer-hours dt { color: rgba(255,253,248,.62); }
+.footer-hours dd { margin: 0; color: rgba(255,253,248,.88); white-space: nowrap; }
+.footer-hours .closed { color: rgba(255,253,248,.45); }
+.footer-links { list-style: none; display: grid; gap: .55rem; margin: 0; padding: 0; }
+.footer-links a { color: rgba(255,253,248,.82); text-decoration: none; font-size: var(--fs-sm); }
+.footer-wordmark { width: min(1120px, 100%); margin: 0 auto; font-family: var(--serif); font-weight: 500; font-size: clamp(3.6rem, 13.2vw, 11.5rem); line-height: .82; letter-spacing: -.05em; white-space: nowrap; color: rgba(255,253,248,.92); }
+.footer-bottom { width: min(1120px, 100%); margin: 1.6rem auto 0; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: space-between; gap: .8rem 1.5rem; font-size: var(--fs-xs); color: rgba(255,253,248,.55); }
+.footer-legal { display: flex; gap: 1.2rem; }
+.footer-legal a { color: inherit; text-decoration: none; }
 
 .venue-map { margin-top: 3rem; min-height: 420px; position: relative; border: 1px solid var(--line); background: var(--mint); overflow: hidden; }
 .venue-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -378,6 +420,8 @@ a { color: inherit; }
   .menu-toggle:hover svg { transform: rotate(-8deg) scale(1.06); }
   .button.button-light:hover { background: #d8eef8; }
   .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
+  .menu-index a:hover { background: var(--ink); color: var(--paper); }
+  .footer-links a:hover, .footer-col a:hover, .footer-legal a:hover { color: #9ed8f2; }
   .contact-row a:hover { color: var(--blue-dark); }
   .visit-actions .button.secondary:hover { background: var(--mint); }
   .chip:hover { background: var(--paper); }
@@ -390,6 +434,7 @@ a { color: inherit; }
    nav size; below that they would start crowding, and a crowded row reads worse than a menu
    button. The rest of the layout keeps its own 800px breakpoint. */
 @media (max-width: 1320px) {
+  :root { --header-h: 74px; }
   .nav { width: min(100% - 32px, 1200px); height: 74px; }
   .menu-toggle { display: inline-flex; padding: 0 .2rem; }
   .nav { gap: 1rem; }
@@ -416,6 +461,10 @@ a { color: inherit; }
 @keyframes nav-fade { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 800px) {
+  /* One column: the category title comes first and scrolls away with its dishes. */
+  .menu-cat { grid-template-columns: 1fr; padding: 3rem 0; }
+  .menu-cat-head { position: static; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
   .hero { width: calc(100% - 24px); min-height: 630px; margin-top: 12px; }
   /* Narrow screens need a heavier wash for the text to hold up; the photo itself is the <img>. */
   .hero::before { background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)); }
@@ -455,8 +504,9 @@ a { color: inherit; }
   .venue-map, .venue-map-consent { min-height: 360px; }
   .form { padding: 1.3rem; }
   .form-row { grid-template-columns: 1fr; }
-  .footer-inner { flex-direction: column; align-items: flex-start; }
-  .copyright { text-align: left; }
+  .footer-inner { grid-template-columns: 1fr; padding-top: 3.5rem; }
+  .menu-page { width: calc(100% - 40px); padding-top: 72px; }
+  .menu-index { padding: .6rem 20px; }
 }
 @media (max-width: 430px) {
   /* The wordmark plus call, reserve and menu controls no longer fit `100% - 32px` here: show the logo alone. */
@@ -514,7 +564,9 @@ body::after {
   /* Sections lift into place as they enter the viewport. Scroll-driven, so there is no observer,
      no hydration cost, and nothing to get stuck if JavaScript never arrives. */
   @supports (animation-timeline: view()) {
-    .site main > section:not(.hero),
+    /* Not the menu page: it is one section as long as the page, so "26% covered" would leave the
+       whole carta half transparent until the reader was a third of the way down it. */
+    .site main > section:not(.hero, .menu-page),
     .site main > .marquee {
       animation: section-reveal linear both;
       animation-timeline: view();
@@ -530,6 +582,58 @@ body::after {
   .site main { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
 
+/* The rest of the opening and the signature. Separate from the block above only because it was
+   added later; the same two opt-ins apply. */
+@media (prefers-reduced-motion: no-preference) {
+  /* The headline rises in line by line, then the copy under it follows. */
+  .hero-line { animation: line-rise 1s cubic-bezier(.2,.7,.2,1) both; }
+  .hero-line + .hero-line { animation-delay: .14s; }
+  .hero .eyebrow, .hero-text, .hero-actions { animation: page-in .8s cubic-bezier(.2,.7,.2,1) both; }
+  .hero .eyebrow { animation-delay: .05s; }
+  .hero-text { animation-delay: .32s; }
+  .hero-actions { animation-delay: .44s; }
+
+  @supports (animation-timeline: view()) {
+    /* Section titles unveil from the top as they scroll in, a beat behind their section's lift. */
+    .site main :is(.section-heading, .intro-copy, .craft, .reserve-copy, .visit-copy) :is(h1, h2) {
+      animation: heading-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 32%;
+    }
+    /* The repulgue is folded shut as it comes into view, one crimp after the next. The timeline is
+       named on the <svg> because a <path> has no box of its own to track. */
+    .repulgue-divider { view-timeline: --crimp; }
+    /* A gap twice the dash: with round caps a zero-length dash still paints a dot, so the hidden
+       state has to sit wholly inside the gap rather than on the boundary between the two. */
+    .repulgue-divider path {
+      stroke-dasharray: 1 2;
+      animation: repulgue-draw linear both;
+      animation-timeline: --crimp;
+      animation-range: entry 0% cover 45%;
+    }
+    /* The footer's edge is a tiled image, not a path, so it is wiped on left to right instead. */
+    .footer-edge {
+      animation: edge-wipe linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+/* Where there is a pointer, a menu card is crimped shut as it is hovered. On touch it is simply drawn. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .menu-card-edge path { stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1); }
+  .menu-card:hover .menu-card-edge path { stroke-dashoffset: 0; }
+}
+/* A change of language swaps the whole document (each language has its own root layout), so the
+   browser's cross-document view transition is what keeps that one from being a hard cut. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+@keyframes line-rise { from { opacity: 0; transform: translateY(.45em); } to { opacity: 1; transform: none; } }
+@keyframes heading-reveal { from { opacity: 0; transform: translateY(.3em); clip-path: inset(0 0 60% 0); } to { opacity: 1; transform: none; clip-path: inset(-20% -5% -30% -5%); } }
+@keyframes edge-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes repulgue-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes marquee-scroll { to { transform: translateX(-50%); } }
 @keyframes hero-settle { from { transform: scale(1.055); } to { transform: scale(1); } }
 @keyframes section-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -612,6 +716,4 @@ body::after {
 
 /* menu icons — the glyph sits in a gutter at the start of the line, pinned to the first text line
    rather than the baseline, so a two-line description does not drag it down the row. */
-.full-menu li { gap: .55rem; }
-.full-menu li > span:not(.full-menu-price) { flex: 1; }
 .menu-icon { flex: none; align-self: flex-start; margin-top: .1rem; color: var(--blue-dark); opacity: .8; }

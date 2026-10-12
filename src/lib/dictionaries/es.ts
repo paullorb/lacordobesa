@@ -132,6 +132,7 @@ export const es: Dictionary = {
       "Todos nuestros platos son caseros. Los números y las letras que siguen a cada plato remiten a la lista de arriba. Si tenés alguna alergia o intolerancia, avisanos y te ayudamos.",
     noteEmphasis: "¡Buen provecho!",
     cta: "Reservar mesa",
+    indexLabel: "Categorías de la carta",
     codesLabel: (codes: string) => `Alérgenos: ${codes}`,
     descriptionsInGerman:
       "Por ahora las descripciones de los platos están en alemán. Preguntanos sin problema y te explicamos cada uno.",
