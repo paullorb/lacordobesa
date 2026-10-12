@@ -1,32 +1,58 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { LegalBackLink, LegalBrandLink, LegalFooterLinks } from "@/components/legal-back";
 import { Logo } from "@/components/logo";
 
-export default function LegalLayout({ children }: LayoutProps<"/"> ) {
+export default function LegalLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="site">
       <header className="site-header">
         <div className="nav">
-          <Link className="brand" href="/" aria-label="Zur Startseite">
-            <Logo />
-            <span className="brand-copy">
-              <strong>La Cordobesa</strong>
-              <small>Pastelería Argentina</small>
-            </span>
-          </Link>
-          <Link href="/" className="text-link" style={{ color: "var(--ink)", borderColor: "var(--line)" }}>
-            ← Zurück zur Startseite
-          </Link>
+          {/* Both ways home read `?von=`, so a reader who arrived from /es goes back to /es rather
+              than being moved to the German site. Suspense because that reads the URL. */}
+          <Suspense
+            fallback={
+              <Link className="brand" href="/">
+                <Logo />
+                <span className="brand-copy">
+                  <strong>La Cordobesa</strong>
+                  <small>Pastelería Argentina</small>
+                </span>
+              </Link>
+            }
+          >
+            <LegalBrandLink>
+              <Logo />
+              <span className="brand-copy">
+                <strong>La Cordobesa</strong>
+                <small>Pastelería Argentina</small>
+              </span>
+            </LegalBrandLink>
+          </Suspense>
+          <Suspense fallback={null}>
+            <LegalBackLink />
+          </Suspense>
         </div>
       </header>
-      <main id="main" className="legal">{children}</main>
+      <main id="main" className="legal">
+        {children}
+      </main>
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo /> La Cordobesa
           </div>
           <div className="footer-links">
-            <Link href="/impressum">Impressum</Link>
-            <Link href="/datenschutz">Datenschutz</Link>
+            <Suspense
+              fallback={
+                <>
+                  <Link href="/impressum">Impressum</Link>
+                  <Link href="/datenschutz">Datenschutz</Link>
+                </>
+              }
+            >
+              <LegalFooterLinks />
+            </Suspense>
           </div>
         </div>
       </footer>

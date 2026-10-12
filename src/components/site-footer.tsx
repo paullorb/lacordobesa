@@ -6,6 +6,7 @@ import { InstagramIcon } from "@/components/instagram-icon";
 import { Logo } from "@/components/logo";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
+import { legalHref } from "@/lib/legal-links";
 
 export function SiteFooter({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).footer;
@@ -28,9 +29,11 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <InstagramIcon size={14} /> Instagram
           </a>
           {/* Impressum and Datenschutzerklärung stay German in every locale: the German text is the
-              legally binding one, and a translated version would be a second thing to keep correct. */}
-          <Link href="/impressum">{t.imprint}</Link>
-          <Link href="/datenschutz">{t.privacy}</Link>
+              legally binding one, and a translated version would be a second thing to keep correct.
+              `?von=` is how they hand the reader back to the language they arrived in, since the
+              pages themselves sit outside the locale route groups. */}
+          <Link href={legalHref("/impressum", locale)}>{t.imprint}</Link>
+          <Link href={legalHref("/datenschutz", locale)}>{t.privacy}</Link>
         </div>
         <div className="copyright">
           © <Year /> La Cordobesa

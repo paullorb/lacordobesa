@@ -33,6 +33,8 @@ export const de = {
     contact: "Kontakt",
     imprint: "Impressum",
     privacy: "Datenschutz",
+    back: "Zurück zur Startseite",
+    backHome: "Zur Startseite",
     madeWith: "Con mucho ❤️, desde Frankfurt am Main.",
   },
   home: {
