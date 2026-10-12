@@ -44,7 +44,10 @@
 html { scroll-behavior: smooth; }
 section[id] { scroll-margin-top: 90px; }
 body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
-a { color: inherit; }
+/* In the base layer, so a Tailwind text-* utility on a link (the staff nav's active tab) still wins. */
+@layer base {
+  a { color: inherit; }
+}
 
 /* ------------------------------------------------------------------ public site */
 .site img { height: auto; }
