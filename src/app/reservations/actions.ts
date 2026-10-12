@@ -115,3 +115,48 @@ export async function requestReservation(_prev: RequestState, formData: FormData
   }
   return { ok: true, id: data };
 }
+
+export type WaitlistState = { ok: true } | { ok: false; error: string } | null;
+
+const WAITLIST_ERRORS: Record<string, string> = {
+  invalid_contact: "Bitte gib deinen Namen und eine gültige Telefonnummer an.",
+  field_too_long: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig.",
+  party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
+  in_the_past: "Dieser Tag liegt in der Vergangenheit.",
+  too_far_ahead: "So weit im Voraus führen wir noch keine Warteliste.",
+  already_on_list: "Für diesen Tag stehst du schon auf der Warteliste. Wir melden uns, sobald etwas frei wird.",
+  too_many_requests: "Du stehst schon auf mehreren Wartelisten. Bitte ruf uns kurz an, dann finden wir einen Termin.",
+};
+
+/** Puts a guest on the waitlist for a day that is already full. */
+export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Promise<WaitlistState> {
+  const name = String(formData.get("name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const date = String(formData.get("date") ?? "");
+  const partySize = Number(formData.get("party_size"));
+  const preference = String(formData.get("time_preference") ?? "").trim();
+
+  if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
+    return { ok: false, error: WAITLIST_ERRORS.field_too_long };
+  }
+  if (!ISO_DATE.test(date)) return { ok: false, error: "Bitte wähle einen Tag." };
+  if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: "Bitte gib die Anzahl der Personen an." };
+
+  const supabase = createPublicClient();
+  const { error } = await supabase.rpc("join_waitlist", {
+    p_name: name,
+    p_phone: phone,
+    p_email: email,
+    p_date: date,
+    p_party_size: partySize,
+    p_time_preference: preference || undefined,
+  });
+  if (error) {
+    return {
+      ok: false,
+      error: WAITLIST_ERRORS[error.message] ?? "Das hat leider nicht geklappt. Bitte versuch es noch einmal oder ruf uns an.",
+    };
+  }
+  return { ok: true };
+}

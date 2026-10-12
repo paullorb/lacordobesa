@@ -151,6 +151,26 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   return { ok: true };
 }
 
+// ---------------------------------------------------------------- waitlist
+const WAITLIST_STATUSES: Enums<"waitlist_status">[] = ["waiting", "notified", "converted", "expired", "cancelled"];
+
+export async function setWaitlistStatus(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const status = str(formData, "status") as Enums<"waitlist_status">;
+  if (!WAITLIST_STATUSES.includes(status)) return;
+  await supabase.from("waitlist_entries").update({ status }).eq("id", str(formData, "id"));
+  refresh();
+}
+
+export async function saveWaitlistNotes(formData: FormData) {
+  const { supabase } = await requireStaff();
+  await supabase
+    .from("waitlist_entries")
+    .update({ staff_notes: str(formData, "staff_notes") || null })
+    .eq("id", str(formData, "id"));
+  refresh();
+}
+
 // ---------------------------------------------------------------- pre-orders
 const PREORDER_STATUSES: Enums<"preorder_status">[] = ["pending", "confirmed", "ready", "collected", "cancelled"];
 
