@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
@@ -44,7 +45,7 @@ export default async function HomePage() {
   return (
     <div className="site">
       {announcement && <div className="announcement">{announcement}</div>}
-      <SiteHeader whatsappHref={whatsappHref()} />
+      <SiteHeader whatsappHref={whatsappHref()} phoneHref={`tel:${CONTACT.phoneE164}`} />
 
       <main id="start">
         <section className="hero" aria-labelledby="hero-title">
@@ -63,9 +64,9 @@ export default async function HomePage() {
               <a className="button button-light" href="#reservieren">
                 Tisch reservieren <span aria-hidden="true">↓</span>
               </a>
-              <a className="text-link" href="#karte">
-                Unsere Favoriten entdecken
-              </a>
+              <Link className="text-link" href="/karte">
+                Zur Karte
+              </Link>
             </div>
           </div>
           <div className="hero-note">
@@ -109,7 +110,7 @@ export default async function HomePage() {
             <div className="section-heading">
               <p className="eyebrow">De nuestra cocina</p>
               <h2>Ein paar Lieblingsstücke</h2>
-              <p>Von Empanadas über Steaks vom Grill bis zum Flan – alles hausgemacht. Unsere drei Highlights, darunter die ganze Karte.</p>
+              <p>Von Empanadas über Steaks vom Grill bis zum Flan – alles hausgemacht. Hier ein paar unserer Highlights – die ganze Karte findest du auf einer eigenen Seite.</p>
             </div>
 
             {specials.length > 0 && (
@@ -147,34 +148,10 @@ export default async function HomePage() {
                 </article>
               ))}
             </div>
-            <div className="full-menu">
-              {menu
-                .filter((c) => c.items.length > 0)
-                .map((c) => (
-                  <div className="full-menu-cat" key={c.id}>
-                    <h3>
-                      {c.label}
-                      {c.label_secondary && <small>{c.label_secondary}</small>}
-                    </h3>
-                    {c.note && <p className="full-menu-note">{c.note}</p>}
-                    <ul>
-                      {c.items.map((item) => (
-                        <li key={item.id}>
-                          <span>
-                            <strong>{item.name}</strong>
-                            {item.subtitle && <em> · {item.subtitle}</em>}
-                            {item.description && <small>{item.description}</small>}
-                          </span>
-                          {item.price_label && <span className="full-menu-price">{item.price_label}</span>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-            </div>
-            <p className="menu-note">
-              Alle unsere Gerichte sind hausgemacht, ohne Konservierungsstoffe oder Zusatzstoffe. Bei Allergien oder
-              Unverträglichkeiten wende dich bitte an unser Personal. <em>¡Buen provecho!</em>
+            <p className="menu-more">
+              <Link className="button" href="/karte">
+                Ganze Karte ansehen <span aria-hidden="true">→</span>
+              </Link>
             </p>
           </div>
         </section>
@@ -205,7 +182,7 @@ export default async function HomePage() {
               <p className="eyebrow">Reservá tu mesa</p>
               <h2>Tisch reservieren.</h2>
               <p>
-                Such dir Datum und Uhrzeit aus – wir melden uns kurz, um die Reservierung zu bestätigen. Für
+                Such dir in vier kurzen Schritten Datum, Uhrzeit und Personenzahl aus – wir melden uns kurz, um die Reservierung zu bestätigen. Für
                 Caterings, große Gruppen oder kurzfristige Wünsche erreichst du uns am schnellsten per{" "}
                 <a href={whatsappHref()} target="_blank" rel="noreferrer">
                   WhatsApp
@@ -217,6 +194,7 @@ export default async function HomePage() {
               <ReservationForm
                 maxPartySize={reservation.max_party_size}
                 {...(await dateBounds(reservation.max_days_ahead))}
+                closedWeekdays={hours.filter((h) => h.is_closed || !h.opens || !h.closes).map((h) => h.weekday)}
                 phoneHref={`tel:${CONTACT.phoneE164}`}
                 phoneLabel={CONTACT.phoneDisplay}
               />
@@ -312,37 +290,9 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <img src="/assets/logo.svg" alt="" /> La Cordobesa
-          </div>
-          <div className="footer-links">
-            <a href="#geschichte">Nuestra historia</a>
-            <a href="#karte">Carta / Karte</a>
-            <a href="#reservieren">Reservieren</a>
-            <a href="#besuch">Kontakt</a>
-            <a href={CONTACT.instagram} target="_blank" rel="noreferrer">
-              Instagram ↗
-            </a>
-            <Link href="/impressum">Impressum</Link>
-            <Link href="/datenschutz">Datenschutz</Link>
-          </div>
-          <div className="copyright">
-            © <Year /> La Cordobesa
-            <br />
-            Con mucho amor, desde Frankfurt.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
-}
-
-async function Year() {
-  "use cache";
-  cacheLife("days");
-  return <>{todayISO().slice(0, 4)}</>;
 }
 
 /** Date-picker bounds. Baked into the static shell for up to an hour; the RPC re-validates anyway. */

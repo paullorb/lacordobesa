@@ -1,15 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const LINKS = [
-  { href: "#geschichte", label: "Unsere Geschichte" },
-  { href: "#karte", label: "Carta / Karte" },
-  { href: "#reservieren", label: "Reservieren" },
-  { href: "#besuch", label: "Besuch uns" },
+  { href: "/#geschichte", label: "Unsere Geschichte" },
+  { href: "/karte", label: "Carta / Karte" },
+  { href: "/#besuch", label: "Besuch uns" },
 ];
 
-export function SiteHeader({ whatsappHref }: { whatsappHref: string }) {
+type Props = { whatsappHref: string; phoneHref: string };
+
+export function SiteHeader({ whatsappHref, phoneHref }: Props) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -22,32 +24,41 @@ export function SiteHeader({ whatsappHref }: { whatsappHref: string }) {
   return (
     <header className="site-header">
       <div className="nav">
-        <a className="brand" href="#start" aria-label="La Cordobesa Startseite">
+        <Link className="brand" href="/" aria-label="La Cordobesa Startseite">
           <img src="/assets/logo.svg" alt="" />
           <span className="brand-copy">
             <strong>La Cordobesa</strong>
             <small>Pastelería Argentina</small>
           </span>
-        </a>
-        <button
-          className="menu-toggle"
-          aria-label={open ? "Menü schließen" : "Menü öffnen"}
-          aria-expanded={open}
-          aria-controls="navigation"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? "×" : "☰"}
-        </button>
+        </Link>
         <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href}>
+            <Link key={l.href} href={l.href}>
               {l.label}
-            </a>
+            </Link>
           ))}
           <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
             Schreib uns <span aria-hidden="true">↗</span>
           </a>
         </nav>
+        <div className="nav-actions">
+          <a className="nav-call" href={phoneHref} aria-label="Anrufen">
+            <span aria-hidden="true">☎</span>
+            <span className="nav-call-label">Anrufen</span>
+          </a>
+          <Link className="nav-cta nav-reserve" href="/#reservieren">
+            Reservieren
+          </Link>
+          <button
+            className="menu-toggle"
+            aria-label={open ? "Menü schließen" : "Menü öffnen"}
+            aria-expanded={open}
+            aria-controls="navigation"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? "×" : "☰"}
+          </button>
+        </div>
       </div>
     </header>
   );
