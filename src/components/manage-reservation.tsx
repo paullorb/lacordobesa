@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { getAvailability, type Slot } from "@/app/reservations/actions";
+import { getAvailability, type Slot } from "@/app/reservierung/actions";
 import { cancelReservation, moveReservation, type GuestReservation, type ManageState } from "@/app/reservierung/actions";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -102,6 +102,7 @@ export function ManageReservation({
               <summary>{t.move}</summary>
               <form action={moveAction} className="manage-move-form">
                 <input type="hidden" name="token" value={token} />
+                <input type="hidden" name="locale" value={locale} />
                 <label htmlFor="manage-date">{t.newDate}</label>
                 <input
                   id="manage-date"
@@ -173,6 +174,7 @@ export function ManageReservation({
             }}
           >
             <input type="hidden" name="token" value={token} />
+            <input type="hidden" name="locale" value={locale} />
             <button type="submit" className="button button-quiet" disabled={cancelling}>
               {cancelling ? t.cancelling : t.cancel}
             </button>

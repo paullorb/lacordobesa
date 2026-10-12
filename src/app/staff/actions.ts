@@ -6,7 +6,7 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
 import { staffEmail } from "@/lib/staff";
-import { addDays, isISODate } from "@/lib/dates";
+import { addDays, isISODate, isTime } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { cleanAdditives, cleanAllergens } from "@/lib/allergens";
@@ -156,7 +156,7 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   ) {
     return { ok: false, error: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig." };
   }
-  if (!isISODate(date) || !/^\d{2}:\d{2}$/.test(time)) {
+  if (!isISODate(date) || !isTime(time)) {
     return { ok: false, error: "Datum oder Uhrzeit sind ungültig." };
   }
 

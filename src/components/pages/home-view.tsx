@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
 import { PhotoStrip } from "@/components/photo-strip";
+import { Repulgue } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
 import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
@@ -74,15 +75,19 @@ export async function HomeView({ locale }: { locale: Locale }) {
             sizes="(max-width: 1392px) 100vw, 1392px"
           />
           <div className="hero-content">
+            {/* One span, so the sentence is a single flex item that wraps like text. As three loose
+                items, a narrow screen broke it into two ragged columns either side of the flag. */}
             <p className="eyebrow">
-              {t.heroEyebrowBefore}
-              <ArgentinaIcon />
-              {t.heroEyebrowAfter}
+              <span className="eyebrow-text">
+                {t.heroEyebrowBefore}
+                <ArgentinaIcon />
+                {t.heroEyebrowAfter}
+              </span>
             </p>
+            {/* Each line is its own block so the two can rise in one after the other. */}
             <h1 id="hero-title">
-              {t.heroTitleLine1}
-              <br />
-              <em>{t.heroTitleLine2}</em>
+              <span className="hero-line">{t.heroTitleLine1}</span>
+              <em className="hero-line">{t.heroTitleLine2}</em>
             </h1>
             <p className="hero-text">{t.heroText}</p>
             <div className="hero-actions">
@@ -142,6 +147,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <div className="section-heading">
               <p className="eyebrow">{t.menuEyebrow}</p>
               <h2>{t.menuTitle}</h2>
+              <Repulgue className="repulgue-divider" />
               <p>{t.menuText}</p>
             </div>
 
@@ -182,6 +188,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
                     {item.description && <p>{item.description}</p>}
                   </div>
                   {item.price_label && <span className="price">{item.price_label}</span>}
+                  {/* Crimped shut on hover, the way the dish itself is finished. */}
+                  <Repulgue folds={30} className="menu-card-edge" />
                 </article>
               ))}
             </div>
@@ -318,7 +326,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
                     {t.visitRoute} <span aria-hidden="true">↗</span>
                   </a>
                   <ShareButton
-                    title={`${CONTACT.name} · Pastelería Argentina in Frankfurt am Main`}
+                    locale={locale}
+                    title={t.shareTitle(CONTACT.name)}
                     text={t.shareText}
                   />
                 </div>
@@ -339,6 +348,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             </a>
           </div>
           <VenueMap
+            locale={locale}
             query={`${CONTACT.name}, ${CONTACT.street}, ${CONTACT.city}`}
             label={`${CONTACT.street}, ${CONTACT.city}`}
             openUrl={CONTACT.mapsUrl}

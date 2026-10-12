@@ -1,18 +1,18 @@
 /** Locales, and the URL shape that goes with them.
  *
- *  German is the default and stays **unprefixed**: `/`, `/karte`, `/gallery`. Spanish and English
- *  live under `/es/...` and `/en/...`.
+ *  German is the default and stays **unprefixed**: `/`, `/karte`, `/gallery`. Spanish lives under
+ *  `/es/...`.
  *
  *  Deliberately no middleware and no dynamic `[locale]` segment. Middleware would put an edge
  *  function in front of every public request, giving up the README's promise that "the public site
  *  stays fully static". A `[locale]` segment avoided that but still cost something: reading the
  *  locale meant awaiting `params` in the page body, which blocks the prefetchable shell that
- *  `partialPrefetching` exists to provide, so client-side navigation to a Spanish or English page
- *  was measurably worse than to a German one.
+ *  `partialPrefetching` exists to provide, so client-side navigation to a Spanish page was
+ *  measurably worse than to a German one.
  *
- *  So the locale is a literal instead: `app/page.tsx`, `app/es/page.tsx` and `app/en/page.tsx` are
- *  three thin wrappers over one shared view in `src/components/pages/`. Nothing to await, every
- *  variant prerenders, navigation stays instant, an unknown path 404s because no route matches it,
+ *  So the locale is a literal instead: `app/(de)/page.tsx` and `app/(es)/es/page.tsx` are two thin
+ *  wrappers over one shared view in `src/components/pages/`. Nothing to await, every variant
+ *  prerenders, navigation stays instant, an unknown path 404s because no route matches it,
  *  and the German URLs never moved. Adding a language means adding wrappers, which is cheap next to
  *  writing the dictionary. */
 

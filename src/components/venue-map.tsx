@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { getDictionary } from "@/lib/dictionaries";
+import type { Locale } from "@/lib/i18n";
+import { legalHref } from "@/lib/legal-links";
 
-type Props = { query: string; label: string; openUrl: string };
+type Props = { locale: Locale; query: string; label: string; openUrl: string };
 
-export function VenueMap({ query, label, openUrl }: Props) {
+export function VenueMap({ locale, query, label, openUrl }: Props) {
+  const t = getDictionary(locale).map;
   const [loaded, setLoaded] = useState(false);
-  const src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=16&hl=de&output=embed`;
+  const src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=16&hl=${locale}&output=embed`;
 
   return (
     <div className="venue-map">
@@ -23,15 +27,16 @@ export function VenueMap({ query, label, openUrl }: Props) {
         <div className="venue-map-consent">
           <strong>{label}</strong>
           <p>
-            Die Karte wird von Google Maps bereitgestellt. Beim Laden werden Daten (u. a. deine IP-Adresse) an Google
-            übertragen, siehe <Link href="/datenschutz">Datenschutz</Link>.
+            {t.consentBefore}
+            <Link href={legalHref("/datenschutz", locale)}>{t.privacy}</Link>
+            {t.consentAfter}
           </p>
           <div className="visit-actions">
             <button type="button" className="button" onClick={() => setLoaded(true)}>
-              Karte laden
+              {t.load}
             </button>
             <a className="button secondary" href={openUrl} target="_blank" rel="noreferrer">
-              In Google Maps öffnen <span aria-hidden="true">↗</span>
+              {t.open} <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>

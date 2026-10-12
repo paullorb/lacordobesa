@@ -14,7 +14,7 @@ import {
   type RequestState,
   type Slot,
   type UnavailableReason,
-} from "@/app/reservations/actions";
+} from "@/app/reservierung/actions";
 
 type Props = {
   locale: Locale;
@@ -37,8 +37,8 @@ const FIRST_DAYS = 14;
 
 export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closedWeekdays, phoneHref, phoneLabel }: Props) {
   const t = getDictionary(locale).reservation;
-  // Monday first in all three languages: the calendar grid is built that way, and a German, Spanish
-  // or English reader all expect their own week to start where their own calendar starts it.
+  // Monday first in both languages: the calendar grid is built that way, and a German or Spanish
+  // reader expects the week to start where their own calendar starts it.
   const weekdayLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", weekday: "long" });
   const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
   const people = (n: number) => `${n} ${n === 1 ? t.person : t.people}`;
@@ -256,6 +256,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           }}
         >
           <input type="hidden" name="date" value={date} />
+          <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="time" value={time} />
           <input type="hidden" name="party_size" value={partySize} />
           <div className="form-row">

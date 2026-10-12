@@ -29,51 +29,67 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    // The menu only exists below 1320px; widening the window past that would leave the page
+    // scroll-locked behind a menu that is no longer there.
+    const wide = window.matchMedia("(min-width: 1321px)");
+    const onWide = () => wide.matches && setOpen(false);
+    // Lock the page behind the open menu, so a swipe scrolls the menu rather than the page under it.
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    wide.addEventListener("change", onWide);
+    return () => {
+      root.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+      wide.removeEventListener("change", onWide);
+    };
   }, [open]);
 
   return (
-    <header className="site-header">
-      {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
-      <a className="skip-link" href="#main">
-        {t.nav.skipToContent}
-      </a>
-      <div className="nav">
-        <Link className="brand" href={href("/")} aria-label={t.nav.home}>
-          <Logo />
-          <span className="brand-copy">
-            <strong>La Cordobesa</strong>
-            <small>Pastelería Argentina</small>
-          </span>
-        </Link>
-        <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
-          {links.map((l) => (
-            <SectionLink key={l.href} href={l.href}>
-              {l.label}
+    <>
+      <header className="site-header">
+        {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
+        <a className="skip-link" href="#main">
+          {t.nav.skipToContent}
+        </a>
+        <div className="nav">
+          <Link className="brand" href={href("/")} aria-label={t.nav.home}>
+            <Logo />
+            <span className="brand-copy">
+              <strong>La Cordobesa</strong>
+              <small>Pastelería Argentina</small>
+            </span>
+          </Link>
+          <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
+            {links.map((l) => (
+              <SectionLink key={l.href} href={l.href}>
+                {l.label}
+              </SectionLink>
+            ))}
+            <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
+              {t.nav.write} <span aria-hidden="true">↗</span>
+            </a>
+            <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
+          </nav>
+          <div className="nav-actions">
+            <SectionLink className="nav-cta nav-reserve" href={href("/#reservieren")}>
+              {t.nav.reserve}
             </SectionLink>
-          ))}
-          <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
-            {t.nav.write} <span aria-hidden="true">↗</span>
-          </a>
-          <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
-        </nav>
-        <div className="nav-actions">
-          <SectionLink className="nav-cta nav-reserve" href={href("/#reservieren")}>
-            {t.nav.reserve}
-          </SectionLink>
-          <button
-            className="menu-toggle"
-            aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
-            aria-expanded={open}
-            aria-controls="navigation"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? <span className="menu-close" aria-hidden="true">×</span> : <EmpanadaIcon />}
-          </button>
+            <button
+              className="menu-toggle"
+              aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
+              aria-expanded={open}
+              aria-controls="navigation"
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? <span className="menu-close" aria-hidden="true">×</span> : <EmpanadaIcon />}
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      {open && <div className="nav-backdrop" aria-hidden="true" onClick={() => setOpen(false)} />}
+    </>
   );
 }
 

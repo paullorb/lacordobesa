@@ -5,7 +5,7 @@ import { requireStaff } from "@/lib/auth";
 import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
-import { SITE_URL, unsubscribeUrl as unsubscribeLink } from "@/lib/site";
+import { SITE_URL, unsubscribeUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Specials verschicken" };
@@ -20,8 +20,6 @@ export default function BroadcastPage() {
     </Suspense>
   );
 }
-
-const unsubscribeUrl = (o: Tables<"broadcast_optins">) => unsubscribeLink(o.unsubscribe_token);
 
 /** The message staff send. Each one carries that guest's own unsubscribe link, because consent has
  *  to stay as easy to withdraw as it was to give. That is also why there is no "copy all numbers"
@@ -126,7 +124,7 @@ async function Broadcast() {
                 {special && (
                   <a
                     className="btn-ghost !py-1"
-                    href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o)))}
+                    href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o.unsubscribe_token)))}
                     target="_blank"
                     rel="noreferrer"
                   >

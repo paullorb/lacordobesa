@@ -31,7 +31,7 @@ export function startOfMonth(iso: string): string {
   return `${iso.slice(0, 7)}-01`;
 }
 
-/** "2026-10-12" -> "Mo., 12.10.2026" (de) / "lun, 12/10/2026" (es) / "Mon, 12/10/2026" (en).
+/** "2026-10-12" -> "Mo., 12.10.2026" (de) / "lun, 12/10/2026" (es).
  *
  *  Formatted in UTC on purpose: the value is a calendar date, not an instant, so shifting it into a
  *  timezone is what would make it render as the wrong day. */
@@ -84,4 +84,11 @@ export function isISODate(value: unknown): value is string {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const d = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
+
+/** A real time of day as `HH:MM`, the shape the time slots and `<input type="time">` submit. */
+export function isTime(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) return false;
+  const [h, m] = value.split(":").map(Number);
+  return h <= 23 && m <= 59;
 }

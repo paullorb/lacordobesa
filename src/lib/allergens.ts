@@ -41,8 +41,8 @@ export const ADDITIVES = {
   "13": "chininhaltig",
 } as const;
 
-/** The same codes in the other two site languages. Allergen names are regulated terms, so a guest
- *  reading the English menu needs them in English; the codes themselves are language-independent. */
+/** The same codes in Spanish, the site's other language. Allergen names are regulated terms, so a
+ *  guest reading the Spanish menu needs them in Spanish; the codes themselves are language-independent. */
 const ALLERGENS_ES: Record<keyof typeof ALLERGENS, string> = {
   a: "Cereales con gluten",
   b: "Crustáceos",
