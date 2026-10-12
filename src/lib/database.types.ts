@@ -37,6 +37,54 @@ export type Database = {
         }
         Relationships: []
       }
+      event_inquiries: {
+        Row: {
+          budget_band: string
+          created_at: string
+          email: string | null
+          event_date: string | null
+          guests: number | null
+          id: string
+          message: string | null
+          name: string
+          occasion: string
+          phone: string
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["inquiry_status"]
+          updated_at: string
+        }
+        Insert: {
+          budget_band: string
+          created_at?: string
+          email?: string | null
+          event_date?: string | null
+          guests?: number | null
+          id?: string
+          message?: string | null
+          name: string
+          occasion: string
+          phone: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["inquiry_status"]
+          updated_at?: string
+        }
+        Update: {
+          budget_band?: string
+          created_at?: string
+          email?: string | null
+          event_date?: string | null
+          guests?: number | null
+          id?: string
+          message?: string | null
+          name?: string
+          occasion?: string
+          phone?: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["inquiry_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery_items: {
         Row: {
           caption: string | null
@@ -397,6 +445,19 @@ export type Database = {
       cancel_preorder_by_token: { Args: { p_token: string }; Returns: undefined }
       cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
       is_staff: { Args: never; Returns: boolean }
+      request_event_inquiry: {
+        Args: {
+          p_budget_band: string
+          p_email: string
+          p_event_date?: string
+          p_guests?: number
+          p_message?: string
+          p_name: string
+          p_occasion: string
+          p_phone: string
+        }
+        Returns: undefined
+      }
       manage_token_valid: { Args: { p_token: string }; Returns: boolean }
       move_reservation_by_token: {
         Args: { p_date: string; p_party_size: number; p_time: string; p_token: string }
@@ -460,6 +521,7 @@ export type Database = {
       reservation_settings: { Args: never; Returns: Json }
     }
     Enums: {
+      inquiry_status: "new" | "in_progress" | "quoted" | "won" | "lost"
       preorder_status:
         | "pending"
         | "confirmed"

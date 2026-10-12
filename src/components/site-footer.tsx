@@ -16,6 +16,7 @@ export function SiteFooter() {
           <Link href="/#geschichte">Nuestra historia</Link>
           <Link href="/karte">Carta / Karte</Link>
           <Link href="/vorbestellen">Vorbestellen</Link>
+          <Link href="/catering">Feiern & Catering</Link>
           <Link href="/gallery">Galerie</Link>
           <Link href="/#reservieren">Reservieren</Link>
           <Link href="/#besuch">Kontakt</Link>

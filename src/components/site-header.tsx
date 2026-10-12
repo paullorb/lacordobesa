@@ -9,6 +9,8 @@ import { Logo } from "@/components/logo";
 const LINKS = [
   { href: "/#geschichte", label: "Unsere Geschichte" },
   { href: "/karte", label: "Carta / Karte" },
+  { href: "/vorbestellen", label: "Vorbestellen" },
+  { href: "/catering", label: "Feiern" },
   { href: "/gallery", label: "Galerie" },
   { href: "/#besuch", label: "Besuch uns" },
 ];
