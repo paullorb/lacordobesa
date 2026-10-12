@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/dictionaries";
-import { alternates, isLocale, localeHref, OG_LOCALE, type Locale } from "@/lib/i18n";
+import { alternates, localeHref, OG_LOCALE, type Locale } from "@/lib/i18n";
 
 /** Metadata for one public page in one locale.
  *
@@ -24,14 +23,6 @@ export function pageMetadata(
     alternates: { canonical: localeHref(locale, path), languages: alternates(path) },
     openGraph: { title, description, locale: OG_LOCALE[locale], type: "website" },
   };
-}
-
-/** Reads and validates the `[locale]` route param. The layout already 404s an unknown value, so by
- *  the time a page renders this is only narrowing the type. */
-export async function localeFromParams(params: Promise<{ locale: string }>): Promise<Locale> {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
-  return locale;
 }
 
 /** Metadata for a `<token>` page. These are never indexed and never send a referrer: the token in
