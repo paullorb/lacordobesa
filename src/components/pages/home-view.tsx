@@ -74,10 +74,14 @@ export async function HomeView({ locale }: { locale: Locale }) {
             sizes="(max-width: 1392px) 100vw, 1392px"
           />
           <div className="hero-content">
+            {/* One span, so the sentence is a single flex item that wraps like text. As three loose
+                items, a narrow screen broke it into two ragged columns either side of the flag. */}
             <p className="eyebrow">
-              {t.heroEyebrowBefore}
-              <ArgentinaIcon />
-              {t.heroEyebrowAfter}
+              <span className="eyebrow-text">
+                {t.heroEyebrowBefore}
+                <ArgentinaIcon />
+                {t.heroEyebrowAfter}
+              </span>
             </p>
             <h1 id="hero-title">
               {t.heroTitleLine1}

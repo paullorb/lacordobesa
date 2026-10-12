@@ -66,6 +66,9 @@ a { color: inherit; }
 /* The eyebrow is a flex row, so an icon between the two halves of the sentence is just another
    item and the existing gap spaces it. */
 .eyebrow svg { flex: 0 0 auto; }
+/* An eyebrow with an icon inside the sentence: the icon rides the text line instead of being a flex item. */
+.eyebrow-text { line-height: 1.6; text-wrap: balance; }
+.eyebrow-text svg { display: inline-block; vertical-align: -.2em; }
 /* text-wrap: balance so a heading never leaves one short word stranded on its own line. */
 .site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; text-wrap: balance; }
 .site h1 em { color: #aadcf1; font-weight: 500; }
@@ -259,6 +262,14 @@ a { color: inherit; }
 .optin-copy h2 { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin: .2rem 0 .5rem; }
 .optin-copy p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.7; }
 .optin-fields { display: grid; gap: .8rem; }
+/* Stacked labels rather than .field-float: the phone field shows a "+49 …" placeholder, which a
+   floating label would sit on top of. Without these rules the inputs fell back to the browser's
+   borderless defaults and all but vanished against the mint. */
+.optin-fields > div > label { display: block; margin-bottom: .35rem; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.optin-fields > div > input { box-sizing: border-box; width: 100%; font: inherit; font-size: .9rem; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); }
+.optin-fields > div > input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+.optin-fields > div > input::placeholder { color: var(--muted); opacity: .75; }
+.optin-consent input { accent-color: var(--ink); margin: .2rem 0 0; }
 .optin-consent { display: grid; grid-template-columns: auto 1fr; gap: .6rem; align-items: start; margin: 0; text-transform: none; letter-spacing: normal; }
 .optin-consent span { color: var(--muted); font-size: .75rem; line-height: 1.6; }
 .optin-done { display: block; }
@@ -370,11 +381,25 @@ a { color: inherit; }
   .nav { gap: 1rem; }
   .nav-reserve { min-height: 44px; padding: 0 1rem; }
   .nav-actions { margin-left: auto; gap: .4rem; }
-  .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; padding: 1rem 24px 1.4rem; background: var(--cream); border-bottom: 1px solid var(--line); flex-direction: column; align-items: stretch; gap: 0; }
+  .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; max-height: calc(100dvh - 74px); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 24px 1.4rem; background: var(--cream); border-bottom: 1px solid var(--line); box-shadow: 0 18px 30px rgba(21,47,59,.12); flex-direction: column; align-items: stretch; gap: 0; }
   .site-nav.open { display: flex; }
   .site-nav a:not(.nav-cta) { padding: .9rem 0; border-bottom: 1px solid var(--line); }
   .site-nav .nav-cta { margin-top: 1rem; justify-content: center; border: 0; }
+  /* Its own row under the button, with thumb-sized targets, instead of 20px codes in a corner. */
+  .site-nav .lang-switch { margin-top: 1rem; align-self: center; }
+  .site-nav .lang-switch ul { gap: .4rem; }
+  .site-nav .lang-switch a, .site-nav .lang-switch span[aria-current] { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0 .8rem; border-radius: 999px; font-size: .8rem; }
+  /* Dims the page under the open menu and catches the tap that closes it. A sibling of the header,
+     one layer below it, so the bar with the close button stays bright. */
+  .nav-backdrop { position: fixed; inset: 0; z-index: 9; background: rgba(21,47,59,.42); }
 }
+@media (min-width: 1081px) { .nav-backdrop { display: none; } }
+@media (max-width: 1080px) and (prefers-reduced-motion: no-preference) {
+  .site-nav.open { animation: nav-drop .22s cubic-bezier(.22,.61,.36,1) both; }
+  .nav-backdrop { animation: nav-fade .22s ease both; }
+}
+@keyframes nav-drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes nav-fade { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 800px) {
   .hero { width: calc(100% - 24px); min-height: 630px; margin-top: 12px; }
