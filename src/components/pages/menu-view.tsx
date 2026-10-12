@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { codeList, legendFor } from "@/lib/allergens";
-import { CONTACT, whatsappHref } from "@/lib/contact";
+import { whatsappHref } from "@/lib/contact";
 import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";

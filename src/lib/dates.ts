@@ -54,9 +54,6 @@ export const fmtDateDE = (iso: string, opts: Intl.DateTimeFormatOptions = {}) =>
 // which meant lib/staff-calendar.ts had to import them *from a component*; they are date maths
 // and belong next to addDays().
 
-/** "2026-10-12" -> "2026-10" */
-export const monthOf = (iso: string) => iso.slice(0, 7);
-
 export function shiftMonth(month: string, by: number): string {
   const [y, m] = month.split("-").map(Number);
   const d = new Date(Date.UTC(y, m - 1 + by, 1));
