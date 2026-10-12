@@ -53,7 +53,7 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
         {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
-          <div key={wd} className="pb-1 text-[0.6rem] font-bold uppercase tracking-wider text-muted">
+          <div key={wd} className="pb-1 text-xs font-bold uppercase tracking-wider text-muted">
             {WEEKDAYS_DE[wd].slice(0, 2)}
           </div>
         ))}
@@ -86,11 +86,11 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
                 {Number(date.slice(8, 10))}
               </span>
               {info.reservations ? (
-                <span className={`text-[0.65rem] ${isSel ? "text-white/80" : "text-blue-dark"}`}>
+                <span className={`text-xs ${isSel ? "text-white/80" : "text-blue-dark"}`}>
                   {info.reservations} · {info.guests} P.
                 </span>
               ) : closed ? (
-                <span className="text-[0.6rem]">zu</span>
+                <span className="text-xs">zu</span>
               ) : null}
             </Link>
           );

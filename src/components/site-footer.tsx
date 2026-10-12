@@ -2,6 +2,7 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CONTACT } from "@/lib/contact";
 import { todayISO } from "@/lib/dates";
+import { HeartIcon } from "@/components/icons";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { Logo } from "@/components/logo";
 import { getDictionary } from "@/lib/dictionaries";
@@ -38,7 +39,9 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <div className="copyright">
           © <Year /> La Cordobesa
           <br />
-          {t.madeWith}
+          {t.madeWithBefore}
+          <HeartIcon />
+          {t.madeWithAfter}
         </div>
       </div>
     </footer>
