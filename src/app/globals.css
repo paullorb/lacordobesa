@@ -472,6 +472,9 @@ a { color: inherit; }
 }
 @keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+/* The way out of a legal page sits on cream, not on the hero, so .text-link's white would vanish. */
+.legal-back { color: var(--ink); border-bottom-color: var(--line); }
+
 /* ------------------------------------------------------------------ 404 */
 .not-found { max-width: 620px; margin: 0 auto; text-align: center; }
 .not-found .eyebrow { justify-content: center; color: var(--blue-dark); }

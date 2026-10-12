@@ -9,6 +9,7 @@ import { StaffNav } from "@/app/staff/nav";
 import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: { default: "Team", template: "%s · La Cordobesa Team" },
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Cordobesa" },

@@ -42,6 +42,10 @@ export function rootMetadata(locale: Locale): Metadata {
     title: { default: t.title, template: "%s · La Cordobesa" },
     description: t.description,
     icons: { icon: "/assets/favicon.svg", apple: "/icons/apple-touch-icon.png" },
+    // The installable app is the staff area, and its manifest is scoped to /staff. Advertising it
+    // on a public page offers a browser a manifest whose scope does not contain the page, which it
+    // ignores anyway; the staff layout opts back in.
+    manifest: null,
     openGraph: {
       title: t.title,
       description: t.description,

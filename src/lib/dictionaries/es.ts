@@ -31,6 +31,8 @@ export const es: Dictionary = {
     contact: "Contacto",
     imprint: "Aviso legal",
     privacy: "Privacidad",
+    back: "Volver al inicio",
+    backHome: "Ir al inicio",
     madeWith: "Con mucho ❤️, desde Frankfurt am Main.",
   },
   home: {
