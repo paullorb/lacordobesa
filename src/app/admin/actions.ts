@@ -342,9 +342,13 @@ export async function deleteGalleryItem(formData: FormData) {
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
   const { data } = await supabase.from("gallery_items").select("storage_path").eq("id", id).maybeSingle();
+  // Remove the object first: dropping the row before it would lose the path needed to retry the cleanup.
+  if (data?.storage_path) {
+    const { error: storageError } = await supabase.storage.from("gallery").remove([data.storage_path]);
+    if (storageError) return;
+  }
   const { error } = await supabase.from("gallery_items").delete().eq("id", id);
   if (error) return;
-  if (data?.storage_path) await supabase.storage.from("gallery").remove([data.storage_path]);
   updateTag(TAG.gallery);
   refresh();
 }

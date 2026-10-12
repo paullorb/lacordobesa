@@ -49,20 +49,22 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
   const [showAllDays, setShowAllDays] = useState(false);
   const [movedFrom, setMovedFrom] = useState(false);
   const [contact, setContact] = useState({ name: "", phone: "", email: "", notes: "" });
+  // Date + time the last submit was made for, so a slot error stops showing once the guest picks another slot.
+  const [attempt, setAttempt] = useState("");
   const [loading, startLoading] = useTransition();
   const request = useRef(0);
 
   useEffect(() => {
     const id = ++request.current;
     startLoading(async () => {
-      const first = await getFirstAvailableDay(minDate);
+      const first = await getFirstAvailableDay(minDate, maxDate);
       if (id !== request.current || !first) return;
       setDate(first.date);
       setSlots(first.slots);
       setMovedFrom(first.date !== minDate);
       setStep(2);
     });
-  }, [minDate]);
+  }, [minDate, maxDate]);
 
   function loadDay(value: string, then: Step) {
     const id = ++request.current;
@@ -241,7 +243,13 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
       )}
 
       {step === 4 && partySize && (
-        <form className="wizard-body wizard-contact" action={formAction}>
+        <form
+          className="wizard-body wizard-contact"
+          action={(fd) => {
+            setAttempt(`${date} ${time}`);
+            formAction(fd);
+          }}
+        >
           <input type="hidden" name="date" value={date} />
           <input type="hidden" name="time" value={time} />
           <input type="hidden" name="party_size" value={partySize} />
@@ -299,7 +307,7 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, closedWeekdays
             />
           </div>
 
-          {state && !state.ok && (
+          {state && !state.ok && attempt === `${date} ${time}` && (
             <div className="form-error" role="alert">
               {state.error}
               {state.retryTime && (
