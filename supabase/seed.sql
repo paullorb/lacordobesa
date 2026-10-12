@@ -3,15 +3,15 @@ insert into public.site_settings (key, value) values
   ('announcement', '{"text": "Hausgemacht mit Herz · Hecho en casa con cariño · Frankfurt am Main"}'),
   ('reservations', '{"enabled": true, "slot_minutes": 30, "duration_minutes": 90, "capacity_seats": 20, "max_party_size": 8, "min_lead_hours": 2, "max_days_ahead": 30, "last_seating_minutes_before_close": 60}');
 
--- Placeholder hours: Tue–Sat 09:00–18:00, Sun/Mon closed. Staff edit these in the admin.
+-- Opening hours: Mon closed, Tue-Fri 16:00-22:00, Sat/Sun 11:30-22:00.
 insert into public.opening_hours (weekday, opens, closes, is_closed) values
-  (0, null, null, true),
+  (0, '11:30', '22:00', false),
   (1, null, null, true),
-  (2, '09:00', '18:00', false),
-  (3, '09:00', '18:00', false),
-  (4, '09:00', '18:00', false),
-  (5, '09:00', '18:00', false),
-  (6, '09:00', '18:00', false);
+  (2, '16:00', '22:00', false),
+  (3, '16:00', '22:00', false),
+  (4, '16:00', '22:00', false),
+  (5, '16:00', '22:00', false),
+  (6, '11:30', '22:00', false);
 
 insert into public.menu_categories (slug, label, sort_order) values
   ('salado', 'Salado', 1),

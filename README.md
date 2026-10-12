@@ -56,5 +56,4 @@ landing page stays a static shell served from the CDN.
 - No automatic guest notification (e-mail/WhatsApp) on confirmation — staff send it manually.
 - Impressum / Datenschutz exist but contain placeholders — fill in [`src/lib/legal.ts`](src/lib/legal.ts) and have the
   Datenschutzerklärung reviewed before going live.
-- Opening hours in the seed are placeholders — set the real ones in the admin.
 - Contact details are hardcoded in [`src/lib/contact.ts`](src/lib/contact.ts).
