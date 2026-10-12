@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { createReservationManually } from "@/app/staff/actions";
-import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
+import { StaffReservationForm } from "@/components/staff/staff-reservation-form";
 import { ReservationCard } from "@/components/staff/reservation-card";
 import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
-import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
+import { getReservationSettings } from "@/lib/data";
+import { addDays, fmtDateDE, isISODate, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Reservierungen" };
 
 export default function ReservationsPage(props: PageProps<"/staff/reservierungen">) {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Reservations searchParams={props.searchParams} />
     </Suspense>
   );
@@ -22,13 +23,15 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
   const { supabase } = await requireStaff();
   const sp = await searchParams;
   const today = todayISO();
-  const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
+  // isISODate(), not a shape regex: "2026-99-99" matches /^\d{4}-\d{2}-\d{2}$/ and is then sliced
+  // into monthParam() as "2026-99", which throws RangeError while building the calendar grid.
+  const date = isISODate(sp.date) ? sp.date : today;
   const month = monthParam(sp, date);
   const showCancelled = sp.alle === "1";
 
   let q = supabase.from("reservations").select("*").eq("date", date).order("start_time");
   if (!showCancelled) q = q.neq("status", "cancelled");
-  const [{ data: rows }, cal] = await Promise.all([q, loadCalendarMonth(supabase, month)]);
+  const [{ data: rows }, cal, settings] = await Promise.all([q, loadCalendarMonth(supabase, month), getReservationSettings()]);
   const dayHref = (d: string) => `/staff/reservierungen?date=${d}${showCancelled ? "&alle=1" : ""}`;
 
   return (
@@ -77,39 +80,7 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
 
       <details className="card">
         <summary className="cursor-pointer font-semibold">Reservierung manuell eintragen (Telefon / vor Ort)</summary>
-        <ActionForm action={createReservationManually} className="mt-4 grid gap-3 sm:grid-cols-2" successText="Eingetragen.">
-          <div>
-            <label htmlFor="m-name">Name</label>
-            <input id="m-name" name="name" required />
-          </div>
-          <div>
-            <label htmlFor="m-phone">Telefon</label>
-            <input id="m-phone" name="phone" type="tel" />
-          </div>
-          <div>
-            <label htmlFor="m-date">Datum</label>
-            <input id="m-date" name="date" type="date" defaultValue={date} required />
-          </div>
-          <div>
-            <label htmlFor="m-time">Uhrzeit</label>
-            <input id="m-time" name="time" type="time" step={900} required />
-          </div>
-          <div>
-            <label htmlFor="m-party">Personen</label>
-            <input id="m-party" name="party_size" type="number" min={1} max={50} defaultValue={2} required />
-          </div>
-          <div>
-            <label htmlFor="m-email">E-Mail</label>
-            <input id="m-email" name="email" type="email" />
-          </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="m-notes">Notiz</label>
-            <input id="m-notes" name="notes" />
-          </div>
-          <div className="sm:col-span-2">
-            <SubmitButton>Als bestätigt eintragen</SubmitButton>
-          </div>
-        </ActionForm>
+        <StaffReservationForm date={date} maxPartySize={settings.max_party_size} />
       </details>
     </div>
   );

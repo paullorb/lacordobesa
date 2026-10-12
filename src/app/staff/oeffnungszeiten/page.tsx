@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
@@ -11,7 +12,7 @@ export const metadata = { title: "Öffnungszeiten" };
 
 export default function HoursPage(props: PageProps<"/staff/oeffnungszeiten">) {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Hours searchParams={props.searchParams} />
     </Suspense>
   );

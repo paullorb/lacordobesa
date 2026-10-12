@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteGalleryItem, saveGalleryItem, setHeroImage } from "@/app/staff/actions";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { GalleryUpload } from "@/components/staff/gallery-upload";
@@ -10,7 +11,7 @@ export const metadata = { title: "Galerie" };
 
 export default function StaffGalleryPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <StaffGallery />
     </Suspense>
   );

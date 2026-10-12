@@ -1,5 +1,3 @@
-import type { Tables } from "@/lib/database.types";
-
 /** Occasions and budget bands are constrained in the database (migration 20261012095610), so these
  *  lists and the check constraints have to stay in step. Order is the order the form offers them. */
 export const OCCASIONS = {
@@ -31,11 +29,3 @@ export const isBudgetBand = (v: string): v is BudgetBand => v in BUDGET_BANDS;
 /** Labels for a stored value, falling back to the raw code so an older row never renders blank. */
 export const occasionLabel = (v: string) => (isOccasion(v) ? OCCASIONS[v] : v);
 export const budgetLabel = (v: string) => (isBudgetBand(v) ? BUDGET_BANDS[v] : v);
-
-export const INQUIRY_STATUS_LABEL: Record<Tables<"event_inquiries">["status"], string> = {
-  new: "Neu",
-  in_progress: "In Arbeit",
-  quoted: "Angebot raus",
-  won: "Gewonnen",
-  lost: "Verloren",
-};

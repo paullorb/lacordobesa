@@ -11,3 +11,9 @@ export const manageUrl = (token: string) => `${SITE_URL}/reservierung/${token}`;
 const MANAGE_TOKEN = /^[0-9a-f]{36}$/;
 
 export const isManageToken = (token: string) => MANAGE_TOKEN.test(token);
+
+/** Where a guest follows their own pre-order, and where they withdraw consent for the specials
+ *  list. Both were built by hand from SITE_URL at their call sites, which is how manageUrl() above
+ *  ended up being the only one of the three that could be changed in one place. */
+export const preorderUrl = (token: string) => `${SITE_URL}/vorbestellung/${token}`;
+export const unsubscribeUrl = (token: string) => `${SITE_URL}/abmelden/${token}`;

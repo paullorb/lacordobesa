@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { PreorderCard } from "@/components/staff/preorder-card";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
@@ -8,7 +9,7 @@ export const metadata = { title: "Vorbestellungen" };
 
 export default function PreordersPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Preorders />
     </Suspense>
   );

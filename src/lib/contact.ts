@@ -13,3 +13,18 @@ export const CONTACT = {
 
 export const whatsappHref = (text?: string) =>
   `https://wa.me/${CONTACT.phoneE164.replace("+", "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+
+/** The digits wa.me expects from a guest-entered phone number: no plus, no spaces, and a German
+ *  number written as 0170... gets its country code. Staff type these by hand off a phone screen,
+ *  so the shapes vary more than a form would suggest. */
+export function waNumber(phone: string) {
+  const digits = phone.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits.slice(1);
+  if (digits.startsWith("0")) return `49${digits.slice(1)}`;
+  return digits;
+}
+
+/** A wa.me link to *the guest's* number, with an optional prefilled message.
+ *  whatsappHref() above points at the restaurant; this points the other way. */
+export const whatsappTo = (phone: string, text?: string) =>
+  `https://wa.me/${waNumber(phone)}${text ? `?text=${encodeURIComponent(text)}` : ""}`;

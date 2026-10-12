@@ -1,23 +1,16 @@
 import { Suspense } from "react";
 import { saveWaitlistNotes, setWaitlistStatus } from "@/app/staff/actions";
+import { StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { whatsappHref } from "@/lib/contact";
 import { fmtDateDE, todayISO } from "@/lib/dates";
-import type { Enums, Tables } from "@/lib/database.types";
+import { WAITLIST_STATUS_LABEL } from "@/lib/statuses";
+import type { Tables } from "@/lib/database.types";
 
 export const metadata = { title: "Warteliste" };
 
-const LABEL: Record<Enums<"waitlist_status">, string> = {
-  waiting: "Wartet",
-  notified: "Angerufen",
-  converted: "Hat einen Tisch",
-  expired: "Verfallen",
-  cancelled: "Abgesagt",
-};
-
 export default function WaitlistPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Waitlist />
     </Suspense>
   );
@@ -80,12 +73,6 @@ async function Waitlist() {
 }
 
 function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; position: number }) {
-  const phoneDigits = e.phone.replace(/[^\d+]/g, "");
-  const waNumber = phoneDigits.startsWith("+")
-    ? phoneDigits.slice(1)
-    : phoneDigits.startsWith("0")
-      ? `49${phoneDigits.slice(1)}`
-      : phoneDigits;
   const offer = `Hola ${e.name}! Bei La Cordobesa ist für ${fmtDateDE(e.date, { weekday: undefined })} ein Tisch für ${e.party_size} ${
     e.party_size === 1 ? "Person" : "Personen"
   } frei geworden. Passt das noch bei dir?`;
@@ -100,7 +87,7 @@ function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; posi
             <span className="text-sm">
               {e.party_size} {e.party_size === 1 ? "Person" : "Pers."}
             </span>
-            <span className={`status status-${e.status}`}>{LABEL[e.status]}</span>
+            <span className={`status status-${e.status}`}>{WAITLIST_STATUS_LABEL[e.status]}</span>
           </div>
           {e.time_preference && <div className="text-sm text-muted">Wunsch: {e.time_preference}</div>}
           <div className="text-sm text-muted">
@@ -118,48 +105,19 @@ function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; posi
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {waNumber.length >= 8 && (
-            <a
-              className="btn-ghost"
-              href={whatsappHref(offer).replace(/wa\.me\/\d+/, `wa.me/${waNumber}`)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Tisch anbieten ↗
-            </a>
+          <WhatsAppButton phone={e.phone} text={offer} label="Tisch anbieten" />
+          {e.status === "waiting" && (
+            <StatusButton action={setWaitlistStatus} id={e.id} status="notified" label="Angerufen" />
           )}
-          {e.status === "waiting" && <StatusButton id={e.id} status="notified" label="Angerufen" />}
-          {e.status !== "converted" && <StatusButton id={e.id} status="converted" label="Hat einen Tisch" primary />}
-          {e.status !== "cancelled" && <StatusButton id={e.id} status="cancelled" label="Abgesagt" danger />}
+          {e.status !== "converted" && (
+            <StatusButton action={setWaitlistStatus} id={e.id} status="converted" label="Hat einen Tisch" primary />
+          )}
+          {e.status !== "cancelled" && (
+            <StatusButton action={setWaitlistStatus} id={e.id} status="cancelled" label="Abgesagt" danger />
+          )}
         </div>
       </div>
-      <form action={saveWaitlistNotes} className="flex gap-2">
-        <input type="hidden" name="id" value={e.id} />
-        <input name="staff_notes" defaultValue={e.staff_notes ?? ""} placeholder="Interne Notiz" />
-        <button className="btn-ghost shrink-0">OK</button>
-      </form>
+      <StaffNotesForm action={saveWaitlistNotes} id={e.id} value={e.staff_notes} placeholder="Interne Notiz" />
     </article>
-  );
-}
-
-function StatusButton({
-  id,
-  status,
-  label,
-  primary,
-  danger,
-}: {
-  id: string;
-  status: Enums<"waitlist_status">;
-  label: string;
-  primary?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <form action={setWaitlistStatus}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="status" value={status} />
-      <button className={primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"}>{label}</button>
-    </form>
   );
 }

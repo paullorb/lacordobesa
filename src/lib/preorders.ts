@@ -73,11 +73,3 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
 
 /** One line of a guest's order, as preorder_by_token() returns it. */
 export type PreorderLine = { label: string; unit: string; price: string | null; quantity: number };
-
-export const PREORDER_STATUS_LABEL: Record<Tables<"preorders">["status"], string> = {
-  pending: "Offen",
-  confirmed: "Bestätigt",
-  ready: "Zum Abholen bereit",
-  collected: "Abgeholt",
-  cancelled: "Storniert",
-};

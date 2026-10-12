@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { BarList } from "@/components/staff/bar-list";
 import { requireStaff } from "@/lib/auth";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
@@ -12,7 +13,7 @@ const WINDOW_DAYS = 90;
 
 export default function NumbersPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Numbers />
     </Suspense>
   );

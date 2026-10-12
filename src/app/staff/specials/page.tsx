@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteSpecial, saveSpecial } from "@/app/staff/actions";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
@@ -9,7 +10,7 @@ export const metadata = { title: "Specials" };
 
 export default function SpecialsPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
+    <Suspense fallback={<StaffLoading />}>
       <Specials />
     </Suspense>
   );

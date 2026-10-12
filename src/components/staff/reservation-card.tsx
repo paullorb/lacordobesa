@@ -1,18 +1,11 @@
 import { resendConfirmation, setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
-import { whatsappHref } from "@/lib/contact";
+import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
 import { manageUrl } from "@/lib/site";
+import { RESERVATION_STATUS_LABEL } from "@/lib/statuses";
 import type { Tables } from "@/lib/database.types";
-
-const LABEL: Record<Tables<"reservations">["status"], string> = {
-  pending: "Offen",
-  confirmed: "Bestätigt",
-  cancelled: "Storniert",
-  no_show: "Nicht erschienen",
-  completed: "Erledigt",
-};
 
 export function ReservationCard({ r, showDate = false }: { r: Tables<"reservations">; showDate?: boolean }) {
   // manage_token arrives with migration 20261012093558; before that there is no guest link to share.
@@ -23,8 +16,6 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
   ]
     .filter(Boolean)
     .join("\n\n");
-  const phoneDigits = r.phone.replace(/[^\d+]/g, "");
-  const waNumber = phoneDigits.startsWith("+") ? phoneDigits.slice(1) : phoneDigits.startsWith("0") ? `49${phoneDigits.slice(1)}` : phoneDigits;
 
   return (
     <article className="card grid gap-3">
@@ -35,12 +26,14 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
             <span className="text-sm">
               {r.party_size} {r.party_size === 1 ? "Person" : "Pers."}
             </span>
-            <span className={`status status-${r.status}`}>{LABEL[r.status]}</span>
+            <span className={`status status-${r.status}`}>{RESERVATION_STATUS_LABEL[r.status]}</span>
             {r.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
           </div>
           {showDate && <div className="text-xs text-muted">{fmtDateDE(r.date)}</div>}
           <div className="mt-1 font-semibold">{r.name}</div>
           <div className="text-sm text-muted">
+            {/* A staff-entered booking can have no number at all, which is stored as an empty
+                string; a dead tel: link would be worse than saying so. */}
             {r.phone ? (
               <a href={`tel:${r.phone}`} className="hover:text-blue-dark">
                 {r.phone}
@@ -60,19 +53,21 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           {r.notes && <p className="mt-2 rounded bg-cream px-3 py-2 text-sm">„{r.notes}“</p>}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {waNumber.length >= 8 && (
-            <a className="btn-ghost" href={whatsappHref(confirmText).replace(/wa\.me\/\d+/, `wa.me/${waNumber}`)} target="_blank" rel="noreferrer">
-              WhatsApp ↗
-            </a>
+          <WhatsAppButton phone={r.phone} text={confirmText} />
+          {r.status === "pending" && (
+            <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Bestätigen" primary />
           )}
-          {r.status === "pending" && <StatusButton id={r.id} status="confirmed" label="Bestätigen" primary />}
-          {r.status === "confirmed" && <StatusButton id={r.id} status="completed" label="Erledigt" />}
-          {r.status === "confirmed" && <StatusButton id={r.id} status="no_show" label="Nicht erschienen" />}
+          {r.status === "confirmed" && (
+            <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" />
+          )}
+          {r.status === "confirmed" && (
+            <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
+          )}
           {(r.status === "pending" || r.status === "confirmed") && (
-            <StatusButton id={r.id} status="cancelled" label="Stornieren" danger />
+            <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
           )}
           {(r.status === "cancelled" || r.status === "no_show" || r.status === "completed") && (
-            <StatusButton id={r.id} status="confirmed" label="Wieder öffnen" />
+            <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Wieder öffnen" />
           )}
         </div>
       </div>
@@ -85,34 +80,13 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           </a>
         </p>
       )}
-      <form action={saveStaffNotes} className="flex gap-2">
-        <input type="hidden" name="id" value={r.id} />
-        <input name="staff_notes" defaultValue={r.staff_notes ?? ""} placeholder="Interne Notiz (Tisch, Hinweise …)" />
-        <button className="btn-ghost shrink-0">OK</button>
-      </form>
+      <StaffNotesForm
+        action={saveStaffNotes}
+        id={r.id}
+        value={r.staff_notes}
+        placeholder="Interne Notiz (Tisch, Hinweise …)"
+      />
     </article>
-  );
-}
-
-function StatusButton({
-  id,
-  status,
-  label,
-  primary,
-  danger,
-}: {
-  id: string;
-  status: Tables<"reservations">["status"];
-  label: string;
-  primary?: boolean;
-  danger?: boolean;
-}) {
-  return (
-    <form action={setReservationStatus}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="status" value={status} />
-      <button className={primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"}>{label}</button>
-    </form>
   );
 }
 

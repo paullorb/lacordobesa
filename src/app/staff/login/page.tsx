@@ -17,13 +17,24 @@ export default function LoginPage(props: PageProps<"/staff/login">) {
   );
 }
 
+/** Why the last attempt bounced back here. requireStaff() and the proxy both redirect with a
+ *  `fehler`, and the two cases need different words: being refused is not the same as the check
+ *  itself failing, and reporting the second as the first sends somebody hunting for a password
+ *  problem they do not have. */
+const REASONS: Record<string, string> = {
+  "kein-zugang": "Dieser Zugang ist nicht für das Team freigeschaltet. Bitte an La Cordobesa wenden.",
+  "pruefung-fehlgeschlagen":
+    "Die Zugangsprüfung hat gerade nicht funktioniert. Das liegt nicht an deinem Passwort. Bitte versuch es gleich noch einmal.",
+};
+
 async function LoginWithNext({ searchParams }: Pick<PageProps<"/staff/login">, "searchParams">) {
   const { next, fehler } = await searchParams;
+  const reason = typeof fehler === "string" ? REASONS[fehler] : undefined;
   return (
     <>
-      {fehler === "kein-zugang" && (
+      {reason && (
         <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-          Dieser Zugang ist nicht für das Team freigeschaltet. Bitte an La Cordobesa wenden.
+          {reason}
         </p>
       )}
       <LoginForm next={typeof next === "string" ? next : "/staff"} />
