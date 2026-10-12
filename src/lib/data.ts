@@ -24,7 +24,7 @@ export type ReservationSettings = {
 
 export const DEFAULT_RESERVATION_SETTINGS: ReservationSettings = {
   enabled: true,
-  slot_minutes: 30,
+  slot_minutes: 15,
   duration_minutes: 90,
   capacity_seats: 20,
   max_party_size: 8,

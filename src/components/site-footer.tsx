@@ -2,6 +2,7 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CONTACT } from "@/lib/contact";
 import { todayISO } from "@/lib/dates";
+import { InstagramIcon } from "@/components/instagram-icon";
 import { Logo } from "@/components/logo";
 
 export function SiteFooter() {
@@ -17,8 +18,8 @@ export function SiteFooter() {
           <Link href="/gallery">Galerie</Link>
           <Link href="/#reservieren">Reservieren</Link>
           <Link href="/#besuch">Kontakt</Link>
-          <a href={CONTACT.instagram} target="_blank" rel="noreferrer">
-            Instagram ↗
+          <a className="inline-icon" href={CONTACT.instagram} target="_blank" rel="noreferrer">
+            <InstagramIcon size={14} /> Instagram
           </a>
           <Link href="/impressum">Impressum</Link>
           <Link href="/datenschutz">Datenschutz</Link>

@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
+import { InstagramIcon } from "@/components/instagram-icon";
+import { ShareButton } from "@/components/share-button";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
 import { ReservationForm } from "@/components/reservation-form";
@@ -168,8 +170,8 @@ export default async function HomePage() {
                 Teig ausrollen, füllen, verschließen – bei hausgemachten Spezialitäten steckt die Liebe oft in den
                 kleinen Handgriffen. Genau diese Sorgfalt schmeckt man in jedem Bissen.
               </p>
-              <a className="text-link" href={CONTACT.instagram} target="_blank" rel="noreferrer">
-                Mehr aus unserer Backstube auf Instagram ↗
+              <a className="text-link inline-icon" href={CONTACT.instagram} target="_blank" rel="noreferrer">
+                <InstagramIcon /> Mehr aus unserer Backstube auf Instagram
               </a>
             </div>
             <div className="craft-tag">
@@ -278,6 +280,10 @@ export default async function HomePage() {
                   <a className="button secondary" href={CONTACT.mapsUrl} target="_blank" rel="noreferrer">
                     Route planen <span aria-hidden="true">↗</span>
                   </a>
+                  <ShareButton
+                    title={`${CONTACT.name} — Pastelería Argentina in Frankfurt`}
+                    text="Argentinische Empanadas, Alfajores und Kuchen – hausgemacht in Frankfurt."
+                  />
                 </div>
               </div>
             </div>
@@ -288,7 +294,9 @@ export default async function HomePage() {
                 fill
                 sizes="(max-width: 800px) 100vw, 55vw"
               />
-              <span className="photo-caption">Seguinos · {CONTACT.instagramHandle}</span>
+              <span className="photo-caption inline-icon">
+                <InstagramIcon size={15} /> Seguinos · {CONTACT.instagramHandle}
+              </span>
             </a>
           </div>
           <VenueMap
