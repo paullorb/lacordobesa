@@ -4,7 +4,6 @@ import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuI
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import type { Tables } from "@/lib/database.types";
-import { ADDITIVE_CODES, ADDITIVES, ALLERGEN_CODES, ALLERGENS, codeList } from "@/lib/allergens";
 
 export const metadata = { title: "Karte" };
 
@@ -30,11 +29,7 @@ async function Menu() {
     cats.length > 0
       ? typeof cats[0].show_prices === "boolean"
       : !(await supabase.from("menu_categories").select("show_prices").limit(1)).error;
-  // Same trick for the allergen columns from migration 20261012093136.
-  const allergenColumns =
-    all.length > 0 ? Array.isArray(all[0].allergens) : !(await supabase.from("menu_items").select("allergens").limit(1)).error;
-  const missingCodes = allergenColumns ? all.filter((i) => (i.allergens ?? []).length === 0).length : 0;
-  // And for the translation columns from migration 20261012102608.
+  // Same trick for the translation columns from migration 20261012102608.
   const translationColumns =
     all.length > 0 ? "description_es" in all[0] : !(await supabase.from("menu_items").select("description_es").limit(1)).error;
   // And for the pre-order columns from migration 20261012094815.
@@ -55,17 +50,6 @@ async function Menu() {
         </p>
       </div>
 
-      {allergenColumns && missingCodes > 0 && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {missingCodes} {missingCodes === 1 ? "Gericht hat" : "Gerichte haben"} noch keine Allergen-Kennzeichnung. In
-          Deutschland müssen die 14 Allergene auf der Karte stehen, also am besten bald nachtragen.
-        </p>
-      )}
-      {!allergenColumns && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Die Allergen-Kennzeichnung ist erst verfügbar, sobald die Datenbank-Migration 20261012093136 eingespielt ist.
-        </p>
-      )}
       {!showPricesColumn && (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Die Option „Preise anzeigen“ ist erst verfügbar, sobald die Datenbank-Migration 0008 eingespielt ist.
@@ -109,7 +93,6 @@ async function Menu() {
                   key={item.id}
                   item={item}
                   categories={cats}
-                  allergenColumns={allergenColumns}
                   preorderColumns={preorderColumns}
                   translationColumns={translationColumns}
                 />
@@ -121,7 +104,6 @@ async function Menu() {
                 categories={cats}
                 defaultCategory={cat.id}
                 nextSort={(catItems.at(-1)?.sort_order ?? 0) + 1}
-                allergenColumns={allergenColumns}
                 preorderColumns={preorderColumns}
                 translationColumns={translationColumns}
               />
@@ -187,17 +169,14 @@ function CategoryForm({
 function ItemRow({
   item,
   categories,
-  allergenColumns,
   preorderColumns,
   translationColumns,
 }: {
   item: Tables<"menu_items">;
   categories: Tables<"menu_categories">[];
-  allergenColumns: boolean;
   preorderColumns: boolean;
   translationColumns: boolean;
 }) {
-  const codes = [...(item.allergens ?? []), ...(item.additives ?? [])];
   return (
     <details className={`rounded-md border border-line bg-white ${item.is_available ? "" : "opacity-60"}`}>
       <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
@@ -206,7 +185,6 @@ function ItemRow({
           {item.subtitle && <span className="ml-2 text-xs uppercase tracking-wider text-blue-dark">{item.subtitle}</span>}
           {item.description && <span className="block truncate text-xs text-muted">{item.description}</span>}
         </span>
-        {codes.length > 0 && <span className="status bg-mint text-blue-dark">{codeList(codes)}</span>}
         {item.is_preorderable && <span className="status bg-cream text-ink">vorbestellbar</span>}
         {item.is_featured && <span className="status bg-sky-100 text-sky-800">Startseite</span>}
         {!item.is_available && <span className="status bg-gray-200 text-gray-600">Ausverkauft</span>}
@@ -221,7 +199,6 @@ function ItemRow({
         <ItemForm
           categories={categories}
           item={item}
-          allergenColumns={allergenColumns}
           preorderColumns={preorderColumns}
           translationColumns={translationColumns}
         />
@@ -235,7 +212,6 @@ function ItemForm({
   item,
   defaultCategory,
   nextSort,
-  allergenColumns,
   preorderColumns,
   translationColumns,
 }: {
@@ -243,7 +219,6 @@ function ItemForm({
   item?: Tables<"menu_items">;
   defaultCategory?: string;
   nextSort?: number;
-  allergenColumns: boolean;
   preorderColumns: boolean;
   translationColumns: boolean;
 }) {
@@ -338,31 +313,6 @@ function ItemForm({
             </div>
           </div>
         )}
-        {/* Before migration 20261012093136 the grids are hidden and not submitted, so saveMenuItem
-            leaves the columns out entirely. */}
-        {allergenColumns && (
-          <div className="grid gap-3 sm:col-span-6">
-            <input type="hidden" name="codes_field" value="1" />
-            <CodeGrid
-              id={`${id}-alg`}
-              name="allergens"
-              legend="Allergene (Pflicht)"
-              hint="Welche der 14 Allergene stecken in diesem Gericht?"
-              codes={ALLERGEN_CODES}
-              labels={ALLERGENS}
-              selected={item?.allergens ?? []}
-            />
-            <CodeGrid
-              id={`${id}-add`}
-              name="additives"
-              legend="Zusatzstoffe (nur wenn zutreffend)"
-              hint="Bei hausgemachten Gerichten bleibt das meist leer."
-              codes={ADDITIVE_CODES}
-              labels={ADDITIVES}
-              selected={item?.additives ?? []}
-            />
-          </div>
-        )}
         <div className="sm:col-span-6">
           <SubmitButton>{item ? "Speichern" : "Anlegen"}</SubmitButton>
         </div>
@@ -374,41 +324,5 @@ function ItemForm({
         </form>
       )}
     </div>
-  );
-}
-
-/** Checkbox grid for one set of declaration codes. */
-function CodeGrid({
-  id,
-  name,
-  legend,
-  hint,
-  codes,
-  labels,
-  selected,
-}: {
-  id: string;
-  name: string;
-  legend: string;
-  hint: string;
-  codes: readonly string[];
-  labels: Record<string, string>;
-  selected: readonly string[];
-}) {
-  return (
-    <fieldset className="rounded-md border border-line px-3 py-2">
-      <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-muted">{legend}</legend>
-      <p className="mb-1.5 text-xs text-muted">{hint}</p>
-      <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-        {codes.map((code) => (
-          <label key={code} className="!mb-0 flex items-center gap-2 text-xs normal-case tracking-normal">
-            <input type="checkbox" id={`${id}-${code}`} name={name} value={code} defaultChecked={selected.includes(code)} />
-            <span>
-              <strong>{code}</strong> {labels[code]}
-            </span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
   );
 }

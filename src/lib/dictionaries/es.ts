@@ -127,13 +127,11 @@ export const es: Dictionary = {
     description: "La carta completa de La Cordobesa: empanadas, pastas, parrilla, postres y bebidas, todo casero.",
     eyebrow: "De nuestra cocina",
     intro: "Todo casero, hecho a la manera argentina.",
-    legendTitle: "Alérgenos y aditivos",
     note:
-      "Todos nuestros platos son caseros. Los números y las letras que siguen a cada plato remiten a la lista de arriba. Si tenés alguna alergia o intolerancia, avisanos y te ayudamos.",
+      "Todos nuestros platos son caseros. Si tenés alguna alergia o intolerancia, avisanos y te ayudamos.",
     noteEmphasis: "¡Buen provecho!",
     cta: "Reservar mesa",
     indexLabel: "Categorías de la carta",
-    codesLabel: (codes: string) => `Alérgenos: ${codes}`,
     descriptionsInGerman:
       "Por ahora las descripciones de los platos están en alemán. Preguntanos sin problema y te explicamos cada uno.",
   },

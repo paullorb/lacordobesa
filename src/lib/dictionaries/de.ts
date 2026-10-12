@@ -130,13 +130,11 @@ export const de = {
     description: "Die komplette Karte von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
     eyebrow: "De nuestra cocina",
     intro: "Alles hausgemacht, nach argentinischer Art zubereitet.",
-    legendTitle: "Kennzeichnung",
     note:
-      "Alle unsere Gerichte sind hausgemacht. Die Zahlen und Buchstaben hinter einem Gericht verweisen auf die Kennzeichnung oben. Bei Allergien oder Unverträglichkeiten sprich bitte unser Personal an, wir helfen dir gern weiter.",
+      "Alle unsere Gerichte sind hausgemacht. Bei Allergien oder Unverträglichkeiten sprich bitte unser Personal an, wir helfen dir gern weiter.",
     noteEmphasis: "¡Buen provecho!",
     cta: "Tisch reservieren",
     indexLabel: "Kategorien der Karte",
-    codesLabel: (codes: string) => `Hinweise: ${codes}`,
     descriptionsInGerman:
       "Die Beschreibungen der Gerichte stehen bislang nur auf Deutsch. Frag uns gern, wir erklären dir jedes Gericht.",
   },

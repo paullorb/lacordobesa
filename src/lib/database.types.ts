@@ -210,8 +210,6 @@ export type Database = {
       }
       menu_items: {
         Row: {
-          additives: string[]
-          allergens: string[]
           category_id: string
           created_at: string
           description: string | null
@@ -229,8 +227,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          additives?: string[]
-          allergens?: string[]
           category_id: string
           created_at?: string
           description?: string | null
@@ -248,8 +244,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          additives?: string[]
-          allergens?: string[]
           category_id?: string
           created_at?: string
           description?: string | null

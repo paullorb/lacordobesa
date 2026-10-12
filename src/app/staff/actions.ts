@@ -9,7 +9,6 @@ import { staffEmail } from "@/lib/staff";
 import { addDays, isISODate, isTime } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
-import { cleanAdditives, cleanAllergens } from "@/lib/allergens";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
@@ -23,7 +22,6 @@ const num = (fd: FormData, key: string, fallback = 0) => {
   return Number.isFinite(n) ? n : fallback;
 };
 const bool = (fd: FormData, key: string) => fd.get(key) === "on" || fd.get(key) === "true";
-const list = (fd: FormData, key: string) => fd.getAll(key).map((v) => String(v));
 
 // ---------------------------------------------------------------- auth
 export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -252,11 +250,6 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     is_available: bool(formData, "is_available"),
     is_featured: bool(formData, "is_featured"),
     sort_order: num(formData, "sort_order"),
-    // Only sent when the form rendered the grids, i.e. when the allergen columns exist. Unknown codes
-    // are dropped here as well as by the check constraint, so the legend can always explain what it shows.
-    ...(formData.has("codes_field")
-      ? { allergens: cleanAllergens(list(formData, "allergens")), additives: cleanAdditives(list(formData, "additives")) }
-      : {}),
     // Only sent once migration 20261012102608 added the columns. Empty means "no translation yet",
     // which the public menu falls back from, so it is stored as null rather than "".
     ...(formData.has("translations_field")

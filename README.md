@@ -164,12 +164,6 @@ hours and a menu link in the search result; check changes with the
 [Rich Results Test](https://search.google.com/test/rich-results). Facts we do not have (coordinates, a price range)
 are left out on purpose rather than guessed.
 
-Allergens and additives: `menu_items.allergens` / `.additives` hold the German declaration codes (migration
-`20261012093136`), the labels live in [`src/lib/allergens.ts`](src/lib/allergens.ts), and the staff menu editor has a
-checkbox grid per dish. `/karte` prints the codes as a superscript and builds the legend from the codes actually used.
-Declaring the 14 LMIV allergens is a legal requirement in Germany, so the staff page warns while dishes are still
-undeclared. The allowed codes are also a check constraint, so no write path can store a code the legend cannot explain.
-
 The contact section embeds Google Maps as a click-to-load iframe (no request to Google until the visitor clicks, see
 the Datenschutz page and the `frame-src` entry in the CSP in `next.config.ts`).
 
@@ -194,8 +188,6 @@ sent and the card reports "nicht konfiguriert".
 - Impressum / Datenschutz exist but contain placeholders — fill in [`src/lib/legal.ts`](src/lib/legal.ts) and have the
   Datenschutzerklärung reviewed before going live.
 - Contact details are hardcoded in [`src/lib/contact.ts`](src/lib/contact.ts).
-- The allergen codes exist per dish, but nobody has filled them in yet: every dish still shows as undeclared in
-  the staff menu editor.
 - There is still no real food photography. The gallery holds the seeded SVG illustrations, so the landing page shows
   the bundled hero JPEG and no photo strip. This is the single highest-leverage thing left: the plumbing is done,
   it needs photos.

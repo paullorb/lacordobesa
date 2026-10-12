@@ -66,6 +66,15 @@ Reading the live database with MCP `execute_sql` is fine: `select` queries are a
 and return in a couple of seconds. `psql` against `--db-url` works too and is the better
 option when the connector is unauthorized.
 
+# Allergens and additives are not on the menu, on purpose
+
+**Do not add allergen or additive (Zusatzstoffe) declarations to the site**: no codes on dishes,
+no legend on `/karte`, no checkbox grid in the staff menu editor, no `menu_items` columns, no
+schema.org allergen note. The shop tells guests about them in person, and the menu says to ask
+the staff. Audits keep flagging the LMIV duty as a gap. It was built once (migration
+`20261012093136`), never filled in, and removed by owner decision on 2026-10-13
+(`20261012222037_drop_menu_allergens.sql`). Do not raise it again unless the owner asks.
+
 # Several agent sessions share this one checkout
 
 There are usually a handful of Claude sessions open on this directory at once, and there are
