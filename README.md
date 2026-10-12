@@ -99,9 +99,15 @@ the Datenschutz page and the `frame-src` entry in the CSP in `next.config.ts`).
 Public content (menu, specials, hours, gallery) is cached with `use cache` and invalidated from the staff actions, so the
 landing page stays a static shell served from the CDN.
 
+Confirmation mail: when staff confirm a reservation, `setReservationStatus` mails the guest through Resend
+([`src/lib/mail.ts`](src/lib/mail.ts), template in [`src/lib/mail-templates.ts`](src/lib/mail-templates.ts)) and records
+`confirmation_sent_at`. The send can never undo the confirmation: it is best effort, and whenever it did not succeed the
+staff card says so and offers a retry. Set `RESEND_API_KEY` and `MAIL_FROM` to switch it on; without them nothing is
+sent and the card reports "nicht konfiguriert".
+
 ## Not yet done
 
-- No automatic guest notification (e-mail/WhatsApp) on confirmation — staff send it manually.
+- No automatic WhatsApp notification; the WhatsApp button still pre-fills a message staff send by hand.
 - Impressum / Datenschutz exist but contain placeholders — fill in [`src/lib/legal.ts`](src/lib/legal.ts) and have the
   Datenschutzerklärung reviewed before going live.
 - Contact details are hardcoded in [`src/lib/contact.ts`](src/lib/contact.ts).

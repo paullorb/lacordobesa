@@ -1,4 +1,5 @@
-import { setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
+import { resendConfirmation, setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
+import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { whatsappHref } from "@/lib/contact";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
@@ -75,6 +76,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           )}
         </div>
       </div>
+      {r.status === "confirmed" && <MailState r={r} />}
       {guestLink && (r.status === "pending" || r.status === "confirmed") && (
         <p className="text-xs text-muted">
           Gäste-Link zum Absagen/Verschieben:{" "}
@@ -111,5 +113,30 @@ function StatusButton({
       <input type="hidden" name="status" value={status} />
       <button className={primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"}>{label}</button>
     </form>
+  );
+}
+
+/** Whether the guest has been told by mail, and a retry when they have not. */
+function MailState({ r }: { r: Tables<"reservations"> }) {
+  if (!r.email) {
+    return <p className="text-xs text-muted">Keine E-Mail hinterlegt, bitte per Telefon oder WhatsApp bestätigen.</p>;
+  }
+  // confirmation_sent_at arrives with migration 20261012094449; without it there is nothing to report.
+  if (!("confirmation_sent_at" in r)) return null;
+  if (r.confirmation_sent_at) {
+    return (
+      <p className="text-xs text-emerald-700">
+        Bestätigung per E-Mail verschickt am {fmtDateDE(r.confirmation_sent_at.slice(0, 10))}.
+      </p>
+    );
+  }
+  return (
+    <ActionForm action={resendConfirmation} className="flex flex-wrap items-center gap-2" successText="E-Mail verschickt.">
+      <input type="hidden" name="id" value={r.id} />
+      <span className="text-xs text-amber-700">Bestätigungs-E-Mail noch nicht verschickt.</span>
+      <SubmitButton className="btn-ghost !py-1" pendingText="Wird gesendet …">
+        E-Mail senden
+      </SubmitButton>
+    </ActionForm>
   );
 }

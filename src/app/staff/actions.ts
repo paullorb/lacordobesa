@@ -4,12 +4,14 @@ import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_RESERVATION_SETTINGS, TAG, type ReservationSettings } from "@/lib/data";
+import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
 import { staffEmail } from "@/lib/staff";
 import { addDays } from "@/lib/dates";
-import type { Enums } from "@/lib/database.types";
+import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { cleanAdditives, cleanAllergens } from "@/lib/allergens";
+import { mailConfigured, sendMail } from "@/lib/mail";
+import { reservationConfirmedMail } from "@/lib/mail-templates";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -52,8 +54,66 @@ export async function setReservationStatus(formData: FormData) {
   const id = str(formData, "id");
   const status = str(formData, "status") as Enums<"reservation_status">;
   if (!STATUSES.includes(status)) return;
-  await supabase.from("reservations").update({ status }).eq("id", id);
+  // Returning the row saves a second read, and gives sendConfirmation() the values it needs.
+  const { data: updated } = await supabase.from("reservations").update({ status }).eq("id", id).select("*").maybeSingle();
+  if (status === "confirmed" && updated) await sendConfirmation(supabase, updated);
   refresh();
+}
+
+type StaffClient = Awaited<ReturnType<typeof requireStaff>>["supabase"];
+
+/** Mails the guest that their table is confirmed, and records that it went out.
+ *
+ *  Never throws and never reports back: confirming a reservation is the important half, so a mail
+ *  outage, a missing API key or an unverified sender domain must not undo the staff member's click.
+ *  The staff card shows "noch nicht verschickt" with a retry button whenever this did not succeed. */
+async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">) {
+  // confirmation_sent_at arrives with migration 20261012094449. Without the column there is nowhere
+  // to record the send, and re-confirming would mail the guest again, so sending waits for it.
+  if (!("confirmation_sent_at" in r) || r.confirmation_sent_at) return;
+  if (!r.email || !mailConfigured()) return;
+
+  const result = await sendMail({
+    to: r.email,
+    ...reservationConfirmedMail({
+      name: r.name,
+      date: r.date,
+      time: fmtTime(r.start_time),
+      partySize: r.party_size,
+      manageToken: r.manage_token ?? null,
+    }),
+  });
+  if (result.ok) {
+    await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
+  }
+}
+
+/** Retry for the staff card, for when the first attempt failed or the guest asks for the mail again. */
+export async function resendConfirmation(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const { data: r } = await supabase.from("reservations").select("*").eq("id", str(formData, "id")).maybeSingle();
+  if (!r) return { ok: false, error: "Diese Reservierung gibt es nicht mehr." };
+  if (!r.email) return { ok: false, error: "Für diese Reservierung ist keine E-Mail-Adresse hinterlegt." };
+  if (!mailConfigured()) return { ok: false, error: "E-Mail-Versand ist nicht konfiguriert (RESEND_API_KEY und MAIL_FROM fehlen)." };
+
+  const result = await sendMail({
+    to: r.email,
+    ...reservationConfirmedMail({
+      name: r.name,
+      date: r.date,
+      time: fmtTime(r.start_time),
+      partySize: r.party_size,
+      manageToken: r.manage_token ?? null,
+    }),
+  });
+  if (!result.ok) {
+    return { ok: false, error: `Die E-Mail konnte nicht verschickt werden. ${result.detail ?? ""}`.trim() };
+  }
+  if ("confirmation_sent_at" in r) {
+    await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
+  }
+  refresh();
+  return { ok: true };
 }
 
 export async function saveStaffNotes(formData: FormData) {
