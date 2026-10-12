@@ -24,11 +24,17 @@ const LIMITS = {
 
 export type PublicForm = keyof typeof LIMITS;
 
-/** The visitor's address. On Vercel, x-forwarded-for is set by the platform and a client-sent value
- *  is overwritten, so its first entry can be trusted there. */
+/** The visitor's address, or null where it cannot be trusted.
+ *
+ *  Vercel overwrites x-forwarded-for with the address it saw, so a client cannot choose its own
+ *  there. Behind any other host the header is whatever the client sent, and a script could rotate
+ *  it to get a fresh quota on every request, so it is only read on Vercel (and in `next dev`, where
+ *  there is nobody to spoof). Elsewhere the per-visitor limit is skipped and the RPC's own limits
+ *  remain. */
 async function visitorAddress() {
+  if (process.env.VERCEL !== "1" && process.env.NODE_ENV !== "development") return null;
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip")?.trim() || null;
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 }
 
 /** The client a public form calls its RPC with, and whether this visitor may submit right now.
