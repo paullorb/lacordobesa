@@ -26,6 +26,11 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
     password: String(formData.get("password") ?? ""),
   });
   if (error) return { ok: false, error: "Name oder Passwort stimmen nicht." };
+  const { data: isStaff } = await supabase.rpc("is_staff");
+  if (!isStaff) {
+    await supabase.auth.signOut();
+    return { ok: false, error: "Dieser Zugang ist nicht für das Team freigeschaltet." };
+  }
   const next = str(formData, "next");
   redirect(next.startsWith("/admin") ? next : "/admin");
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { getAvailability, requestReservation, type RequestState, type Slot } from "@/app/reservations/actions";
 
 type Props = {
@@ -107,20 +108,20 @@ export function ReservationForm({ maxPartySize, minDate, maxDate, phoneHref, pho
       <div className="form-row">
         <div className="field">
           <label htmlFor="r-name">Name</label>
-          <input id="r-name" name="name" required minLength={2} autoComplete="name" />
+          <input id="r-name" name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" />
         </div>
         <div className="field">
           <label htmlFor="r-phone">Telefon</label>
-          <input id="r-phone" name="phone" type="tel" required minLength={5} autoComplete="tel" />
+          <input id="r-phone" name="phone" type="tel" required minLength={5} maxLength={FIELD_LIMITS.phone} autoComplete="tel" />
         </div>
       </div>
       <div className="field">
         <label htmlFor="r-email">E-Mail (optional)</label>
-        <input id="r-email" name="email" type="email" autoComplete="email" />
+        <input id="r-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" />
       </div>
       <div className="field">
         <label htmlFor="r-notes">Anmerkungen (optional)</label>
-        <textarea id="r-notes" name="notes" rows={3} placeholder="Kinderstuhl, Allergien, Anlass …" />
+        <textarea id="r-notes" name="notes" rows={3} maxLength={FIELD_LIMITS.notes} placeholder="Kinderstuhl, Allergien, Anlass …" />
       </div>
 
       {state && !state.ok && <div className="form-error" role="alert">{state.error}</div>}
