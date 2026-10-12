@@ -20,7 +20,7 @@ export async function GalleryView({ locale }: { locale: Locale }) {
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={GALLERY_PATH} />
 
-      <main>
+      <main id="main">
         <section className="menu-section gallery-section">
           <div className="inner">
             <div className="section-heading">

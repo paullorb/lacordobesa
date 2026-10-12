@@ -14,6 +14,7 @@ export const es: Dictionary = {
     gallery: "Galería",
     visit: "Visitanos",
     write: "Escribinos",
+    skipToContent: "Saltar al contenido",
     reserve: "Reservar",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
@@ -89,6 +90,14 @@ export const es: Dictionary = {
     instagramAria: "Visitar La Cordobesa en Instagram",
     weekdays: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
     shareText: "Empanadas argentinas, alfajores y tortas, caseras, en Frankfurt am Main.",
+  },
+  notFound: {
+    title: "Esta página no existe",
+    eyebrow: "Perdón",
+    text: "Puede que se haya colado un error de tipeo, o que la página se haya mudado. Por acá volvés:",
+    home: "Ir al inicio",
+    menu: "La carta",
+    reserve: "Reservar mesa",
   },
   photos: {
     eyebrow: "Así se ve",

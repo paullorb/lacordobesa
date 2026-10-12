@@ -20,7 +20,7 @@ export async function CateringView({ locale }: { locale: Locale }) {
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={CATERING_PATH} />
 
-      <main>
+      <main id="main">
         <section className="section">
           <div className="preorder-shell">
             <div className="section-heading">

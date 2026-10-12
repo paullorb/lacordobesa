@@ -66,8 +66,18 @@ export async function HomeView({ locale }: { locale: Locale }) {
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
 
-      <main id="start">
+      <main id="main">
         <section className="hero" aria-labelledby="hero-title">
+          {/* The largest thing above the fold, so it is the LCP element and worth preloading.
+              alt="" on purpose: it is the backdrop to the heading, not information of its own. */}
+          <Image
+            className="hero-image"
+            src="/assets/hero-pasteleria.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 1392px) 100vw, 1392px"
+          />
           <div className="hero-content">
             <p className="eyebrow">{t.heroEyebrow}</p>
             <h1 id="hero-title">

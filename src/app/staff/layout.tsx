@@ -34,7 +34,7 @@ export default function StaffLayout({ children }: LayoutProps<"/staff">) {
           <NavIfSignedIn />
         </Suspense>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main id="main" className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <RegisterServiceWorker />
     </div>
   );

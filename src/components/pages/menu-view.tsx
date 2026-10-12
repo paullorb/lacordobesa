@@ -46,7 +46,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />
 
-      <main>
+      <main id="main">
         <section className="menu-section">
           <div className="inner">
             <div className="section-heading">

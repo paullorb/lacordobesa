@@ -18,7 +18,7 @@ export default function LegalLayout({ children }: LayoutProps<"/"> ) {
           </Link>
         </div>
       </header>
-      <main className="legal">{children}</main>
+      <main id="main" className="legal">{children}</main>
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
