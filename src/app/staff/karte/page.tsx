@@ -33,6 +33,11 @@ async function Menu() {
   const allergenColumns =
     all.length > 0 ? Array.isArray(all[0].allergens) : !(await supabase.from("menu_items").select("allergens").limit(1)).error;
   const missingCodes = allergenColumns ? all.filter((i) => (i.allergens ?? []).length === 0).length : 0;
+  // And for the pre-order columns from migration 20261012094815.
+  const preorderColumns =
+    all.length > 0
+      ? typeof all[0].is_preorderable === "boolean"
+      : !(await supabase.from("menu_items").select("is_preorderable").limit(1)).error;
 
   return (
     <div className="grid gap-6">
@@ -94,7 +99,13 @@ async function Menu() {
 
             <div className="grid gap-1.5">
               {catItems.map((item) => (
-                <ItemRow key={item.id} item={item} categories={cats} allergenColumns={allergenColumns} />
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  categories={cats}
+                  allergenColumns={allergenColumns}
+                  preorderColumns={preorderColumns}
+                />
               ))}
             </div>
             <details className="rounded-md border border-dashed border-line px-3 py-2">
@@ -104,6 +115,7 @@ async function Menu() {
                 defaultCategory={cat.id}
                 nextSort={(catItems.at(-1)?.sort_order ?? 0) + 1}
                 allergenColumns={allergenColumns}
+                preorderColumns={preorderColumns}
               />
             </details>
           </section>
@@ -168,10 +180,12 @@ function ItemRow({
   item,
   categories,
   allergenColumns,
+  preorderColumns,
 }: {
   item: Tables<"menu_items">;
   categories: Tables<"menu_categories">[];
   allergenColumns: boolean;
+  preorderColumns: boolean;
 }) {
   const codes = [...(item.allergens ?? []), ...(item.additives ?? [])];
   return (
@@ -183,6 +197,7 @@ function ItemRow({
           {item.description && <span className="block truncate text-xs text-muted">{item.description}</span>}
         </span>
         {codes.length > 0 && <span className="status bg-mint text-blue-dark">{codeList(codes)}</span>}
+        {item.is_preorderable && <span className="status bg-cream text-ink">vorbestellbar</span>}
         {item.is_featured && <span className="status bg-sky-100 text-sky-800">Startseite</span>}
         {!item.is_available && <span className="status bg-gray-200 text-gray-600">Ausverkauft</span>}
         <span className="text-sm font-bold">{item.price_label}</span>
@@ -193,7 +208,7 @@ function ItemRow({
         </form>
       </summary>
       <div className="border-t border-line px-3 pb-3">
-        <ItemForm categories={categories} item={item} allergenColumns={allergenColumns} />
+        <ItemForm categories={categories} item={item} allergenColumns={allergenColumns} preorderColumns={preorderColumns} />
       </div>
     </details>
   );
@@ -205,12 +220,14 @@ function ItemForm({
   defaultCategory,
   nextSort,
   allergenColumns,
+  preorderColumns,
 }: {
   categories: Tables<"menu_categories">[];
   item?: Tables<"menu_items">;
   defaultCategory?: string;
   nextSort?: number;
   allergenColumns: boolean;
+  preorderColumns: boolean;
 }) {
   const id = item?.id ?? `new-${defaultCategory}`;
   return (
@@ -255,6 +272,27 @@ function ItemForm({
             <input type="checkbox" name="is_featured" defaultChecked={item?.is_featured ?? false} /> Auf Startseite
           </label>
         </div>
+        {/* Before migration 20261012094815 these are hidden and not submitted, so saveMenuItem leaves
+            the columns out entirely. */}
+        {preorderColumns && (
+          <div className="grid gap-3 sm:col-span-6 sm:grid-cols-[auto_1fr]">
+            <input type="hidden" name="preorder_field" value="1" />
+            <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
+              <input type="checkbox" name="is_preorderable" defaultChecked={item?.is_preorderable ?? false} /> Zum
+              Vorbestellen anbieten
+            </label>
+            <div>
+              <label htmlFor={`${id}-unit`}>Einheit beim Vorbestellen</label>
+              <input
+                id={`${id}-unit`}
+                name="preorder_unit"
+                maxLength={24}
+                defaultValue={item?.preorder_unit ?? "Stück"}
+                placeholder="Stück, Dutzend, Torte, Blech …"
+              />
+            </div>
+          </div>
+        )}
         {/* Before migration 20261012093136 the grids are hidden and not submitted, so saveMenuItem
             leaves the columns out entirely. */}
         {allergenColumns && (

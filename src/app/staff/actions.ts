@@ -12,6 +12,7 @@ import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/
 import { cleanAdditives, cleanAllergens } from "@/lib/allergens";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
+import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -150,6 +151,26 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   return { ok: true };
 }
 
+// ---------------------------------------------------------------- pre-orders
+const PREORDER_STATUSES: Enums<"preorder_status">[] = ["pending", "confirmed", "ready", "collected", "cancelled"];
+
+export async function setPreorderStatus(formData: FormData) {
+  const { supabase } = await requireStaff();
+  const status = str(formData, "status") as Enums<"preorder_status">;
+  if (!PREORDER_STATUSES.includes(status)) return;
+  await supabase.from("preorders").update({ status }).eq("id", str(formData, "id"));
+  refresh();
+}
+
+export async function savePreorderNotes(formData: FormData) {
+  const { supabase } = await requireStaff();
+  await supabase
+    .from("preorders")
+    .update({ staff_notes: str(formData, "staff_notes") || null })
+    .eq("id", str(formData, "id"));
+  refresh();
+}
+
 // ---------------------------------------------------------------- menu
 export async function saveMenuItem(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
@@ -167,6 +188,13 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     // are dropped here as well as by the check constraint, so the legend can always explain what it shows.
     ...(formData.has("codes_field")
       ? { allergens: cleanAllergens(list(formData, "allergens")), additives: cleanAdditives(list(formData, "additives")) }
+      : {}),
+    // Likewise only sent once migration 20261012094815 added the columns.
+    ...(formData.has("preorder_field")
+      ? {
+          is_preorderable: bool(formData, "is_preorderable"),
+          preorder_unit: str(formData, "preorder_unit").slice(0, 24) || "Stück",
+        }
       : {}),
   };
   if (!row.name || !row.category_id) return { ok: false, error: "Name und Kategorie sind Pflicht." };
@@ -349,9 +377,28 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
   ) {
     return { ok: false, error: "Bitte sinnvolle Werte eintragen (Dauer mindestens 15 Minuten, Raster mindestens 5)." };
   }
+  // Only written when the form rendered the block, so a checkout without the pre-order migration
+  // cannot blank the key.
+  const preorders: PreorderSettings | null = formData.has("preorder_settings_field")
+    ? {
+        enabled: bool(formData, "preorders_enabled"),
+        min_lead_hours: num(formData, "preorders_min_lead_hours", DEFAULT_PREORDER_SETTINGS.min_lead_hours),
+        max_days_ahead: num(formData, "preorders_max_days_ahead", DEFAULT_PREORDER_SETTINGS.max_days_ahead),
+        max_lines: num(formData, "preorders_max_lines", DEFAULT_PREORDER_SETTINGS.max_lines),
+        max_quantity: num(formData, "preorders_max_quantity", DEFAULT_PREORDER_SETTINGS.max_quantity),
+      }
+    : null;
+  if (
+    preorders &&
+    (preorders.min_lead_hours < 0 || preorders.max_days_ahead < 1 || preorders.max_lines < 1 || preorders.max_quantity < 1)
+  ) {
+    return { ok: false, error: "Bitte sinnvolle Werte für Vorbestellungen eintragen." };
+  }
+
   const { error } = await supabase.from("site_settings").upsert([
     { key: "reservations", value: reservations },
     { key: "announcement", value: { text: str(formData, "announcement") } },
+    ...(preorders ? [{ key: "preorders", value: preorders }] : []),
   ]);
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.content);

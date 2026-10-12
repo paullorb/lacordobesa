@@ -103,8 +103,10 @@ export type Database = {
           description: string | null
           id: string
           is_available: boolean
+          is_preorderable: boolean
           is_featured: boolean
           name: string
+          preorder_unit: string
           price_label: string | null
           sort_order: number
           subtitle: string | null
@@ -118,8 +120,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_available?: boolean
+          is_preorderable?: boolean
           is_featured?: boolean
           name: string
+          preorder_unit?: string
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -133,8 +137,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_available?: boolean
+          is_preorderable?: boolean
           is_featured?: boolean
           name?: string
+          preorder_unit?: string
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -171,6 +177,92 @@ export type Database = {
           opens?: string | null
           updated_at?: string
           weekday?: number
+        }
+        Relationships: []
+      }
+      preorder_lines: {
+        Row: {
+          id: string
+          label: string
+          menu_item_id: string | null
+          preorder_id: string
+          price_label: string | null
+          quantity: number
+          unit_label: string
+        }
+        Insert: {
+          id?: string
+          label: string
+          menu_item_id?: string | null
+          preorder_id: string
+          price_label?: string | null
+          quantity: number
+          unit_label: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          menu_item_id?: string | null
+          preorder_id?: string
+          price_label?: string | null
+          quantity?: number
+          unit_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preorder_lines_preorder_id_fkey"
+            columns: ["preorder_id"]
+            isOneToOne: false
+            referencedRelation: "preorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preorders: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          manage_token: string
+          name: string
+          notes: string | null
+          phone: string
+          pickup_date: string
+          pickup_time: string
+          source: string
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["preorder_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          manage_token?: string
+          name: string
+          notes?: string | null
+          phone: string
+          pickup_date: string
+          pickup_time: string
+          source?: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["preorder_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          manage_token?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          pickup_date?: string
+          pickup_time?: string
+          source?: string
+          staff_notes?: string | null
+          status?: Database["public"]["Enums"]["preorder_status"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -302,6 +394,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_preorder_by_token: { Args: { p_token: string }; Returns: undefined }
       cancel_reservation_by_token: { Args: { p_token: string }; Returns: undefined }
       is_staff: { Args: never; Returns: boolean }
       manage_token_valid: { Args: { p_token: string }; Returns: boolean }
@@ -328,6 +421,30 @@ export type Database = {
           slot: string
         }[]
       }
+      preorder_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          lines: Json
+          name: string
+          notes: string | null
+          pickup_date: string
+          pickup_time: string
+          status: Database["public"]["Enums"]["preorder_status"]
+        }[]
+      }
+      preorder_settings: { Args: never; Returns: Json }
+      request_preorder: {
+        Args: {
+          p_email: string
+          p_lines: Json
+          p_name: string
+          p_notes?: string
+          p_phone: string
+          p_pickup_date: string
+          p_pickup_time: string
+        }
+        Returns: string
+      }
       reservation_by_token: {
         Args: { p_token: string }
         Returns: {
@@ -343,6 +460,12 @@ export type Database = {
       reservation_settings: { Args: never; Returns: Json }
     }
     Enums: {
+      preorder_status:
+        | "pending"
+        | "confirmed"
+        | "ready"
+        | "collected"
+        | "cancelled"
       reservation_status:
         | "pending"
         | "confirmed"

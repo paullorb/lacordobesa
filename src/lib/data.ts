@@ -91,6 +91,16 @@ export async function getOpeningHours(): Promise<Tables<"opening_hours">[]> {
   return data ?? [];
 }
 
+/** Closure dates inside a window, so a date picker can grey out the days the shop is shut. */
+export async function getClosures(from: string, to: string): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.hours);
+  const supabase = createPublicClient();
+  const { data } = await supabase.from("closures").select("date").gte("date", from).lte("date", to).order("date");
+  return (data ?? []).map((c) => c.date);
+}
+
 export async function getReservationSettings(): Promise<ReservationSettings> {
   "use cache";
   cacheLife("hours");
