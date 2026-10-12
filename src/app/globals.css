@@ -570,3 +570,9 @@ body::after {
 .status-cancelled { @apply bg-gray-200 text-gray-600; }
 .status-no_show { @apply bg-red-100 text-red-700; }
 .status-completed { @apply bg-sky-100 text-sky-800; }
+
+/* menu icons — the glyph sits in a gutter at the start of the line, pinned to the first text line
+   rather than the baseline, so a two-line description does not drag it down the row. */
+.full-menu li { gap: .55rem; }
+.full-menu li > span:not(.full-menu-price) { flex: 1; }
+.menu-icon { flex: none; align-self: flex-start; margin-top: .1rem; color: var(--blue-dark); opacity: .8; }
