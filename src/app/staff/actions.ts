@@ -395,7 +395,10 @@ export async function addClosure(_prev: ActionResult, formData: FormData): Promi
   const from = str(formData, "from");
   const to = str(formData, "to") || from;
   const reason = str(formData, "reason") || null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return { ok: false, error: "Datum fehlt." };
+  // isISODate(), not a shape regex: "2026-02-31" matches /^\d{4}-\d{2}-\d{2}$/, so the first row
+  // would carry that literal date, Postgres would reject it, and the staff member would get
+  // "date/time field value out of range" instead of being told the date is wrong.
+  if (!isISODate(from) || !isISODate(to)) return { ok: false, error: "Bitte gib ein gültiges Datum an." };
   if (to < from) return { ok: false, error: "„Bis“ liegt vor „Von“." };
   const rows: { date: string; reason: string | null }[] = [];
   for (let d = from; d <= to && rows.length < 120; d = addDays(d, 1)) rows.push({ date: d, reason });
@@ -413,6 +416,9 @@ export async function deleteClosureRange(formData: FormData) {
   const { supabase } = await requireStaff();
   const from = str(formData, "from");
   const to = str(formData, "to") || from;
+  // Validated for the same reason addClosure is, and because this one deletes: an unchecked bound
+  // reaches the query as-is, and an empty string would widen the range rather than narrow it.
+  if (!isISODate(from) || !isISODate(to) || to < from) return;
   await supabase.from("closures").delete().gte("date", from).lte("date", to);
   updateTag(TAG.hours);
   refresh();
