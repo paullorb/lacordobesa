@@ -452,3 +452,18 @@ a { color: inherit; }
 .status-cancelled { @apply bg-gray-200 text-gray-600; }
 .status-no_show { @apply bg-red-100 text-red-700; }
 .status-completed { @apply bg-sky-100 text-sky-800; }
+
+/* menu icons — the glyph sits in a gutter at the start of the line, pinned to the first text line
+   rather than the baseline, so a two-line description does not drag it down the row. */
+.full-menu li { gap: .55rem; }
+.full-menu li > span:not(.full-menu-price) { flex: 1; }
+.menu-icon { flex: none; align-self: flex-start; margin-top: .1rem; color: var(--blue-dark); opacity: .8; }
+
+/* review-only: the icon contact sheet on /icon-review */
+.icon-sheet { max-width: 960px; margin: 4rem auto 0; }
+.icon-sheet h2 { font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--blue-dark); border-bottom: 1px solid var(--line); padding-bottom: .5rem; }
+.icon-sheet ul { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1.4rem 1rem; }
+.icon-sheet li { display: grid; grid-template-columns: 34px 1fr; gap: .1rem .8rem; align-items: center; }
+.icon-sheet li .menu-icon { grid-row: span 2; align-self: center; margin-top: 0; opacity: 1; }
+.icon-sheet li strong { font-size: .8rem; font-weight: 600; line-height: 1.3; }
+.icon-sheet li code { font-size: .66rem; color: var(--muted); }
