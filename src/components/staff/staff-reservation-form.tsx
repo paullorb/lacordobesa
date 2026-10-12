@@ -93,7 +93,7 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
                 onClick={() => setTime(s.time)}
               >
                 {s.time}
-                <small className="block text-[0.65rem] font-normal opacity-70">
+                <small className="block text-xs font-normal opacity-70">
                   {s.seatsLeft > 0 ? `${s.seatsLeft} frei` : "voll"}
                 </small>
               </button>

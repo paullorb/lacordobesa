@@ -31,7 +31,7 @@ export async function PreorderView({ locale }: { locale: Locale }) {
   const open = settings.enabled && items.length > 0;
 
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={PREORDER_PATH} />
 

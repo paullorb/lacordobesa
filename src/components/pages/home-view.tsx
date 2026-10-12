@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
+import { ArgentinaIcon, ClockIcon, MailIcon, MenuIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -27,21 +28,15 @@ import {
 } from "@/lib/data";
 import { getInstagramPosts } from "@/lib/instagram";
 
-const ICONS: Record<string, string> = {
-  vorspeise: "🫓",
-  empanadas: "🥟",
-  pasta: "🍝",
-  clasico: "🌭",
-  pizzas: "🍕",
-  hauptgerichte: "🥩",
-  desserts: "🍮",
-  alkoholfrei: "🥤",
-  alkoholisch: "🍺",
-  heiss: "☕",
-  cocktails: "🍹",
-};
-
 export const HOME_PATH = "/";
+
+/** Spanish in every locale on purpose: it is the shop talking, not the page.
+ *
+ *  Repeated so one copy of the track is wider than any viewport. Three phrases alone are about
+ *  700px, which left half a screen of nothing between them on a desktop and read as scattered
+ *  words rather than a ribbon. */
+const PHRASES = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
+const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `${i}-${p}`, text: p }))).flat();
 
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
@@ -61,7 +56,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
   const cards = featured.length ? featured : menu.flatMap((c) => c.items.slice(0, 1).map((i) => ({ ...i, category: c })));
 
   return (
-    <div className="site" lang={locale}>
+    <div className="site">
       <JsonLd data={restaurantJsonLd(hours)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
@@ -79,7 +74,11 @@ export async function HomeView({ locale }: { locale: Locale }) {
             sizes="(max-width: 1392px) 100vw, 1392px"
           />
           <div className="hero-content">
-            <p className="eyebrow">{t.heroEyebrow}</p>
+            <p className="eyebrow">
+              {t.heroEyebrowBefore}
+              <ArgentinaIcon />
+              {t.heroEyebrowAfter}
+            </p>
             <h1 id="hero-title">
               {t.heroTitleLine1}
               <br />
@@ -101,11 +100,22 @@ export async function HomeView({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <div className="marquee" aria-label={t.marqueeLabel}>
-          <div className="marquee-inner">
-            <span>Empanadas hechas a mano</span>
-            <span>Pastelería argentina</span>
-            <span>Un pedacito de Argentina</span>
+        {/* Decorative: the visual track repeats the phrases six times so it is wider than any
+            viewport, which would mean hearing each one six times. The track is hidden from
+            assistive technology and the phrases are offered once, in order, instead. */}
+        <div className="marquee">
+          <p className="sr-only">{`${t.marqueeLabel}: ${PHRASES.join(". ")}.`}</p>
+          <div className="marquee-track" aria-hidden="true">
+            <div className="marquee-inner">
+              {MARQUEE.map((phrase) => (
+                <span key={phrase.key}>{phrase.text}</span>
+              ))}
+            </div>
+            <div className="marquee-inner">
+              {MARQUEE.map((phrase) => (
+                <span key={phrase.key}>{phrase.text}</span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -127,7 +137,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <section className="menu-section" id="karte">
+        <section className="menu-section pattern-stars" id="karte">
           <div className="inner">
             <div className="section-heading">
               <p className="eyebrow">{t.menuEyebrow}</p>
@@ -162,9 +172,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
                     <span className="dish-number">
                       {String(i + 1).padStart(2, "0")} / {item.category.label}
                     </span>
-                    <span className="dish-icon" aria-hidden="true">
-                      {" "}
-                      {ICONS[item.category.slug] ?? "✦"}
+                    <span className="dish-icon">
+                      <MenuIcon slug={item.category.slug} />
                     </span>
                     <h3>
                       {item.name}
@@ -211,7 +220,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
               {/* The phone sits here rather than in the navbar: the moment somebody wants to call is
                   the moment they are halfway through picking a date and would rather just ask. */}
               <a className="reserve-call" href={`tel:${CONTACT.phoneE164}`}>
-                <span aria-hidden="true">☎</span>
+                <PhoneIcon size={16} />
                 <span>
                   {t.reserveCallPrefix}
                   <strong>{CONTACT.phoneDisplay}</strong>
@@ -248,7 +257,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <div className="visit-card">
                 <h3>{CONTACT.name}</h3>
                 <div className="contact-row">
-                  <span className="contact-icon" aria-hidden="true">⌖</span>
+                  <span className="contact-icon">
+                    <PinIcon />
+                  </span>
                   <div>
                     <small>{t.visitAddressLabel}</small>
                     <address>
@@ -259,7 +270,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
                   </div>
                 </div>
                 <div className="contact-row">
-                  <span className="contact-icon" aria-hidden="true">◷</span>
+                  <span className="contact-icon">
+                    <ClockIcon />
+                  </span>
                   <div>
                     <small>{t.visitHours}</small>
                     <div className="hours">
@@ -271,9 +284,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                             {!h || h.is_closed ? (
                               <span className="closed">{t.closedLabel}</span>
                             ) : (
-                              <span>
-                                {fmtTime(h.opens)} – {fmtTime(h.closes)}
-                              </span>
+                              <span>{t.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}</span>
                             )}
                           </div>
                         );
@@ -282,14 +293,18 @@ export async function HomeView({ locale }: { locale: Locale }) {
                   </div>
                 </div>
                 <div className="contact-row">
-                  <span className="contact-icon" aria-hidden="true">☎</span>
+                  <span className="contact-icon">
+                    <PhoneIcon />
+                  </span>
                   <div>
                     <small>{t.callLabel}</small>
                     <a href={`tel:${CONTACT.phoneE164}`}>{CONTACT.phoneDisplay}</a>
                   </div>
                 </div>
                 <div className="contact-row">
-                  <span className="contact-icon" aria-hidden="true">✉</span>
+                  <span className="contact-icon">
+                    <MailIcon />
+                  </span>
                   <div>
                     <small>{t.writeLabel}</small>
                     <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>

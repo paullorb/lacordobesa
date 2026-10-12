@@ -1,6 +1,19 @@
 /** The site's own absolute URL, and links built from it.
- *  NEXT_PUBLIC_, so the same value is available to server components and the browser. */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+ *
+ *  NEXT_PUBLIC_, so the same value is available to server components and the browser. It ends up in
+ *  the sitemap, robots.txt, the JSON-LD and every guest management link, so getting it wrong is not
+ *  cosmetic: it publishes the wrong host.
+ *
+ *  The Vercel fallback matters because `.env.local` is gitignored, so a checkout that never set
+ *  NEXT_PUBLIC_SITE_URL used to advertise `localhost:3000` from production. Vercel injects
+ *  NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL on every deployment, and it is the *production* host
+ *  rather than the per-deployment one, so preview builds still emit canonical URLs that point at
+ *  the real site instead of at themselves. */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000");
 
 /** Where a guest manages their own booking. The token is the credential, so this link only ever
  *  goes to the guest it belongs to. */

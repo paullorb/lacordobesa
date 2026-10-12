@@ -1,9 +1,10 @@
 import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
-import type { PreorderWithLines } from "@/app/staff/vorbestellungen/page";
+
 import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDateDE } from "@/lib/dates";
 import { preorderUrl } from "@/lib/site";
+import { type PreorderWithLines } from "@/lib/preorders";
 import { PREORDER_STATUS_LABEL } from "@/lib/statuses";
 
 export function PreorderCard({ order: o }: { order: PreorderWithLines }) {

@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Cordobesa",
     description: "Reservierungen, Karte und Öffnungszeiten verwalten.",
     start_url: "/staff",
-    scope: "/",
+    scope: "/staff",
     display: "standalone",
     background_color: "#f7f5f0",
     theme_color: "#152f3b",

@@ -49,6 +49,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    // The site has a root layout per language, so there is no single layout a 404 could be
+    // composed from; global-not-found.tsx renders its own document instead.
+    globalNotFound: true,
     // Gallery uploads are resized in the browser to well under 5 MB before they reach the server action.
     serverActions: { bodySizeLimit: "6mb" },
   },

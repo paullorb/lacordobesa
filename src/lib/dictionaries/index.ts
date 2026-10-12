@@ -1,9 +1,8 @@
 import { de, type Dictionary } from "@/lib/dictionaries/de";
-import { en } from "@/lib/dictionaries/en";
 import { es } from "@/lib/dictionaries/es";
 import type { Locale } from "@/lib/i18n";
 
-const DICTIONARIES: Record<Locale, Dictionary> = { de, es, en };
+const DICTIONARIES: Record<Locale, Dictionary> = { de, es };
 
 /**
  * The copy for a locale.
