@@ -4,6 +4,7 @@
  *  search result. Everything here must therefore be true: a guessed coordinate or a wrong
  *  closing time is worse than leaving the property out, so optional facts we don't have
  *  (geo, priceRange) are simply omitted until someone fills them in. */
+import { ALLERGENS, type AllergenCode } from "@/lib/allergens";
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
@@ -68,6 +69,12 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
   };
 }
 
+/** "Enthält: Eier, Milch und Laktose" for the dishes that declare allergens. */
+function allergenNote(codes: string[] | null | undefined) {
+  const labels = (codes ?? []).filter((c): c is AllergenCode => c in ALLERGENS).map((c) => ALLERGENS[c]);
+  return labels.length > 0 ? `Enthält: ${labels.join(", ")}` : null;
+}
+
 /** The carta as a schema.org Menu, one MenuSection per category. */
 export function menuJsonLd(menu: MenuCategoryWithItems[]) {
   return {
@@ -91,6 +98,9 @@ export function menuJsonLd(menu: MenuCategoryWithItems[]) {
           // price_label is free text ("ab 4,50 €"), which schema.org's `price` rejects; `offers.description`
           // keeps the information without claiming a machine-readable amount.
           ...(item.price_label ? { offers: { "@type": "Offer", description: item.price_label, priceCurrency: "EUR" } } : {}),
+          // schema.org has no allergen vocabulary, so the declared allergens go in as a restriction-free
+          // suitableForDiet-style note: a plain German list Google can show but not misinterpret.
+          ...(allergenNote(item.allergens) ? { nutrition: { "@type": "NutritionInformation", description: allergenNote(item.allergens) } } : {}),
         })),
       })),
   };
