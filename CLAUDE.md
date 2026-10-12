@@ -2,8 +2,15 @@
 
 `supabase/migrations/` is the source of truth for this project's schema. To change it:
 
-1. Write a new numbered file in `supabase/migrations/` (next free number).
+1. Write a new file in `supabase/migrations/` named `<UTC timestamp>_<name>.sql`
+   (`date -u +%Y%m%d%H%M%S`) — the version must sort after every existing file.
 2. Apply it with `supabase db push`.
+
+Use timestamps, not sequential numbers. `db push` matches local filenames against the
+versions recorded in the remote `supabase_migrations.schema_migrations`, and it refuses to
+apply anything that sorts before the latest remote version. The old `0001_`-style names
+sorted before every timestamp the MCP connector had written, so `db push` rejected the
+whole set and the repo silently drifted from the live database.
 
 The project ref is `iabpugtwgjqldlzjjgqj`; `supabase link --project-ref iabpugtwgjqldlzjjgqj`
 once per checkout (there is no `supabase/config.toml` yet). If `supabase` hangs with no
