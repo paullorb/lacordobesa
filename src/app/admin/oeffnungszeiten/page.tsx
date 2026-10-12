@@ -1,27 +1,44 @@
 import { Suspense } from "react";
-import { addClosure, deleteClosure, saveOpeningHours } from "@/app/admin/actions";
+import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/admin/actions";
 import { ActionForm, SubmitButton } from "@/components/admin/form-bits";
+import { MonthCalendar } from "@/components/admin/month-calendar";
+import { loadCalendarMonth, monthParam } from "@/lib/admin-calendar";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime, WEEKDAYS_DE } from "@/lib/data";
-import { fmtDateDE, todayISO } from "@/lib/dates";
+import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Öffnungszeiten" };
 
-export default function HoursPage() {
+export default function HoursPage(props: PageProps<"/admin/oeffnungszeiten">) {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Lade …</p>}>
-      <Hours />
+      <Hours searchParams={props.searchParams} />
     </Suspense>
   );
 }
 
-async function Hours() {
+/** Collapses consecutive closure days with the same reason into ranges for display. */
+function groupClosures(rows: { date: string; reason: string | null }[]) {
+  const out: { from: string; to: string; reason: string | null }[] = [];
+  for (const r of rows) {
+    const last = out.at(-1);
+    if (last && last.reason === r.reason && addDays(last.to, 1) === r.date) last.to = r.date;
+    else out.push({ from: r.date, to: r.date, reason: r.reason });
+  }
+  return out;
+}
+
+async function Hours({ searchParams }: Pick<PageProps<"/admin/oeffnungszeiten">, "searchParams">) {
   const { supabase } = await requireStaff();
+  const sp = await searchParams;
   const today = todayISO();
-  const [{ data: hours }, { data: closures }] = await Promise.all([
+  const month = monthParam(sp, today);
+  const [{ data: hours }, { data: closures }, cal] = await Promise.all([
     supabase.from("opening_hours").select("*"),
-    supabase.from("closures").select("*").gte("date", today).order("date"),
+    supabase.from("closures").select("date, reason").gte("date", today).order("date"),
+    loadCalendarMonth(supabase, month),
   ]);
+  const ranges = groupClosures(closures ?? []);
 
   return (
     <div className="grid gap-6">
@@ -30,12 +47,22 @@ async function Hours() {
         <p className="text-sm text-muted">Gilt für die Website und für die buchbaren Reservierungszeiten.</p>
       </div>
 
+      <MonthCalendar
+        month={month}
+        today={today}
+        days={cal.days}
+        weeklyClosed={cal.weeklyClosed}
+        hrefForDay={(d) => `/admin/reservierungen?date=${d}`}
+        hrefForMonth={(m) => `/admin/oeffnungszeiten?monat=${m}`}
+      />
+
       <section className="card">
+        <h2 className="mb-3 font-semibold">Reguläre Zeiten</h2>
         <ActionForm action={saveOpeningHours} className="grid gap-2">
           {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
             const h = hours?.find((x) => x.weekday === wd);
             return (
-              <div key={wd} className="grid grid-cols-[7rem_1fr_1fr_auto] items-center gap-3 border-b border-line py-2 last:border-0">
+              <div key={wd} className="grid grid-cols-[6rem_1fr_1fr_auto] items-center gap-3 border-b border-line py-2 last:border-0">
                 <span className="text-sm font-semibold">{WEEKDAYS_DE[wd]}</span>
                 <input type="time" name={`opens_${wd}`} defaultValue={fmtTime(h?.opens ?? null)} aria-label={`${WEEKDAYS_DE[wd]} öffnet`} />
                 <input type="time" name={`closes_${wd}`} defaultValue={fmtTime(h?.closes ?? null)} aria-label={`${WEEKDAYS_DE[wd]} schließt`} />
@@ -53,30 +80,40 @@ async function Hours() {
 
       <section className="card">
         <h2 className="mb-1 font-semibold">Geschlossene Tage</h2>
-        <p className="mb-4 text-sm text-muted">Feiertage, Urlaub, Betriebsferien. An diesen Tagen sind keine Reservierungen möglich.</p>
+        <p className="mb-4 text-sm text-muted">
+          Feiertage, Urlaub, Betriebsferien – ein einzelner Tag oder ein Zeitraum. An diesen Tagen sind keine Reservierungen möglich.
+        </p>
         <ul className="mb-4 grid gap-2">
-          {closures?.map((c) => (
-            <li key={c.id} className="flex items-center justify-between gap-3 rounded-md bg-cream px-3 py-2 text-sm">
+          {ranges.map((r) => (
+            <li key={r.from} className="flex items-center justify-between gap-3 rounded-md bg-cream px-3 py-2 text-sm">
               <span>
-                <strong>{fmtDateDE(c.date)}</strong>
-                {c.reason && <span className="ml-2 text-muted">{c.reason}</span>}
+                <strong>
+                  {fmtDateDE(r.from)}
+                  {r.to !== r.from && ` – ${fmtDateDE(r.to)}`}
+                </strong>
+                {r.reason && <span className="ml-2 text-muted">{r.reason}</span>}
               </span>
-              <form action={deleteClosure}>
-                <input type="hidden" name="id" value={c.id} />
+              <form action={deleteClosureRange}>
+                <input type="hidden" name="from" value={r.from} />
+                <input type="hidden" name="to" value={r.to} />
                 <button className="btn-ghost">Entfernen</button>
               </form>
             </li>
           ))}
-          {(!closures || closures.length === 0) && <li className="text-sm text-muted">Keine anstehenden Schließtage.</li>}
+          {ranges.length === 0 && <li className="text-sm text-muted">Keine anstehenden Schließtage.</li>}
         </ul>
-        <ActionForm action={addClosure} className="grid gap-3 sm:grid-cols-[auto_1fr_auto]" successText="Eingetragen.">
+        <ActionForm action={addClosure} className="grid gap-3 sm:grid-cols-[auto_auto_1fr_auto]" successText="Eingetragen.">
           <div>
-            <label htmlFor="cl-date">Datum</label>
-            <input id="cl-date" name="date" type="date" min={today} required />
+            <label htmlFor="cl-from">Von</label>
+            <input id="cl-from" name="from" type="date" min={today} required />
+          </div>
+          <div>
+            <label htmlFor="cl-to">Bis (optional)</label>
+            <input id="cl-to" name="to" type="date" min={today} />
           </div>
           <div>
             <label htmlFor="cl-reason">Grund (optional)</label>
-            <input id="cl-reason" name="reason" placeholder="Urlaub" />
+            <input id="cl-reason" name="reason" placeholder="Betriebsferien" />
           </div>
           <div className="self-end">
             <SubmitButton>Hinzufügen</SubmitButton>

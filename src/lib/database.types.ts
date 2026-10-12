@@ -41,18 +41,24 @@ export type Database = {
         Row: {
           id: string
           label: string
+          label_secondary: string | null
+          note: string | null
           slug: string
           sort_order: number
         }
         Insert: {
           id?: string
           label: string
+          label_secondary?: string | null
+          note?: string | null
           slug: string
           sort_order?: number
         }
         Update: {
           id?: string
           label?: string
+          label_secondary?: string | null
+          note?: string | null
           slug?: string
           sort_order?: number
         }

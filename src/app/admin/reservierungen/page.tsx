@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { createReservationManually } from "@/app/admin/actions";
 import { ActionForm, SubmitButton } from "@/components/admin/form-bits";
+import { MonthCalendar } from "@/components/admin/month-calendar";
 import { ReservationCard } from "@/components/admin/reservation-card";
+import { loadCalendarMonth, monthParam } from "@/lib/admin-calendar";
 import { requireStaff } from "@/lib/auth";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
@@ -21,24 +23,35 @@ async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierun
   const sp = await searchParams;
   const today = todayISO();
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
+  const month = monthParam(sp, date);
   const showCancelled = sp.alle === "1";
 
   let q = supabase.from("reservations").select("*").eq("date", date).order("start_time");
   if (!showCancelled) q = q.neq("status", "cancelled");
-  const { data: rows } = await q;
+  const [{ data: rows }, cal] = await Promise.all([q, loadCalendarMonth(supabase, month)]);
+  const dayHref = (d: string) => `/admin/reservierungen?date=${d}${showCancelled ? "&alle=1" : ""}`;
 
   return (
     <div className="grid gap-6">
+      <h1 className="font-serif text-3xl">Reservierungen</h1>
+
+      <MonthCalendar
+        month={month}
+        today={today}
+        selected={date}
+        days={cal.days}
+        weeklyClosed={cal.weeklyClosed}
+        hrefForDay={dayHref}
+        hrefForMonth={(m) => `/admin/reservierungen?date=${date}&monat=${m}${showCancelled ? "&alle=1" : ""}`}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Link href={`?date=${addDays(date, -1)}`} className="btn-ghost" aria-label="Vorheriger Tag">
+          <Link href={dayHref(addDays(date, -1))} className="btn-ghost" aria-label="Vorheriger Tag">
             ←
           </Link>
-          <form className="contents">
-            <input type="date" name="date" defaultValue={date} className="!w-auto" />
-            <button className="btn-ghost">Gehe zu</button>
-          </form>
-          <Link href={`?date=${addDays(date, 1)}`} className="btn-ghost" aria-label="Nächster Tag">
+          <h2 className="font-serif text-2xl">{fmtDateDE(date, { weekday: "long" })}</h2>
+          <Link href={dayHref(addDays(date, 1))} className="btn-ghost" aria-label="Nächster Tag">
             →
           </Link>
           {date !== today && (
@@ -51,8 +64,6 @@ async function Reservations({ searchParams }: Pick<PageProps<"/admin/reservierun
           {showCancelled ? "Stornierte ausblenden" : "Stornierte anzeigen"}
         </Link>
       </div>
-
-      <h1 className="font-serif text-3xl">{fmtDateDE(date, { weekday: "long" })}</h1>
 
       {rows && rows.length > 0 ? (
         <div className="grid gap-3">
