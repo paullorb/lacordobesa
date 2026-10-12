@@ -18,6 +18,15 @@ export default function LoginPage(props: PageProps<"/admin/login">) {
 }
 
 async function LoginWithNext({ searchParams }: Pick<PageProps<"/admin/login">, "searchParams">) {
-  const { next } = await searchParams;
-  return <LoginForm next={typeof next === "string" ? next : "/admin"} />;
+  const { next, fehler } = await searchParams;
+  return (
+    <>
+      {fehler === "kein-zugang" && (
+        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          Dieser Zugang ist nicht für das Team freigeschaltet. Bitte an La Cordobesa wenden.
+        </p>
+      )}
+      <LoginForm next={typeof next === "string" ? next : "/admin"} />
+    </>
+  );
 }

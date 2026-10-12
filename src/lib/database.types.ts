@@ -204,6 +204,21 @@ export type Database = {
         }
         Relationships: []
       }
+      staff: {
+        Row: {
+          added_at: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       specials: {
         Row: {
           created_at: string
@@ -242,6 +257,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_staff: { Args: never; Returns: boolean }
       request_reservation: {
         Args: {
           p_date: string

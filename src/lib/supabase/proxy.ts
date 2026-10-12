@@ -24,11 +24,28 @@ export async function updateSession(request: NextRequest) {
 
   // getUser() validates the JWT against Supabase; getSession() would trust the cookie blindly.
   const {
-    data: { user },
+    data: { user: sessionUser },
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
   const isLogin = pathname === "/admin/login";
+
+  // Signed in but not on the staff allowlist (public.staff): drop the session so the user
+  // cannot sit in a half-authenticated state, then send them to the login page.
+  let user = sessionUser;
+  if (user) {
+    const { data: isStaff } = await supabase.rpc("is_staff");
+    if (!isStaff) {
+      await supabase.auth.signOut();
+      user = null;
+      if (!isLogin) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/login";
+        url.search = "?fehler=kein-zugang";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
 
   if (!user && pathname.startsWith("/admin") && !isLogin) {
     const url = request.nextUrl.clone();

@@ -31,6 +31,10 @@ To add a staff member: Supabase dashboard → **Authentication → Users → Add
 Keep "Allow new users to sign up" turned off under Authentication → Providers → Email. Every authenticated
 user is staff.
 
+Auth hardening (dashboard settings, not in migrations): Authentication → Sign In / Providers → Email → set
+**Minimum password length to 8** (raise it later if you want) and turn on **Prevent use of leaked passwords** (HaveIBeenPwned; Pro plan).
+Both only apply when a password is set or changed, so reset any older short staff passwords.
+
 ## Database
 
 Schema lives in [`supabase/migrations`](supabase/migrations) and is already applied to the cloud project; seed
@@ -45,6 +49,10 @@ How reservations work:
 - Guests call the `request_reservation` RPC (via a Server Action). It checks opening hours, closures, lead time,
   party size and seat capacity (overlapping reservations × duration) inside one transaction and inserts a
   `pending` row. Guests can never read the reservations table.
+- Abuse limits live inside `request_reservation` (migration 0005), because anon can call it straight through the
+  REST API: text length caps, max 3 requests per phone/e-mail per 24 h, one open booking per phone per day, and a
+  site-wide cap of 15/hour and 80/24 h. Tune the constants at the top of the function. A Vercel firewall rate-limit
+  rule on `POST /` (the Server Actions) sits in front of the form as a first line of defence.
 - Staff confirm/cancel in the admin; the WhatsApp button pre-fills a confirmation message.
 - Rules (capacity, slot size, lead time, …) are edited under *Einstellungen* and stored in `site_settings`.
 
