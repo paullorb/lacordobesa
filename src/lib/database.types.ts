@@ -177,6 +177,7 @@ export type Database = {
       reservations: {
         Row: {
           changed_count: number
+          confirmation_sent_at: string | null
           created_at: string
           date: string
           email: string | null
@@ -194,6 +195,7 @@ export type Database = {
         }
         Insert: {
           changed_count?: number
+          confirmation_sent_at?: string | null
           created_at?: string
           date: string
           email?: string | null
@@ -211,6 +213,7 @@ export type Database = {
         }
         Update: {
           changed_count?: number
+          confirmation_sent_at?: string | null
           created_at?: string
           date?: string
           email?: string | null
