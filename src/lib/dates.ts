@@ -5,6 +5,12 @@ export function todayISO(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
 }
 
+/** The date (YYYY-MM-DD) in the shop's timezone `hours` from now. Used for the earliest pickup day a
+ *  pre-order can name, so the client offers the same first day the RPC would accept. */
+export function dateAfterHours(hours: number): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(Date.now() + hours * 3_600_000));
+}
+
 export function addDays(iso: string, days: number): string {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);

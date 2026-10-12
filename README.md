@@ -4,6 +4,8 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 
 - **Public site** (`/`): German-first landing page with menu, specials, opening hours and a table reservation form.
 - **Gallery** (`/gallery`): photos of the venue, food and events, uploaded by staff under `/staff/gallery`.
+- **Pre-orders** (`/vorbestellen`): empanadas by the dozen, a torta for Saturday. Staff mark dishes as pre-orderable
+  per dish under `/staff/karte` and work the inbox under `/staff/vorbestellungen`.
 - **Staff app** (`/staff`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
 
 ## Stack
@@ -76,6 +78,14 @@ How reservations work:
   same capacity and lead-time checks as `request_reservation`, and a moved booking goes back to `pending` so the
   restaurant confirms the new time. A cancellation hands the seats straight back to `reservation_availability`.
 - Rules (capacity, slot size, lead time, …) are edited under *Einstellungen* and stored in `site_settings`.
+
+How pre-orders work (migration `20261012094815`): the public form calls `request_preorder`, which validates the pickup
+window against opening hours and closures, enforces the same per-phone and site-wide quotas as `request_reservation`,
+and checks every line against `menu_items.is_preorderable`. `preorder_lines` **snapshots** the dish name, unit and price
+at order time, so a later menu edit or a deleted dish cannot rewrite what a guest ordered. Guests see and cancel their
+order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not cancellable online, because they are
+already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
+guests pay at pickup.
 
 Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.

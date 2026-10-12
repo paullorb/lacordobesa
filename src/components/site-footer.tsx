@@ -15,6 +15,7 @@ export function SiteFooter() {
         <div className="footer-links">
           <Link href="/#geschichte">Nuestra historia</Link>
           <Link href="/karte">Carta / Karte</Link>
+          <Link href="/vorbestellen">Vorbestellen</Link>
           <Link href="/gallery">Galerie</Link>
           <Link href="/#reservieren">Reservieren</Link>
           <Link href="/#besuch">Kontakt</Link>
