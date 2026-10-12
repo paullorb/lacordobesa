@@ -322,7 +322,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
                     {t.visitRoute} <span aria-hidden="true">↗</span>
                   </a>
                   <ShareButton
-                    title={`${CONTACT.name} · Pastelería Argentina in Frankfurt am Main`}
+                    locale={locale}
+                    title={t.shareTitle(CONTACT.name)}
                     text={t.shareText}
                   />
                 </div>
@@ -343,6 +344,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             </a>
           </div>
           <VenueMap
+            locale={locale}
             query={`${CONTACT.name}, ${CONTACT.street}, ${CONTACT.city}`}
             label={`${CONTACT.street}, ${CONTACT.city}`}
             openUrl={CONTACT.mapsUrl}
