@@ -101,11 +101,13 @@ supabase db push --db-url "$STAGING_DB_URL" --yes    # staging
 supabase db push --db-url "$SUPABASE_DB_URL" --yes   # production, from .env.local
 ```
 
-## Vercel: previews do not build, and never PATCH an env var's type
+## Vercel: there are no previews, and never PATCH an env var's type
 
-Preview builds are switched off in the project's Ignored Build Step (`if [ "$VERCEL_ENV" = "production" ];
-then exit 1; else exit 0; fi`, where exit 0 means skip). Build minutes are scarce and nobody reviews
-previews, so do not re-enable them or expect a preview URL on a pull request.
+**Only `main` deploys.** `vercel.json` sets `git.deploymentEnabled` to `{"**": false, "main": true}`, and the
+project's Ignored Build Step skips anything that is not `VERCEL_ENV=production`. There is no `preview`
+environment and no preview environment variables. Do not add either back, do not wait for a deployment on a
+pull request, and do not offer a preview URL as evidence that something works: run `npm run dev` against
+staging instead. This is a deliberate standing decision, not an oversight.
 
 Two traps in `vercel env`, both hit on 2026-10-14:
 
@@ -113,10 +115,10 @@ Two traps in `vercel env`, both hit on 2026-10-14:
   ciphertext back as the plaintext value.** Both production Supabase variables ended up holding a
   1100-character base64 blob, which the next production deployment would have shipped. There is no
   in-place way to change a variable's type: delete it and create it again with its value.
-- `vercel env add <name> preview` cannot complete non-interactively (it insists on a branch answer, and
-  `--yes` does not settle it). Use `vercel api "/v10/projects/{id}/env?teamId=..." --method POST` with a
-  body file instead. `production` and `development` work fine through the CLI, reading the value from stdin
-  so it never lands in a command line.
+- `vercel env add` for a target the project does not use cannot complete non-interactively (it insists on a
+  branch answer, and `--yes` does not settle it). `production` and `development` work fine through the CLI,
+  reading the value from stdin so the secret never lands in a command line; anything else needs
+  `vercel api "/v10/projects/{id}/env?teamId=..." --method POST` with a body file.
 
 # Several agent sessions share this one checkout
 
