@@ -252,15 +252,14 @@ export async function saveInquiryNotes(formData: FormData) {
 export async function saveMenuItem(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
+  // Category, position and the Startseite flag are set by dragging on the menu page, so an edit
+  // leaves them alone. Only a new dish sends them, from hidden fields in its category's form.
   const row = {
-    category_id: str(formData, "category_id"),
     name: str(formData, "name"),
     subtitle: str(formData, "subtitle") || null,
     description: str(formData, "description") || null,
     price_label: str(formData, "price_label") || null,
     is_available: bool(formData, "is_available"),
-    is_featured: bool(formData, "is_featured"),
-    sort_order: num(formData, "sort_order"),
     // Only sent once migration 20261012102608 added the columns. Empty means "no translation yet",
     // which the public menu falls back from, so it is stored as null rather than "".
     ...(formData.has("translations_field")
@@ -269,22 +268,77 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
           description_en: str(formData, "description_en") || null,
         }
       : {}),
-    // Likewise only sent once migration 20261012094815 added the columns.
-    ...(formData.has("preorder_field")
-      ? {
-          is_preorderable: bool(formData, "is_preorderable"),
-          preorder_unit: str(formData, "preorder_unit").slice(0, 24) || "Stück",
-        }
-      : {}),
+    // Likewise only sent once migration 20261012094815 added the columns. preorder_unit is no
+    // longer edited here: new dishes take the column default ("Stück"), existing ones keep theirs.
+    ...(formData.has("preorder_field") ? { is_preorderable: bool(formData, "is_preorderable") } : {}),
   };
-  if (!row.name || !row.category_id) return { ok: false, error: "Name und Kategorie sind Pflicht." };
+  if (!row.name) return { ok: false, error: "Name ist Pflicht." };
+  const categoryId = str(formData, "category_id");
+  if (!id && !categoryId) return { ok: false, error: "Name und Kategorie sind Pflicht." };
   const { error } = id
     ? await supabase.from("menu_items").update(row).eq("id", id)
-    : await supabase.from("menu_items").insert(row);
+    : await supabase.from("menu_items").insert({ ...row, category_id: categoryId, sort_order: num(formData, "sort_order") });
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.content);
   refresh();
   return { ok: true };
+}
+
+const isIdList = (ids: unknown): ids is string[] =>
+  Array.isArray(ids) && ids.length <= 500 && ids.every((id) => typeof id === "string" && id.length > 0);
+
+/** Puts `ids` into `categoryId` in that order: what a drag on the menu page ends with. Rows already
+ *  in place are skipped, so a move near the bottom of a list writes a couple of rows, not all. */
+export async function arrangeMenuItems(categoryId: string, ids: string[]): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  if (typeof categoryId !== "string" || !isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
+  const { data: current, error: readError } = await supabase.from("menu_items").select("id, category_id, sort_order").in("id", ids);
+  if (readError) return { ok: false, error: readError.message };
+  const byId = new Map((current ?? []).map((r) => [r.id, r]));
+  const changes = ids
+    .map((id, i) => ({ id, sort_order: i + 1 }))
+    .filter(({ id, sort_order }) => {
+      const r = byId.get(id);
+      return r && (r.category_id !== categoryId || r.sort_order !== sort_order);
+    });
+  const results = await Promise.all(
+    changes.map(({ id, sort_order }) =>
+      supabase.from("menu_items").update({ category_id: categoryId, sort_order }).eq("id", id),
+    ),
+  );
+  const failed = results.find((r) => r.error);
+  updateTag(TAG.content);
+  refresh();
+  return failed?.error ? { ok: false, error: failed.error.message } : { ok: true };
+}
+
+/** The order of the categories, top to bottom. */
+export async function arrangeCategories(ids: string[]): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  if (!isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
+  const { data: current, error: readError } = await supabase.from("menu_categories").select("id, sort_order").in("id", ids);
+  if (readError) return { ok: false, error: readError.message };
+  const sortOf = new Map((current ?? []).map((r) => [r.id, r.sort_order]));
+  const results = await Promise.all(
+    ids
+      .map((id, i) => ({ id, sort_order: i + 1 }))
+      .filter(({ id, sort_order }) => sortOf.has(id) && sortOf.get(id) !== sort_order)
+      .map(({ id, sort_order }) => supabase.from("menu_categories").update({ sort_order }).eq("id", id)),
+  );
+  const failed = results.find((r) => r.error);
+  updateTag(TAG.content);
+  refresh();
+  return failed?.error ? { ok: false, error: failed.error.message } : { ok: true };
+}
+
+/** Puts a dish on the home page, or takes it off. */
+export async function setMenuItemFeatured(id: string, featured: boolean): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  if (typeof id !== "string" || typeof featured !== "boolean") return { ok: false, error: "Ungültige Anfrage." };
+  const { error } = await supabase.from("menu_items").update({ is_featured: featured }).eq("id", id);
+  updateTag(TAG.content);
+  refresh();
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 export async function deleteMenuItem(formData: FormData) {
@@ -313,7 +367,8 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
     label,
     label_secondary: str(formData, "label_secondary") || null,
     note: str(formData, "note") || null,
-    sort_order: num(formData, "sort_order"),
+    // Set by dragging; only a new category sends it, to land at the end.
+    ...(formData.has("sort_order") ? { sort_order: num(formData, "sort_order") } : {}),
     // Only sent when the form rendered the toggle, i.e. when the show_prices column exists.
     ...(formData.has("show_prices_field") ? { show_prices: bool(formData, "show_prices") } : {}),
   };
