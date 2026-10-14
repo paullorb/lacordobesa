@@ -584,7 +584,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      menu_items_public: {
+        Row: {
+          category_id: string | null
+          category_label: string | null
+          category_sort: number | null
+          created_at: string | null
+          description: string | null
+          description_en: string | null
+          description_es: string | null
+          id: string | null
+          is_available: boolean | null
+          is_featured: boolean | null
+          is_preorderable: boolean | null
+          name: string | null
+          preorder_unit: string | null
+          price_label: string | null
+          sort_order: number | null
+          subtitle: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cancel_preorder_by_token: {
