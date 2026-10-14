@@ -34,3 +34,6 @@ export const isManageToken = (token: string) => MANAGE_TOKEN.test(token);
 export const preorderUrl = (token: string, locale: Locale = DEFAULT_LOCALE) =>
   `${SITE_URL}${localeHref(locale, `/vorbestellung/${token}`)}`;
 export const unsubscribeUrl = (token: string) => `${SITE_URL}/abmelden/${token}`;
+
+/** The link-preview picture (WhatsApp, Instagram, iMessage). Kept under 300 KB because WhatsApp drops larger ones. */
+export const OG_IMAGE = { url: "/assets/og-image.jpg", width: 1200, height: 600, alt: "La Cordobesa" };
