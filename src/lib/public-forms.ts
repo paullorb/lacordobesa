@@ -1,10 +1,9 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
-import { createPrivilegedClient } from "@/lib/supabase/privileged";
-import { createPublicClient } from "@/lib/supabase/public";
+import { createPrivilegedClient, secretKey } from "@/lib/supabase/privileged";
 
-/** Per-visitor limits for the public forms (migration 20261012215042).
+/** Per-visitor limits for the public forms (migrations 20261012215042 and 20261014072715).
  *
  *  The RPCs already limit per phone number and site-wide. Neither stops a script that rotates phone
  *  numbers: it fills the evenings with fake pending bookings, then trips the site-wide cap, and from
@@ -39,28 +38,27 @@ async function visitorAddress() {
 
 /** The client a public form calls its RPC with, and whether this visitor may submit right now.
  *
- *  Without the secret key there is nothing to enforce the limit with, so the form runs as before on
- *  the publishable key. A failing quota check lets the request through rather than turning every
- *  guest away over a database hiccup; the RPC's own limits still apply. */
+ *  Always the secret-key client: since 20261014072715 the five form RPCs are not granted to anon, so
+ *  there is no publishable fallback left to take. A failing quota check lets the request through
+ *  rather than turning every guest away over a database hiccup; the RPC's own limits still apply. */
 export async function publicFormClient(form: PublicForm) {
-  const privileged = createPrivilegedClient();
-  if (!privileged) return { supabase: createPublicClient(), allowed: true };
+  const supabase = createPrivilegedClient();
 
   const address = await visitorAddress();
-  if (!address) return { supabase: privileged, allowed: true };
+  if (!address) return { supabase, allowed: true };
 
   // Only a keyed hash is stored, never the address itself. The key keeps it from being reversed by
   // hashing every IPv4 address, which takes minutes.
-  const visitor = createHash("sha256").update(`${process.env.SUPABASE_SECRET_KEY}:${address}`).digest("hex").slice(0, 32);
+  const visitor = createHash("sha256").update(`${secretKey()}:${address}`).digest("hex").slice(0, 32);
   const { perHour, perDay } = LIMITS[form];
-  const { data, error } = await privileged.rpc("take_request_quota", {
+  const { data, error } = await supabase.rpc("take_request_quota", {
     p_bucket: `${form}:${visitor}`,
     p_max_1h: perHour,
     p_max_24h: perDay,
   });
   if (error) {
     console.error(`request quota check failed for ${form}: ${error.message}`);
-    return { supabase: privileged, allowed: true };
+    return { supabase, allowed: true };
   }
-  return { supabase: privileged, allowed: data !== false };
+  return { supabase, allowed: data !== false };
 }
