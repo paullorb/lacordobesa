@@ -11,11 +11,12 @@ import { localeHref, type Locale } from "@/lib/i18n";
  * What a visitor sees when a page throws.
  *
  * In the reader's own language, with the real header and footer, because the alternative is Next's
- * unstyled default and a guest who assumes the restaurant is shut. `reset()` re-renders the segment,
- * which is enough for the common case of a failed database read; the phone number is there for when
- * it is not, since somebody trying to book should never be blocked by our bug.
+ * unstyled default and a guest who assumes the restaurant is shut. `retry()` fetches the segment from
+ * the server again before re-rendering it, which is what a failed database read needs (`reset()` would
+ * only re-render the payload that already failed); the phone number is there for when it is not
+ * enough, since somebody trying to book should never be blocked by our bug.
  */
-export function ErrorView({ locale, error, reset }: { locale: Locale; error: Error & { digest?: string }; reset: () => void }) {
+export function ErrorView({ locale, error, retry }: { locale: Locale; error: Error & { digest?: string }; retry: () => void }) {
   const t = getDictionary(locale).error;
 
   useEffect(() => {
@@ -33,7 +34,7 @@ export function ErrorView({ locale, error, reset }: { locale: Locale; error: Err
             <h1>{t.title}</h1>
             <p className="not-found-text">{t.text}</p>
             <div className="hero-actions not-found-actions">
-              <button type="button" className="button" onClick={reset}>
+              <button type="button" className="button" onClick={() => retry()}>
                 {t.retry}
               </button>
               <Link className="button secondary" href={localeHref(locale, "/")}>

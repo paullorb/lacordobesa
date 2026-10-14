@@ -4,7 +4,7 @@ import { saveSettings } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { requireStaff } from "@/lib/auth";
 import { DEFAULT_RESERVATION_SETTINGS, type ReservationSettings } from "@/lib/data";
-import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
+import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
 
 export const metadata = { title: "Einstellungen" };
 
@@ -75,7 +75,13 @@ async function Settings() {
                 value={pre.max_lines}
                 hint="Größere Bestellungen werden ans Telefon verwiesen."
               />
-              <NumberField name="preorders_max_quantity" label="Max. Menge pro Gericht" value={pre.max_quantity} />
+              <NumberField
+                name="preorders_max_quantity"
+                label="Max. Menge pro Gericht"
+                value={pre.max_quantity}
+                max={MAX_PREORDER_QUANTITY}
+                hint={`Höchstens ${MAX_PREORDER_QUANTITY}.`}
+              />
             </div>
             <p className="text-xs text-muted">
               Welche Gerichte vorbestellbar sind, stellst du unter „Karte“ pro Gericht ein.
@@ -106,11 +112,23 @@ function Field({ name, label, hint, value }: { name: keyof ReservationSettings; 
 
 /** Same as Field, for the pre-order keys, which are prefixed so they cannot collide with the
  *  reservation fields in the one shared form. */
-function NumberField({ name, label, hint, value }: { name: string; label: string; hint?: string; value: number }) {
+function NumberField({
+  name,
+  label,
+  hint,
+  value,
+  max,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  value: number;
+  max?: number;
+}) {
   return (
     <div>
       <label htmlFor={name}>{label}</label>
-      <input id={name} name={name} type="number" min={0} defaultValue={value} />
+      <input id={name} name={name} type="number" min={0} max={max} defaultValue={value} />
       {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
     </div>
   );

@@ -44,8 +44,9 @@ const nextConfig: NextConfig = {
         ? [{ protocol: "https" as const, hostname: supabaseHost, pathname: "/storage/v1/object/public/gallery/**" }]
         : []),
       // Instagram serves media from per-region scontent hosts, so the hostname cannot be pinned to one.
-      { protocol: "https" as const, hostname: "*.cdninstagram.com" },
-      { protocol: "https" as const, hostname: "*.fbcdn.net" },
+      // `**` because those hosts nest (scontent.xx.fbcdn.net) and `*` matches one label only.
+      { protocol: "https" as const, hostname: "**.cdninstagram.com" },
+      { protocol: "https" as const, hostname: "**.fbcdn.net" },
     ],
   },
   experimental: {
@@ -57,6 +58,18 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  // Retired URL spaces that still live in bookmarks, installed apps and sent mails. The staff app
+  // was /admin until it became /staff, and English pages (and the pre-order links they handed out)
+  // existed for an afternoon before the site went German and Spanish only. Paths kept their
+  // German slugs throughout, so dropping the prefix lands on the same page.
+  async redirects() {
+    return [
+      { source: "/admin", destination: "/staff", permanent: true },
+      { source: "/admin/:path*", destination: "/staff/:path*", permanent: true },
+      { source: "/en", destination: "/", permanent: true },
+      { source: "/en/:path*", destination: "/:path*", permanent: true },
+    ];
   },
   turbopack: {
     rules: {

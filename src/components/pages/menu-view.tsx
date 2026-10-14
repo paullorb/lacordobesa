@@ -9,26 +9,10 @@ import { whatsappHref } from "@/lib/contact";
 import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
+import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { menuJsonLd } from "@/lib/structured-data";
-import type { Tables } from "@/lib/database.types";
 
 export const MENU_PATH = "/karte";
-
-/** The description in the reader's language, falling back to German (migration 20261012102608).
- *  A German sentence is more use to a Spanish reader than a blank line.
- *
- *  menu_items.description_en is still in the schema and still editable by staff; the site simply
- *  no longer offers English, so nothing reads it. Dropping the column would throw away whatever
- *  has been written into it for the sake of tidiness. */
-function description(item: Tables<"menu_items">, locale: Locale) {
-  return locale === "es" ? (item.description_es ?? item.description) : item.description;
-}
-
-/** True when a dish shows German text under a Spanish heading, which the page then admits to. */
-function isUntranslated(item: Tables<"menu_items">, locale: Locale) {
-  if (locale === "de" || !item.description) return false;
-  return item.description_es == null;
-}
 
 export async function MenuView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).menuPage;
@@ -95,7 +79,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
                 </header>
                 <ul className="menu-items">
                   {c.items.map((item) => {
-                    const text = description(item, locale);
+                    const text = menuDescription(item, locale);
                     return (
                       <li key={item.id}>
                         <MenuItemIcon itemName={item.name} categorySlug={c.slug} />

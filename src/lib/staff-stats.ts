@@ -16,11 +16,13 @@ const WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 export type ReservationRow = Pick<Tables<"reservations">, "date" | "start_time" | "party_size" | "status" | "source">;
 
-/** Bookings where somebody actually sat down (or still intends to). */
-const SEATED = new Set(["pending", "confirmed", "completed"]);
+/** Bookings where somebody actually sat down, or still intends to today. A pending booking from a
+ *  past day was never answered, so it says nothing about who came and is left out. */
+const isSeated = (r: ReservationRow, today: string) =>
+  r.status === "confirmed" || r.status === "completed" || (r.status === "pending" && r.date === today);
 
-const covers = (rows: ReservationRow[]) =>
-  rows.filter((r) => SEATED.has(r.status)).reduce((n, r) => n + r.party_size, 0);
+const covers = (rows: ReservationRow[], today: string) =>
+  rows.filter((r) => isSeated(r, today)).reduce((n, r) => n + r.party_size, 0);
 
 export type Rate = { value: number; of: number; percent: number | null };
 
@@ -58,8 +60,8 @@ export function reservationStats(rows: ReservationRow[], today: string): Reserva
   const past = rows.filter((r) => r.date < today);
   const decided = past.filter((r) => r.status !== "pending");
   const noShows = past.filter((r) => r.status === "no_show").length;
-  const cancellations = rows.filter((r) => r.status === "cancelled").length;
-  const seated = rows.filter((r) => SEATED.has(r.status));
+  const cancellations = decided.filter((r) => r.status === "cancelled").length;
+  const seated = rows.filter((r) => isSeated(r, today));
 
   const weekdayTotals = new Array(7).fill(0) as number[];
   const hourTotals = new Map<number, number>();
@@ -70,14 +72,14 @@ export function reservationStats(rows: ReservationRow[], today: string): Reserva
   }
 
   return {
-    coversToday: covers(rows.filter((r) => r.date === today)),
-    coversWeek: covers(rows.filter((r) => r.date >= weekStart && r.date <= today)),
-    coversMonth: covers(rows.filter((r) => r.date >= monthStart && r.date <= today)),
+    coversToday: covers(rows.filter((r) => r.date === today), today),
+    coversWeek: covers(rows.filter((r) => r.date >= weekStart && r.date <= today), today),
+    coversMonth: covers(rows.filter((r) => r.date >= monthStart && r.date <= today), today),
     bookingsWindow: rows.length,
     noShow: rate(noShows, decided.length),
-    cancelled: rate(cancellations, rows.length),
+    cancelled: rate(cancellations, decided.length),
     online: rate(rows.filter((r) => r.source !== "staff").length, rows.length),
-    averageParty: seated.length > 0 ? Math.round((covers(seated) / seated.length) * 10) / 10 : null,
+    averageParty: seated.length > 0 ? Math.round((covers(seated, today) / seated.length) * 10) / 10 : null,
     byWeekday: [1, 2, 3, 4, 5, 6, 0].map((wd, i) => ({ label: WEEKDAY_SHORT[i], value: weekdayTotals[wd] })),
     byHour: [...hourTotals.entries()]
       .sort((a, b) => a[0] - b[0])

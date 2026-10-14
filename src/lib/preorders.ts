@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { TAG } from "@/lib/data";
-import { addDays, dateAfterHours } from "@/lib/dates";
+import { addDays, dateAfterHours, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -22,6 +22,9 @@ export const DEFAULT_PREORDER_SETTINGS: PreorderSettings = {
   max_lines: 12,
   max_quantity: 50,
 };
+
+/** The ceiling preorder_lines.quantity enforces in the database (migration 20261012094815). */
+export const MAX_PREORDER_QUANTITY = 200;
 
 export async function getPreorderSettings(): Promise<PreorderSettings> {
   "use cache";
@@ -44,10 +47,11 @@ export async function getPickupRange(): Promise<{ minDate: string; maxDate: stri
   cacheTag(TAG.hours);
   const settings = await getPreorderSettings();
   const minDate = dateAfterHours(settings.min_lead_hours);
-  return { minDate, maxDate: addDays(minDate, settings.max_days_ahead) };
+  // The horizon counts from today, as request_preorder() does, not from the first pickup day.
+  return { minDate, maxDate: addDays(todayISO(), settings.max_days_ahead) };
 }
 
-export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "price_label" | "preorder_unit"> & {
+export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "description_es" | "price_label" | "preorder_unit"> & {
   category: string;
 };
 
@@ -60,7 +64,7 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("menu_items")
-    .select("id, name, description, price_label, preorder_unit, menu_categories(label, sort_order)")
+    .select("id, name, description, description_es, price_label, preorder_unit, menu_categories(label, sort_order)")
     .eq("is_preorderable", true)
     .eq("is_available", true)
     .order("sort_order");

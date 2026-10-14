@@ -9,7 +9,7 @@ import { useEffect } from "react";
  * having loaded, which is why the few styles it needs are inline. German, because a failure this
  * deep has no locale left to read.
  */
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => {
     console.error("global error", error.digest ?? error.message);
   }, [error]);
@@ -37,7 +37,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           </p>
           <button
             type="button"
-            onClick={reset}
+            onClick={() => retry()}
             style={{
               font: "inherit",
               fontWeight: 700,

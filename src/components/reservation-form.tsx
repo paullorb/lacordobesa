@@ -178,7 +178,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
             </p>
           )}
           {!loading && fullyBooked && (
-            <WaitlistForm locale={locale} date={date} partySize={partySize} maxPartySize={maxPartySize} />
+            <WaitlistForm key={date} locale={locale} date={date} partySize={partySize} maxPartySize={maxPartySize} />
           )}
           {!loading && bookable.length > 0 && (
             <div>

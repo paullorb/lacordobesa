@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { requestEventInquiry } from "@/app/catering/actions";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { fmtDate } from "@/lib/dates";
@@ -20,7 +20,8 @@ const MESSAGE_MAX = 1500;
  * carries a continue button instead of advancing on a choice, and its chip says so rather than
  * showing an empty answer.
  *
- * Every answer rides along as a hidden input, because only the current step is mounted.
+ * Every answer rides along as a hidden input, because only the current step is mounted. The contact
+ * fields live in state for the same reason: going back through a chip unmounts them.
  */
 export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate: string }) {
   const [state, formAction, pending] = useActionState(requestEventInquiry, null);
@@ -32,6 +33,13 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
   const [eventDate, setEventDate] = useState("");
   const [guests, setGuests] = useState("");
   const [budget, setBudget] = useState<BudgetBand | null>(null);
+  const [contact, setContact] = useState({ name: "", phone: "", email: "", message: "" });
+  const dateInput = useRef<HTMLInputElement>(null);
+  const guestsInput = useRef<HTMLInputElement>(null);
+  const contactField = (key: keyof typeof contact) => ({
+    value: contact[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
+  });
 
   if (state?.ok) {
     return (
@@ -85,6 +93,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
               {/* Both optional on purpose: the date and the headcount are often what the guest wants to discuss. */}
               <label htmlFor="event_date">{t.date}</label>
               <input
+                ref={dateInput}
                 id="event_date"
                 type="date"
                 min={minDate}
@@ -95,6 +104,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
             <div>
               <label htmlFor="guests">{t.guests}</label>
               <input
+                ref={guestsInput}
                 id="guests"
                 type="number"
                 min={1}
@@ -107,7 +117,15 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
             </div>
           </div>
           <div>
-            <button type="button" className="button" onClick={() => setStep(3)}>
+            <button
+              type="button"
+              className="button"
+              // Checked here, because the inputs unmount on the next step and only hidden copies of
+              // their values reach the server, where a past date or 900 guests would be a late error.
+              onClick={() => {
+                if (dateInput.current?.reportValidity() && guestsInput.current?.reportValidity()) setStep(3);
+              }}
+            >
               {t.continueLabel} <span aria-hidden="true">→</span>
             </button>
           </div>
@@ -160,6 +178,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
                 maxLength={FIELD_LIMITS.name}
                 autoComplete="name"
                 placeholder="María González"
+                {...contactField("name")}
               />
               <label htmlFor="ev-name">{t.name}</label>
             </div>
@@ -173,16 +192,32 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
                 maxLength={FIELD_LIMITS.phone}
                 autoComplete="tel"
                 placeholder="+49 170 1234567"
+                {...contactField("phone")}
               />
               <label htmlFor="ev-phone">{t.phone}</label>
             </div>
           </div>
           <div className="field-float">
-            <input id="ev-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" placeholder="maria@example.com" />
+            <input
+              id="ev-email"
+              name="email"
+              type="email"
+              maxLength={FIELD_LIMITS.email}
+              autoComplete="email"
+              placeholder="maria@example.com"
+              {...contactField("email")}
+            />
             <label htmlFor="ev-email">{t.email}</label>
           </div>
           <div className="field-float">
-            <textarea id="message" name="message" rows={5} maxLength={MESSAGE_MAX} placeholder={t.messagePlaceholder} />
+            <textarea
+              id="message"
+              name="message"
+              rows={5}
+              maxLength={MESSAGE_MAX}
+              placeholder={t.messagePlaceholder}
+              {...contactField("message")}
+            />
             <label htmlFor="message">{t.message}</label>
           </div>
 

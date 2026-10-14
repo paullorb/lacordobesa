@@ -16,10 +16,12 @@ export const whatsappHref = (text?: string) =>
 
 /** The digits wa.me expects from a guest-entered phone number: no plus, no spaces, and a German
  *  number written as 0170... gets its country code. Staff type these by hand off a phone screen,
- *  so the shapes vary more than a form would suggest. */
+ *  so the shapes vary more than a form would suggest. 0049... is already international: only a
+ *  single leading zero is the German trunk prefix. */
 export function waNumber(phone: string) {
   const digits = phone.replace(/[^\d+]/g, "");
   if (digits.startsWith("+")) return digits.slice(1);
+  if (digits.startsWith("00")) return digits.slice(2);
   if (digits.startsWith("0")) return `49${digits.slice(1)}`;
   return digits;
 }

@@ -23,6 +23,8 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
   const [state, formAction] = useActionState(createReservationManually, null);
   const [date, setDate] = useState(initialDate);
   const [time, setTime] = useState("");
+  // A string, so the field can be cleared while typing; the warning reads it as a number.
+  const [party, setParty] = useState("2");
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [loading, startLoading] = useTransition();
   const request = useRef(0);
@@ -38,8 +40,10 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
   }, [date]);
 
   const chosen = slots?.find((s) => s.time === time);
-  // Worth saying out loud, because the booking will go through regardless.
-  const overbooking = time !== "" && slots !== null && slots.length > 0 && (!chosen || chosen.seatsLeft <= 0);
+  // Worth saying out loud, because the booking will go through regardless. Measured against the
+  // party, not against zero: three seats left is still an overbooking for a table of eight.
+  const overbooking =
+    time !== "" && slots !== null && slots.length > 0 && (!chosen || chosen.seatsLeft < Math.max(1, Number(party) || 0));
 
   return (
     <form action={formAction} className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -61,6 +65,8 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
           onChange={(e) => {
             setDate(e.target.value);
             setTime("");
+            // The previous day's times must not stay clickable while the new day loads.
+            setSlots(null);
           }}
           required
         />
@@ -110,14 +116,24 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
         )}
         {overbooking && (
           <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            Zu dieser Uhrzeit ist rechnerisch nichts mehr frei. Die Reservierung wird trotzdem eingetragen.
+            Zu dieser Uhrzeit ist rechnerisch nicht genug Platz für {party || "diese"} Personen. Die Reservierung wird
+            trotzdem eingetragen.
           </p>
         )}
       </div>
 
       <div>
         <label htmlFor="m-party">Personen</label>
-        <input id="m-party" name="party_size" type="number" min={1} max={50} defaultValue={2} required />
+        <input
+          id="m-party"
+          name="party_size"
+          type="number"
+          min={1}
+          max={50}
+          value={party}
+          onChange={(e) => setParty(e.target.value)}
+          required
+        />
         <p className="mt-1 text-xs text-muted">Online sind höchstens {maxPartySize} möglich, hier nicht begrenzt.</p>
       </div>
       <div>
