@@ -160,8 +160,39 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .menu-page { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 96px 0 112px; }
 .menu-index { position: sticky; z-index: 5; top: var(--header-h); margin: 0 calc(50% - 50vw) 1rem; padding: .7rem 24px; background: rgba(245,241,233,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .menu-index ul { list-style: none; display: flex; gap: .45rem; width: min(1120px, 100%); margin: auto; padding: 0; overflow-x: auto; scrollbar-width: none; }
-/* The row scrolls sideways once the categories outgrow it; fading the trailing edge says so. */
+/* The row scrolls sideways once the categories outgrow it; fading an edge says there is more that
+   way. Without a timeline the trailing fade is simply always on, which is the honest fallback. */
 .menu-index ul { padding-right: 48px; mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+
+/* Registered so the two lengths can be interpolated by the keyframes below; an unregistered custom
+   property animates as a discrete swap, which would make the fade snap on and off. */
+@property --index-fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --index-fade-end { syntax: "<length>"; inherits: false; initial-value: 0px; }
+
+/* Where the row's own scroll position can drive an animation, each edge fades only while there is
+   something past it: nothing at rest, the trailing edge until you reach the end, the leading edge
+   once you have left the start. The static mask above dimmed the last category permanently, which
+   said "there is more" when there was not. The timeline is inactive when the row fits, so the
+   declared 0px/0px (no fade at all) is what a short list gets.
+
+   Under `reduce` this is not declared at all, like every other scroll-driven rule here: that block
+   forces `animation-duration: .01ms !important` on everything, which would run this straight to its
+   end state and leave the *leading* edge faded for good. The static mask above is the fallback. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll(self inline)) {
+    .menu-index ul {
+      --index-fade-start: 0px;
+      --index-fade-end: 0px;
+      mask-image: linear-gradient(90deg, transparent 0, #000 var(--index-fade-start), #000 calc(100% - var(--index-fade-end)), transparent 100%);
+      animation: index-edges linear both;
+      animation-timeline: scroll(self inline);
+    }
+  }
+}
+@keyframes index-edges {
+  from { --index-fade-start: 0px; --index-fade-end: 48px; }
+  to { --index-fade-start: 48px; --index-fade-end: 0px; }
+}
 .menu-index a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 1rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); text-decoration: none; white-space: nowrap; font-size: var(--fs-sm); font-weight: 600; transition: background .2s, color .2s; }
 .menu-cats { display: grid; }
 .menu-cat { display: grid; grid-template-columns: minmax(220px, .75fr) 1.6fr; gap: 1.5rem 4rem; padding: 4rem 0; border-top: 1px solid var(--line); scroll-margin-top: calc(var(--header-h) + 72px); }
@@ -201,11 +232,22 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .empanada-mark { display: block; width: 100%; height: auto; overflow: visible; }
 .empanada-base, .empanada-body { stroke: rgba(255,253,248,.75); }
 .craft-art figcaption { margin-top: 1.4rem; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: #b5e3f4; }
-.visit { display: grid; grid-template-columns: .95fr 1.05fr; gap: 4rem; align-items: start; }
+/* No align-items: start. The media column has to stretch to the contact card next to it, because
+   that is what gives the photo inside it room to stick; with `start` both columns shrink to their
+   own content and the photo simply ended 537px above the bottom of the card. */
+.visit { display: grid; grid-template-columns: .95fr 1.05fr; gap: 4rem; align-items: stretch; }
 .visit-intro { color: var(--muted); line-height: 1.8; font-size: var(--fs-base); }
 .reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .reviews-copy p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
-.reviews-list { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+/* Equal rows: one listing carries a score and the other does not, so left to their content the two
+   cards came out 114px and 148px and the pair read as a mistake rather than a set. */
+.reviews-list { display: grid; grid-auto-rows: 1fr; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+/* The row is now taller than the shorter card's content, so that card has to fill it. A flex column
+   rather than the grid it was, only so `margin-top: auto` can drop the "read them" line to the
+   bottom of both cards and line the two up. The gap behaves the same either way. */
+.reviews-list li { display: grid; }
+.review-card { display: flex; flex-direction: column; }
+.review-open { margin-top: auto; padding-top: .35rem; }
 .review-card { display: grid; gap: .35rem; padding: 1.5rem 1.75rem; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
 .review-card:hover { border-color: var(--blue); transform: translateY(-2px); }
 .review-card strong { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 600; }
@@ -220,7 +262,12 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .contact-row a, .contact-row address, .contact-row .hours { font-size: var(--fs-sm); text-decoration: none; font-style: normal; line-height: 1.6; }
 .hours { display: grid; grid-template-columns: auto auto; gap: .15rem 1.2rem; }
 .hours .closed { color: var(--muted); }
-.visit-photo { display: block; min-height: 455px; position: relative; overflow: hidden; background: var(--blue); }
+/* The stretched cell. Its min-height is the photo's, so the row is never shorter than the thing
+   sticking inside it (which would push the photo out over the map below). */
+.visit-media { display: block; min-height: min(72vh, 620px); }
+/* sticky, not relative: it is still the containing block for the image and the caption, and it now
+   also travels down the column while the address, hours and phone are read. */
+.visit-photo { display: block; position: sticky; top: calc(var(--header-h) + 28px); height: min(72vh, 620px); overflow: hidden; background: var(--blue); }
 .visit-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .visit-photo .photo-caption { position: absolute; left: 20px; bottom: 20px; padding: .75rem 1rem; background: var(--paper); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); }
 .visit-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.3rem; }
@@ -529,7 +576,10 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .visit { grid-template-columns: minmax(0, 1fr); }
   .contact-row a { overflow-wrap: anywhere; }
   .craft-art { width: min(300px, 100%); }
-  .visit-photo { min-height: 390px; }
+  /* One column from here down, so there is no second column to ride alongside: the photo goes back
+     to being a plain block that sits under the card. */
+  .visit-media { min-height: 0; }
+  .visit-photo { position: static; height: auto; min-height: 390px; }
 }
 @media (max-width: 520px) {
   .idea-grid li { grid-template-columns: 2.4rem 1fr; }
@@ -731,7 +781,13 @@ body::after {
 /* ------------------------------------------------------------------ 404 */
 .not-found { max-width: 620px; margin: 0 auto; text-align: center; }
 .not-found .eyebrow { justify-content: center; color: var(--blue-dark); }
-.not-found-code { margin: 0; font-family: var(--serif); font-size: clamp(4.5rem, 14vw, 8rem); line-height: 1; color: var(--line); }
+/* Drawn rather than filled. At `var(--line)` (ink at 13%) the numeral was so close to the cream
+   that it read as something failing to paint; an outline is unmistakably on purpose, and it stays
+   quiet enough that the sentence under it is still the thing you read first. */
+.not-found-code { margin: 0; font-family: var(--serif); font-size: clamp(4.5rem, 14vw, 8rem); line-height: 1; letter-spacing: .02em; color: rgba(21, 47, 59, .17); }
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .not-found-code { color: transparent; -webkit-text-stroke: 1.5px rgba(21, 47, 59, .3); }
+}
 .not-found h1 { margin: 1rem 0 1.1rem; font-size: clamp(1.9rem, 4vw, 2.8rem); }
 .not-found-text { margin: 0 0 2rem; color: var(--muted); line-height: 1.8; }
 .not-found-actions { justify-content: center; }
