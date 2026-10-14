@@ -1,7 +1,7 @@
 "use server";
 
 import { isISODate, isTime } from "@/lib/dates";
-import { formErrors } from "@/lib/form-errors";
+import { formErrors, formLocale } from "@/lib/form-errors";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import type { PreorderLine } from "@/lib/preorders";
 import { publicFormClient } from "@/lib/public-forms";
@@ -53,6 +53,7 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
     p_pickup_time: time,
     p_lines: lines,
     p_notes: notes || undefined,
+    p_locale: formLocale(formData),
   });
   if (error) return { ok: false, error: errorFor(error.message) };
   return { ok: true, token: data };

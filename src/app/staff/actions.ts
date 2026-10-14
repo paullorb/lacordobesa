@@ -13,6 +13,7 @@ import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -93,6 +94,7 @@ async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">
       time: fmtTime(r.start_time),
       partySize: r.party_size,
       manageToken: r.manage_token ?? null,
+      locale: isLocale(r.locale) ? r.locale : DEFAULT_LOCALE,
     }),
   });
   // Released again on failure, so the card offers the retry button.
@@ -115,6 +117,7 @@ export async function resendConfirmation(_prev: ActionResult, formData: FormData
       time: fmtTime(r.start_time),
       partySize: r.party_size,
       manageToken: r.manage_token ?? null,
+      locale: isLocale(r.locale) ? r.locale : DEFAULT_LOCALE,
     }),
   });
   if (!result.ok) {

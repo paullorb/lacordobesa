@@ -350,6 +350,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          locale: string
           manage_token: string
           name: string
           notes: string | null
@@ -365,6 +366,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          locale?: string
           manage_token?: string
           name: string
           notes?: string | null
@@ -380,6 +382,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          locale?: string
           manage_token?: string
           name?: string
           notes?: string | null
@@ -419,6 +422,7 @@ export type Database = {
           date: string
           email: string | null
           id: string
+          locale: string
           manage_token: string
           name: string
           notes: string | null
@@ -437,6 +441,7 @@ export type Database = {
           date: string
           email?: string | null
           id?: string
+          locale?: string
           manage_token?: string
           name: string
           notes?: string | null
@@ -455,6 +460,7 @@ export type Database = {
           date?: string
           email?: string | null
           id?: string
+          locale?: string
           manage_token?: string
           name?: string
           notes?: string | null
@@ -641,6 +647,7 @@ export type Database = {
         Args: {
           p_email: string
           p_lines: Json
+          p_locale?: string
           p_name: string
           p_notes?: string
           p_phone: string
@@ -653,6 +660,7 @@ export type Database = {
         Args: {
           p_date: string
           p_email: string
+          p_locale?: string
           p_name: string
           p_notes?: string
           p_party_size: number
