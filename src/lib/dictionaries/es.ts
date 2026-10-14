@@ -73,6 +73,7 @@ export const es: Dictionary = {
     reviewsTitle: "Nuestros clientes lo dicen mejor.",
     reviewsText: "Leé vos mismo lo que escriben de nosotros, en sitios donde no podemos cambiar nada.",
     reviewsScore: (value: string, scale: string, count: number) => `${value} de ${scale} · ${count} reseñas`,
+    reviewsAsOf: (date: string) => `A ${date}`,
     reviewsOpen: "Leer reseñas",
     reserveEyebrow: "Reservá tu mesa",
     reserveTitle: "Reservá tu mesa.",

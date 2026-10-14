@@ -75,6 +75,7 @@ export const de = {
     reviewsTitle: "Unsere Gäste sagen es besser.",
     reviewsText: "Lies selbst nach, was Gäste über uns schreiben, dort, wo wir nichts daran ändern können.",
     reviewsScore: (value: string, scale: string, count: number) => `${value} von ${scale} · ${count} Bewertungen`,
+    reviewsAsOf: (date: string) => `Stand ${date}`,
     reviewsOpen: "Bewertungen lesen",
     reserveEyebrow: "Reservá tu mesa",
     reserveTitle: "Tisch reservieren.",

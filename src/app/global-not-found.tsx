@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { RootDocument } from "@/app/root-document";
+import { RootDocument, rootMetadata } from "@/app/root-document";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { whatsappHref } from "@/lib/contact";
@@ -8,7 +8,14 @@ import { getDictionary } from "@/lib/dictionaries";
 import { DEFAULT_LOCALE, localeHref } from "@/lib/i18n";
 import "@/app/globals.css";
 
-export const metadata: Metadata = { title: "404 · La Cordobesa" };
+// Spread over the site defaults, because a global-not-found bypasses both root layouts and so gets
+// none of their metadata: without this a shared dead link has no og:image and no metadataBase.
+const defaults = rootMetadata(DEFAULT_LOCALE);
+export const metadata: Metadata = {
+  ...defaults,
+  title: "404 · La Cordobesa",
+  openGraph: { ...defaults.openGraph, title: "404 · La Cordobesa" },
+};
 
 /**
  * The page a URL matching no route at all lands on.

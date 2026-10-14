@@ -93,21 +93,22 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
 
   // Move and drop are heard on the window, not the handle: a dish moved into another category is
   // a new element there, and the old handle (with any pointer capture) is gone mid-drag.
-  const handlers = useRef({ move, end });
+  const handlers = useRef({ move, end, cancel });
   useEffect(() => {
-    handlers.current = { move, end };
+    handlers.current = { move, end, cancel };
   });
   useEffect(() => {
     if (!drag) return;
     const onMove = (e: PointerEvent) => handlers.current.move(e);
     const onEnd = (e: PointerEvent) => handlers.current.end(e);
+    const onCancel = (e: PointerEvent) => handlers.current.cancel(e);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onEnd);
-    window.addEventListener("pointercancel", onEnd);
+    window.addEventListener("pointercancel", onCancel);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onEnd);
-      window.removeEventListener("pointercancel", onEnd);
+      window.removeEventListener("pointercancel", onCancel);
     };
   }, [drag]);
 
@@ -116,6 +117,9 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     e.preventDefault();
     window.getSelection()?.removeAllRanges();
     pointerY.current = e.clientY;
+    // A featured dish's handle sits inside Startseite, so the drop state starts there: a tap with
+    // no pointermove must not read as a drag out of the zone and take the dish off the home page.
+    setOverFeatured(next.kind === "featured");
     setDrag(next);
   }
 
@@ -188,6 +192,14 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     const to = catOf(layout, d.id);
     const original = layoutOf(categories, items);
     if (to && layout.items[to].join() !== original.items[to].join()) save(() => arrangeMenuItems(to, layout.items[to]));
+  }
+
+  // pointercancel (a touch interrupted, the pointer lost) is not a drop: put everything back and save nothing.
+  function cancel(e: PointerEvent) {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    setDrag(null);
+    setOverFeatured(false);
+    setLayout(layoutOf(categories, items));
   }
 
   function feature(id: string, base: Layout = layout) {
