@@ -76,9 +76,11 @@ production one.
 | Production | `lacordobesa` (`iabpugtwgjqldlzjjgqj`) | the deployment built from `main`, and nothing else |
 | Staging | `lacordobesa-staging` (`yfcpqyxonzjuflsqhasz`) | `npm run dev`, Playwright, agent sessions, anything exploratory |
 
-Until 2026-10-14 there was only the first one, and it was set for `production`, `preview` *and* `development`
-in Vercel as well as in every `.env.local`. So local development, every preview deployment and every agent
-session wrote into the live database. The damage is not stray rows: a test burst spends the site-wide quota
+Vercel's `development` environment holds the staging values too, so `vercel env pull` sets a new machine up
+correctly. There is no `preview` environment at all, by choice (see the end of this section).
+
+Until 2026-10-14 there was only the first one, and it was set for every Vercel environment as well as in
+every `.env.local`. So local development and every agent session wrote into the live database. The damage is not stray rows: a test burst spends the site-wide quota
 inside `request_reservation` (15/hour, 80/24 h) and holds seats in `reservation_availability`, so submitting
 the reservation form twenty times to see whether it works can turn a real guest away.
 
@@ -101,15 +103,16 @@ Staff login on staging is the user `paul`; its password, the project's keys and 
 password is never usable there. "Allow new users to sign up" is left at the Supabase default on staging, which
 is harmless because the allowlist in `public.staff` is what grants access, not having an account.
 
-**Vercel only builds production.** Preview builds are switched off in the project's Ignored Build Step:
+**Vercel deploys `main` and nothing else.** There is no preview environment: no preview URLs, no preview
+environment variables, no deployment for a branch or a pull request. Build minutes are scarce and nobody
+reviews previews, so the project runs without them. Two settings keep it that way:
 
-```sh
-if [ "$VERCEL_ENV" = "production" ]; then exit 1; else exit 0; fi
-```
+- [`vercel.json`](vercel.json) sets `git.deploymentEnabled` to `{"**": false, "main": true}`, so a push to any
+  other branch creates no deployment at all (minimatch, and a branch matching one `true` rule wins).
+- The project's Ignored Build Step is `if [ "$VERCEL_ENV" = "production" ]; then exit 1; else exit 0; fi`
+  (exit 0 means skip), which also catches a preview somebody triggers by hand with `vercel deploy`.
 
-(exit 0 means "skip this build"). Branches and pull requests still get a deployment entry, it is just skipped
-before any build minutes are spent, since nobody reviews previews here. The `preview` environment variables
-point at staging regardless, so turning previews back on cannot reach production either.
+So the way to see a change before it ships is `npm run dev` against staging, not a preview URL.
 
 ## Staff accounts
 
