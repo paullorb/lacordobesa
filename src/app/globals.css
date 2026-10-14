@@ -579,7 +579,11 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   /* One column from here down, so there is no second column to ride alongside: the photo goes back
      to being a plain block that sits under the card. */
   .visit-media { min-height: 0; }
-  .visit-photo { position: static; height: auto; min-height: 390px; }
+  /* relative, not static: there is no column to ride alongside here, but the photo still has to be
+     the containing block for the `fill` image and the caption inside it, both of which are
+     absolutely positioned. Under `static` the image resolved against the initial containing block
+     instead and rendered 2062px tall, a thousand pixels above its own box. */
+  .visit-photo { position: relative; top: auto; height: auto; min-height: 390px; }
 }
 @media (max-width: 520px) {
   .idea-grid li { grid-template-columns: 2.4rem 1fr; }
