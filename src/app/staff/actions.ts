@@ -11,7 +11,7 @@ import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
-import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
+import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
@@ -73,6 +73,18 @@ async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">
   if (!("confirmation_sent_at" in r) || r.confirmation_sent_at) return;
   if (!r.email || !mailConfigured()) return;
 
+  // Claimed before sending, not recorded after: two staff confirming the same booking at once (or a
+  // double-submitted form) would otherwise both read null and both mail the guest. Only the update
+  // that flips null to a timestamp gets a row back, and only that one sends.
+  const { data: claimed } = await supabase
+    .from("reservations")
+    .update({ confirmation_sent_at: new Date().toISOString() })
+    .eq("id", r.id)
+    .is("confirmation_sent_at", null)
+    .select("id")
+    .maybeSingle();
+  if (!claimed) return;
+
   const result = await sendMail({
     to: r.email,
     ...reservationConfirmedMail({
@@ -83,9 +95,8 @@ async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">
       manageToken: r.manage_token ?? null,
     }),
   });
-  if (result.ok) {
-    await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
-  }
+  // Released again on failure, so the card offers the retry button.
+  if (!result.ok) await supabase.from("reservations").update({ confirmation_sent_at: null }).eq("id", r.id);
 }
 
 /** Retry for the staff card, for when the first attempt failed or the guest asks for the mail again. */
@@ -481,7 +492,13 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
     : null;
   if (
     preorders &&
-    (preorders.min_lead_hours < 0 || preorders.max_days_ahead < 1 || preorders.max_lines < 1 || preorders.max_quantity < 1)
+    (preorders.min_lead_hours < 0 ||
+      preorders.max_days_ahead < 1 ||
+      preorders.max_lines < 1 ||
+      preorders.max_quantity < 1 ||
+      // preorder_lines.quantity is checked against 200 in the database, so a larger setting would
+      // let the form accept an order the insert then refuses.
+      preorders.max_quantity > MAX_PREORDER_QUANTITY)
   ) {
     return { ok: false, error: "Bitte sinnvolle Werte für Vorbestellungen eintragen." };
   }

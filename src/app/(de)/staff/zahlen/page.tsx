@@ -22,9 +22,10 @@ export default function NumbersPage() {
 async function Numbers() {
   const { supabase } = await requireStaff();
   const today = todayISO();
-  const from = addDays(today, -WINDOW_DAYS);
+  // Both query ends are inclusive, so today plus the 89 days before it make the 90.
+  const from = addDays(today, -(WINDOW_DAYS - 1));
 
-  const [{ data: reservations }, preorders, inquiries] = await Promise.all([
+  const [{ data: reservations }, preorders, openInquiryCount, wonInquiryCount] = await Promise.all([
     // Bounded at both ends: a booking for next Friday has not happened yet, so letting it into the
     // weekday pattern or the cancellation rate would describe the future rather than the business.
     supabase.from("reservations").select("date, start_time, party_size, status, source").gte("date", from).lte("date", today),
@@ -34,15 +35,16 @@ async function Numbers() {
       .select("label, quantity, preorders!inner(pickup_date)")
       .gte("preorders.pickup_date", from)
       .lte("preorders.pickup_date", today),
-    supabase.from("event_inquiries").select("status"),
+    // Counted in the database rather than fetched: this table has no date bound, and a select would
+    // stop at the API's row limit once it grew past it.
+    supabase.from("event_inquiries").select("id", { count: "exact", head: true }).in("status", ["new", "in_progress", "quoted"]),
+    supabase.from("event_inquiries").select("id", { count: "exact", head: true }).eq("status", "won"),
   ]);
 
   const stats = reservationStats(reservations ?? [], today);
   const dishes = preorders.error ? [] : topPreorderedDishes(preorders.data ?? []);
-  const openInquiries = inquiries.error
-    ? null
-    : (inquiries.data ?? []).filter((i) => i.status === "new" || i.status === "in_progress" || i.status === "quoted").length;
-  const wonInquiries = inquiries.error ? null : (inquiries.data ?? []).filter((i) => i.status === "won").length;
+  const openInquiries = openInquiryCount.error ? null : (openInquiryCount.count ?? 0);
+  const wonInquiries = wonInquiryCount.error ? null : (wonInquiryCount.count ?? 0);
 
   return (
     <div className="grid gap-6">
@@ -63,7 +65,7 @@ async function Numbers() {
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile label="Reservierungen im Zeitraum" value={stats.bookingsWindow} />
         <RateTile label="Nicht erschienen" rate={stats.noShow} hint="Anteil der vergangenen Reservierungen" />
-        <RateTile label="Storniert" rate={stats.cancelled} hint="Anteil aller Reservierungen" />
+        <RateTile label="Storniert" rate={stats.cancelled} hint="Anteil der vergangenen Reservierungen" />
         <RateTile label="Über die Website" rate={stats.online} hint="Rest kam per Telefon oder vor Ort" />
       </section>
 

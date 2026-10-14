@@ -37,7 +37,7 @@ export default function LegalLayout({ children }: LayoutProps<"/">) {
       <main id="main" className="legal">
         {children}
       </main>
-      <footer className="site-footer">
+      <footer className="site-footer legal-footer">
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo /> La Cordobesa

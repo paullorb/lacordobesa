@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { EmpanadaIcon } from "@/components/empanada-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
@@ -15,6 +15,7 @@ type Props = { whatsappHref: string; locale: Locale; path?: string };
  *  needs to offer the same page in another language rather than always sending people home. */
 export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
   const [open, setOpen] = useState(false);
+  const header = useRef<HTMLElement>(null);
   const t = getDictionary(locale);
   const href = (p: string) => localeHref(locale, p);
   const links = [
@@ -37,6 +38,11 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
     const root = document.documentElement;
     const previousOverflow = root.style.overflow;
     root.style.overflow = "hidden";
+    // The menu hangs from the header's bottom edge, which sits lower while the announcement bar is
+    // still on screen. Sized from where it really starts, so its last links stay reachable with
+    // the page locked behind it.
+    const bottom = header.current?.getBoundingClientRect().bottom;
+    if (bottom) root.style.setProperty("--menu-top", `${Math.round(bottom)}px`);
     window.addEventListener("keydown", onKey);
     wide.addEventListener("change", onWide);
     return () => {
@@ -48,7 +54,7 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
 
   return (
     <>
-      <header className="site-header">
+      <header className="site-header" ref={header}>
         {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
         <a className="skip-link" href="#main">
           {t.nav.skipToContent}

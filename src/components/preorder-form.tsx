@@ -6,6 +6,7 @@ import type { PreorderableItem } from "@/lib/preorders";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
+import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 /** Opening hours as the form needs them: weekday (0 = Sunday) to the window the shop is open. */
@@ -23,6 +24,25 @@ type Props = {
   maxLines: number;
   leadHours: number;
 };
+
+const berlin = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Berlin",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** The first pickup the lead time allows, as a Frankfurt date and a time rounded up to the
+ *  15-minute step. The same rule request_preorder() enforces with too_soon. */
+function leadBoundary(leadHours: number) {
+  const parts = Object.fromEntries(berlin.formatToParts(new Date(Date.now() + leadHours * 3_600_000)).map((p) => [p.type, p.value]));
+  const minute = Math.ceil((Number(parts.hour) * 60 + Number(parts.minute)) / 15) * 15;
+  const time = `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, time };
+}
 
 export function PreorderForm({
   locale,
@@ -45,6 +65,13 @@ export function PreorderForm({
   const weekday = date ? new Date(`${date}T12:00:00Z`).getUTCDay() : null;
   const pickupWindow = weekday === null ? null : windows[weekday];
   const closed = date ? closedDates.includes(date) || !pickupWindow : false;
+  // On the first possible day the lead time, not the opening hour, sets the earliest pickup. Read
+  // only once a date is picked, so the clock never runs during the server render. Times compare
+  // as "HH:MM" strings.
+  const boundary = date && pickupWindow ? leadBoundary(leadHours) : null;
+  const earliest =
+    boundary && date === boundary.date && boundary.time > pickupWindow!.opens ? boundary.time : pickupWindow?.opens;
+  const tooLate = Boolean(boundary && pickupWindow && (date < boundary.date || earliest! > pickupWindow.closes));
 
   const categories = [...new Set(items.map((i) => i.category))];
 
@@ -76,7 +103,9 @@ export function PreorderForm({
                   <li key={item.id}>
                     <label htmlFor={`qty-${item.id}`}>
                       <strong>{item.name}</strong>
-                      {item.description && <small>{item.description}</small>}
+                      {menuDescription(item, locale) && (
+                        <small lang={isUntranslated(item, locale) ? "de" : undefined}>{menuDescription(item, locale)}</small>
+                      )}
                       <span className="preorder-meta">
                         {t.per(item.preorder_unit)}
                         {item.price_label ? ` · ${item.price_label}` : ""}
@@ -131,10 +160,10 @@ export function PreorderForm({
             id="pickup_time"
             name="pickup_time"
             type="time"
-            min={pickupWindow?.opens}
+            min={earliest}
             max={pickupWindow?.closes}
             step={900}
-            disabled={!date || closed}
+            disabled={!date || closed || tooLate}
             required
           />
         </div>
@@ -142,8 +171,13 @@ export function PreorderForm({
       {date &&
         (closed ? (
           <p className="form-note">{t.closedThatDay}</p>
+        ) : tooLate ? (
+          <p className="form-note">{t.tooSoonThatDay}</p>
         ) : (
-          <p className="form-note">{t.openThatDay(fmtDate(date, locale), pickupWindow?.opens ?? "", pickupWindow?.closes ?? "")}</p>
+          <p className="form-note">
+            {t.openThatDay(fmtDate(date, locale), pickupWindow?.opens ?? "", pickupWindow?.closes ?? "")}
+            {earliest !== pickupWindow?.opens && ` ${t.earliestThatDay(earliest ?? "")}`}
+          </p>
         ))}
 
       <div>

@@ -90,7 +90,9 @@ Both only apply when a password is set or changed, so reset any older short staf
 ## Database
 
 Schema lives in [`supabase/migrations`](supabase/migrations) and is already applied to the cloud project; seed
-content is in [`supabase/seed.sql`](supabase/seed.sql). After changing the schema, regenerate the types:
+content is in [`supabase/seed.sql`](supabase/seed.sql), and the menu in
+[`supabase/seed_menu.sql`](supabase/seed_menu.sql), which runs after it on a fresh database. After changing the
+schema, regenerate the types:
 
 ```bash
 npx supabase gen types typescript --project-id iabpugtwgjqldlzjjgqj > src/lib/database.types.ts

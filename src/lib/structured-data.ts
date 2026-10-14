@@ -58,7 +58,9 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
     email: CONTACT.email,
     address: address(),
     servesCuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
+    // hasMenu is the schema.org name; Google's LocalBusiness docs still read the older `menu`.
     hasMenu: `${SITE_URL}/karte`,
+    menu: `${SITE_URL}/karte`,
     acceptsReservations: `${SITE_URL}/#reservieren`,
     currenciesAccepted: "EUR",
     sameAs: [CONTACT.instagram],

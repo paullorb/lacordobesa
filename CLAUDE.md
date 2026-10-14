@@ -26,6 +26,10 @@ supabase db push --db-url "$SUPABASE_DB_URL" --dry-run   # always look first
 supabase db push --db-url "$SUPABASE_DB_URL" --yes
 ```
 
+`<password>` goes into a URL, so **percent-encode it** if it contains `@ : / # ? %` or similar
+(`node -e 'console.log(encodeURIComponent(process.argv[1]))' '<password>'`), or copy the
+already-encoded string from the dashboard. A raw `@` silently changes the host and the push fails.
+
 The project ref is `iabpugtwgjqldlzjjgqj`. There is still no `supabase/config.toml`, and with
 `--db-url` you do not need one.
 

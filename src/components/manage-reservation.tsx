@@ -27,8 +27,13 @@ export function ManageReservation({
   const [moveState, moveAction, moving] = useActionState(moveReservation, null);
 
   const [date, setDate] = useState("");
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [daySlots, setDaySlots] = useState<Slot[]>([]);
   const [time, setTime] = useState("");
+  // The party the guest is moving to, which may differ from the one booked. Kept as typed, so the
+  // field can be cleared mid-edit; the slot filter reads it as a number.
+  const [party, setParty] = useState(String(reservation.partySize));
+  const partySize = Math.max(1, Number(party) || reservation.partySize);
+  const slots = daySlots.filter((s) => s.seatsLeft >= partySize);
   const [loading, startLoading] = useTransition();
 
   // The booking the server last told us about. After a successful move the old summary is stale, so the
@@ -42,10 +47,10 @@ export function ManageReservation({
   function chooseDate(value: string) {
     setDate(value);
     setTime("");
-    setSlots([]);
+    setDaySlots([]);
     startLoading(async () => {
       const result = await getAvailability(value);
-      setSlots(result.slots.filter((s) => s.seatsLeft >= reservation.partySize));
+      setDaySlots(result.slots);
     });
   }
 
@@ -136,7 +141,7 @@ export function ManageReservation({
                     ) : (
                       <p className="manage-hint">
                         {t.nothingFree(
-                          `${reservation.partySize} ${reservation.partySize === 1 ? getDictionary(locale).reservation.person : getDictionary(locale).reservation.people}`,
+                          `${partySize} ${partySize === 1 ? getDictionary(locale).reservation.person : getDictionary(locale).reservation.people}`,
                         )}
                       </p>
                     )}
@@ -152,7 +157,13 @@ export function ManageReservation({
                   type="number"
                   min={1}
                   max={maxPartySize}
-                  defaultValue={reservation.partySize}
+                  value={party}
+                  onChange={(e) => {
+                    setParty(e.target.value);
+                    // A time picked for the old party may not fit the new one.
+                    const next = Math.max(1, Number(e.target.value) || reservation.partySize);
+                    if (time && !daySlots.some((s) => s.time === time && s.seatsLeft >= next)) setTime("");
+                  }}
                   required
                 />
 

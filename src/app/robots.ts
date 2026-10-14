@@ -18,7 +18,16 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/staff", "/reservierung/", "/vorbestellung/", "/abmelden/"],
+        disallow: [
+          "/staff",
+          "/reservierung/",
+          "/vorbestellung/",
+          "/abmelden/",
+          // Rules match from the start of the path, so the Spanish token pages need their own.
+          "/es/reservierung/",
+          "/es/vorbestellung/",
+          "/es/abmelden/",
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

@@ -21,6 +21,12 @@ export function UnsubscribeButton({ locale, token }: { locale: Locale; token: st
   return (
     <form action={formAction}>
       <input type="hidden" name="token" value={token} />
+      <input type="hidden" name="locale" value={locale} />
+      {state?.ok === false && (
+        <p className="form-error" role="alert">
+          {state.error}
+        </p>
+      )}
       <button type="submit" className="button" disabled={pending}>
         {pending ? t.submitting : t.submit}
       </button>

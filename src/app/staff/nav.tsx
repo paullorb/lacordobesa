@@ -51,7 +51,9 @@ export function StaffNav() {
             <Link
               key={g.label}
               href={g.items[0].href}
-              aria-current={active ? "page" : undefined}
+              // "page" only where the link leads to the page itself. On /staff/warteliste the Gäste
+              // tab leads elsewhere, and the sub-nav's Warteliste link is the one that is the page.
+              aria-current={active ? (isActive(pathname, g.items[0].href) ? "page" : "true") : undefined}
               className={`${pill} ${active ? "bg-ink text-white" : "text-ink hover:bg-mint"}`}
             >
               {g.label}

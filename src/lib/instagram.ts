@@ -28,6 +28,12 @@ type ApiPost = {
   permalink: string;
 };
 
+/** Meta retires each Graph API version about two years after release (v21 goes on 2027-01-21), and
+ *  a dead version fails quietly here: the feed just falls back to gallery photos. v26.0 shipped on
+ *  2026-07-29; bump it when Meta announces its end date, or override it without a deploy through
+ *  INSTAGRAM_GRAPH_VERSION. */
+const GRAPH_VERSION = process.env.INSTAGRAM_GRAPH_VERSION ?? "v26.0";
+
 export const instagramConfigured = () =>
   Boolean(process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_USER_ID);
 
@@ -41,7 +47,7 @@ export async function getInstagramPosts(limit = 6): Promise<InstagramPost[]> {
   if (!token || !userId) return [];
 
   try {
-    const url = new URL(`https://graph.instagram.com/v21.0/${userId}/media`);
+    const url = new URL(`https://graph.instagram.com/${GRAPH_VERSION}/${userId}/media`);
     url.searchParams.set("fields", FIELDS);
     url.searchParams.set("limit", String(limit));
     url.searchParams.set("access_token", token);

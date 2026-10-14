@@ -18,6 +18,7 @@ import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
+import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
@@ -27,6 +28,7 @@ import {
   getMenu,
   getOpeningHours,
   getReservationSettings,
+  getUpcomingClosures,
 } from "@/lib/data";
 import { getInstagramPosts } from "@/lib/instagram";
 
@@ -43,11 +45,12 @@ const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, menu, specials, hours, reservation, photos, instagram] = await Promise.all([
+  const [announcement, menu, specials, hours, closures, reservation, photos, instagram] = await Promise.all([
     getAnnouncement(),
     getMenu(),
     getActiveSpecials(),
     getOpeningHours(),
+    getUpcomingClosures(),
     getReservationSettings(),
     getHomePhotos(),
     getInstagramPosts(),
@@ -104,7 +107,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             </div>
           </div>
           <div className="hero-note">
-            <OpenStatus hours={openingHours} locale={locale} />
+            <OpenStatus hours={openingHours} closures={closures} locale={locale} />
             <Logo />
           </div>
         </section>
@@ -200,7 +203,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
                       {item.name}
                       {item.subtitle && <span>{item.subtitle}</span>}
                     </h3>
-                    {item.description && <p>{item.description}</p>}
+                    {menuDescription(item, locale) && (
+                      <p lang={isUntranslated(item, locale) ? "de" : undefined}>{menuDescription(item, locale)}</p>
+                    )}
                   </div>
                   {item.price_label && <span className="price">{item.price_label}</span>}
                   {/* Crimped shut on hover, the way the dish itself is finished. */}
@@ -300,7 +305,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                   </span>
                   <div>
                     <small>{t.visitHours}</small>
-                    <OpenStatus hours={openingHours} locale={locale} className="open-status-inline" />
+                    <OpenStatus hours={openingHours} closures={closures} locale={locale} className="open-status-inline" />
                     <div className="hours">
                       {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
                         const h = hours.find((x) => x.weekday === wd);

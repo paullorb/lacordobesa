@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { getReservationByToken } from "@/app/reservierung/actions";
 import { ManageReservation } from "@/components/manage-reservation";
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { TokenSiteHeader } from "@/components/token-site-header";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { getReservationSettings } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
@@ -26,7 +26,7 @@ export function ManageReservationView({
       {/* SiteHeader reads usePathname() to decide how to link its in-page anchors, which is URL data
           and so needs its own boundary on a dynamic route. */}
       <Suspense fallback={null}>
-        <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
+        <TokenSiteHeader locale={locale} basePath={MANAGE_PATH} params={params} />
       </Suspense>
       <main id="main">
         <section className="section">

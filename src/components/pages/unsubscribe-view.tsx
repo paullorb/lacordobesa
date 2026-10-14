@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { UnsubscribeButton } from "@/components/unsubscribe-button";
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { CONTACT, whatsappHref } from "@/lib/contact";
+import { TokenSiteHeader } from "@/components/token-site-header";
+import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 
@@ -23,7 +23,7 @@ export function UnsubscribeView({
   return (
     <div className="site">
       <Suspense fallback={null}>
-        <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
+        <TokenSiteHeader locale={locale} basePath={UNSUBSCRIBE_PATH} params={params} />
       </Suspense>
       <main id="main">
         <section className="section">

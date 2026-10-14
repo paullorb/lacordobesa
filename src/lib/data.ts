@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
-import { todayISO } from "@/lib/dates";
+import { addDays, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
 
 /** Cache tags, invalidated by the staff actions with updateTag(). */
@@ -99,6 +99,16 @@ export async function getClosures(from: string, to: string): Promise<string[]> {
   const supabase = createPublicClient();
   const { data } = await supabase.from("closures").select("date").gte("date", from).lte("date", to).order("date");
   return (data ?? []).map((c) => c.date);
+}
+
+/** Closures around the next fortnight, for the open-now line. Starts a day back because "today" is
+ *  baked into the cached entry, and the browser decides which of these dates is today. */
+export async function getUpcomingClosures(): Promise<string[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.hours);
+  const today = todayISO();
+  return getClosures(addDays(today, -1), addDays(today, 14));
 }
 
 export async function getReservationSettings(): Promise<ReservationSettings> {

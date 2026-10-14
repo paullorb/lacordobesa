@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { getPreorderByToken } from "@/app/vorbestellen/actions";
 import { ManagePreorder } from "@/components/manage-preorder";
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { TokenSiteHeader } from "@/components/token-site-header";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
@@ -22,7 +22,7 @@ export function ManagePreorderView({
   return (
     <div className="site">
       <Suspense fallback={null}>
-        <SiteHeader whatsappHref={whatsappHref()} locale={locale} path="/" />
+        <TokenSiteHeader locale={locale} basePath={MANAGE_PREORDER_PATH} params={params} />
       </Suspense>
       <main id="main">
         <section className="section">

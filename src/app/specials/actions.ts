@@ -43,15 +43,17 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   return { ok: true };
 }
 
-export type UnsubscribeState = { ok: true } | null;
+export type UnsubscribeState = { ok: true } | { ok: false; error: string } | null;
 
-/** Withdrawing consent. Always reports success: the RPC is idempotent and deliberately says nothing
- *  about whether the token was ever valid, so this page cannot be used to probe the list. */
+/** Withdrawing consent. Reports success for any token, valid or not: the RPC is idempotent and
+ *  deliberately says nothing about whether the token was ever valid, so this page cannot be used to
+ *  probe the list. Only a failed call is an error, because then the guest is still on the list. */
 export async function unsubscribeFromSpecials(_prev: UnsubscribeState, formData: FormData): Promise<UnsubscribeState> {
   const token = String(formData.get("token") ?? "");
   if (isManageToken(token)) {
     const supabase = createPublicClient();
-    await supabase.rpc("unsubscribe_broadcast", { p_token: token });
+    const { error } = await supabase.rpc("unsubscribe_broadcast", { p_token: token });
+    if (error) return { ok: false, error: getDictionary(formLocale(formData)).formErrors.generic };
   }
   return { ok: true };
 }
