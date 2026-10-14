@@ -79,6 +79,45 @@ the staff. Audits keep flagging the LMIV duty as a gap. It was built once (migra
 `20261012093136`), never filled in, and removed by owner decision on 2026-10-13
 (`20261012222037_drop_menu_allergens.sql`). Do not raise it again unless the owner asks.
 
+# Staging is the default target, production is not
+
+There are two Supabase projects: `lacordobesa` (`iabpugtwgjqldlzjjgqj`, live) and `lacordobesa-staging`
+(`yfcpqyxonzjuflsqhasz`, created 2026-10-14). `.env.local` points at **staging**, and
+`src/lib/supabase/env.ts` throws if anything tries to query production while `VERCEL_ENV` is not
+`production`. So `npm run dev`, Playwright and any form you submit while testing land in staging.
+
+**Do not repoint `.env.local` at production to "see real data".** Reads look harmless and the writes are
+not: a few test reservations spend the site-wide quota in `request_reservation` (15/hour, 80/24 h) and hold
+seats, which turns real guests away. If you truly need live data for one command, prefix it with
+`ALLOW_PRODUCTION_DB=1` rather than editing `.env.local`.
+
+Credentials for staging (db password and URL, keys, the `paul` staff login) are in `.env.staging.local` in
+the repo root: gitignored, mode 600, not loaded by Next.js. Apply a migration to staging first, then
+production:
+
+```bash
+set -a && . ./.env.staging.local && set +a
+supabase db push --db-url "$STAGING_DB_URL" --yes    # staging
+supabase db push --db-url "$SUPABASE_DB_URL" --yes   # production, from .env.local
+```
+
+## Vercel: previews do not build, and never PATCH an env var's type
+
+Preview builds are switched off in the project's Ignored Build Step (`if [ "$VERCEL_ENV" = "production" ];
+then exit 1; else exit 0; fi`, where exit 0 means skip). Build minutes are scarce and nobody reviews
+previews, so do not re-enable them or expect a preview URL on a pull request.
+
+Two traps in `vercel env`, both hit on 2026-10-14:
+
+- **`PATCH /v10/projects/{id}/env/{envId}` with `{"type":"plain"}` and no `value` writes the stored
+  ciphertext back as the plaintext value.** Both production Supabase variables ended up holding a
+  1100-character base64 blob, which the next production deployment would have shipped. There is no
+  in-place way to change a variable's type: delete it and create it again with its value.
+- `vercel env add <name> preview` cannot complete non-interactively (it insists on a branch answer, and
+  `--yes` does not settle it). Use `vercel api "/v10/projects/{id}/env?teamId=..." --method POST` with a
+  body file instead. `production` and `development` work fine through the CLI, reading the value from stdin
+  so it never lands in a command line.
+
 # Several agent sessions share this one checkout
 
 There are usually a handful of Claude sessions open on this directory at once, and there are
