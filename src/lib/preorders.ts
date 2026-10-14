@@ -63,15 +63,14 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   cacheTag(TAG.content);
   const supabase = createPublicClient();
   const { data, error } = await supabase
-    .from("menu_items")
-    .select("id, name, description, description_es, price_label, preorder_unit, menu_categories(label, sort_order)")
+    .from("menu_items_public")
+    .select("id, name, description, description_es, price_label, preorder_unit, category_label")
     .eq("is_preorderable", true)
-    .eq("is_available", true)
     .order("sort_order");
   if (error) return [];
   return (data ?? []).map((i) => {
-    const { menu_categories, ...item } = i as typeof i & { menu_categories: { label: string } | null };
-    return { ...item, category: menu_categories?.label ?? "Weitere" };
+    const { category_label, ...item } = i;
+    return { ...item, category: category_label ?? "Weitere" } as PreorderableItem;
   });
 }
 

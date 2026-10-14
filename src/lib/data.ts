@@ -42,7 +42,7 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
   const supabase = createPublicClient();
   const [{ data: categories }, { data: items }] = await Promise.all([
     supabase.from("menu_categories").select("*").order("sort_order"),
-    supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
+    supabase.from("menu_items_public").select("*").order("sort_order"),
   ]);
   return (categories ?? []).map((c) => ({
     ...c,
@@ -50,6 +50,7 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
     // prices visible if the show_prices column doesn't exist yet (migration 0008).
     items: (items ?? [])
       .filter((i) => i.category_id === c.id)
+      .map((i) => i as Tables<"menu_items">)
       .map((i) => (c.show_prices !== false ? i : { ...i, price_label: null })),
   }));
 }
