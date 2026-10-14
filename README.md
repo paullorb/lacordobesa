@@ -161,15 +161,18 @@ How reservations work:
   checks, the capacity check and the insert all run under one site-wide advisory lock (0009), so a concurrent burst
   cannot slip past the counts. Guest moves (`move_reservation_by_token`) take the same lock since `20261012215040`.
   Tune the constants at the top of the function.
-- Per-visitor limits sit in front of every public form (`src/lib/public-forms.ts`, migration `20261012215042`). The
-  phone limits alone do not stop a script that rotates numbers: it fills the evenings with fake pending bookings and
-  then trips the site-wide cap, which turns real guests away. The Server Actions hash the visitor's address (keyed
-  SHA-256, kept 24 h) and take a unit from `take_request_quota` before calling the RPC. This needs
-  `SUPABASE_SECRET_KEY` on the server; without it the forms run on the publishable key with no per-visitor limit.
-- The limit only binds once the form RPCs stop accepting the publishable key, since that key ships in every
-  browser and a script can call the RPCs directly. Revoking anon is a separate migration, to be applied only after
-  `SUPABASE_SECRET_KEY` is set in Vercel and deployed; applying it earlier breaks every public form. There is no
-  Vercel firewall rule in front of the forms.
+- Per-visitor limits sit in front of every public form (`src/lib/public-forms.ts`, migrations `20261012215042` and
+  `20261014072715`). The phone limits alone do not stop a script that rotates numbers: it fills the evenings with
+  fake pending bookings and then trips the site-wide cap, which turns real guests away. The Server Actions hash the
+  visitor's address (keyed SHA-256, kept 24 h) and take a unit from `take_request_quota` before calling the RPC.
+- The limit binds because the five form RPCs no longer accept the publishable key. That key ships in every browser,
+  so until `20261014072715` a script could call `request_reservation` and its siblings directly and never pass the
+  quota; now they are granted to `service_role` only and anon gets `permission denied for function`. What anon still
+  reaches on purpose: `reservation_availability` (read-only, feeds the date picker under `use cache`) and the
+  manage-link RPCs, where the guest's token is the credential. There is no Vercel firewall rule in front of the forms.
+- **`SUPABASE_SECRET_KEY` is therefore required, not optional.** Without it `createPrivilegedClient()` throws and
+  every public form fails to submit; it no longer degrades to "no per-visitor limit". It is set for `production` in
+  Vercel and for local work in `.env.local` (pointing at staging). A new environment needs it before the forms work.
 - Staff confirm/cancel in the staff area; the WhatsApp button pre-fills a confirmation message that includes the
   guest's own management link.
 - Guests manage their booking at `/reservierung/<manage_token>`: cancel it, or move it to another slot (at most three
