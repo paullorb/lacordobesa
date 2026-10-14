@@ -2,24 +2,40 @@ import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
 
 import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
-import { fmtDateDE } from "@/lib/dates";
+import { fmtDate, fmtDateDE } from "@/lib/dates";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { preorderUrl } from "@/lib/site";
 import { type PreorderWithLines } from "@/lib/preorders";
 import { PREORDER_STATUS_LABEL } from "@/lib/statuses";
 
 export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
   const lines = [...o.preorder_lines].sort((a, b) => a.label.localeCompare(b.label, "de"));
-  const guestLink = preorderUrl(o.manage_token);
-  const confirmText = [
-    `Hola ${o.name}! Deine Vorbestellung bei La Cordobesa ist bestätigt:`,
-    ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
-    "",
-    `Abholung am ${fmtDateDE(o.pickup_date, { weekday: undefined })} um ${fmtTime(o.pickup_time)} Uhr. Bezahlt wird bei der Abholung.`,
-    "",
-    `Status jederzeit hier: ${guestLink}`,
-    "",
-    "¡Hasta pronto!",
-  ].join("\n");
+  // The guest's own language, for the link and the WhatsApp text they get back.
+  const locale = isLocale(o.locale) ? o.locale : DEFAULT_LOCALE;
+  const guestLink = preorderUrl(o.manage_token, locale);
+  const confirmText = (
+    locale === "es"
+      ? [
+          `¡Hola ${o.name}! Tu pedido en La Cordobesa está confirmado:`,
+          ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          "",
+          `Retiro el ${fmtDate(o.pickup_date, "es", { weekday: undefined })} a las ${fmtTime(o.pickup_time)}. Se paga al retirar.`,
+          "",
+          `El estado, en todo momento acá: ${guestLink}`,
+          "",
+          "¡Hasta pronto!",
+        ]
+      : [
+          `Hola ${o.name}! Deine Vorbestellung bei La Cordobesa ist bestätigt:`,
+          ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          "",
+          `Abholung am ${fmtDateDE(o.pickup_date, { weekday: undefined })} um ${fmtTime(o.pickup_time)} Uhr. Bezahlt wird bei der Abholung.`,
+          "",
+          `Status jederzeit hier: ${guestLink}`,
+          "",
+          "¡Hasta pronto!",
+        ]
+  ).join("\n");
 
   return (
     <article className="card grid gap-3">
@@ -29,6 +45,11 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             <strong className="font-serif text-xl">{fmtTime(o.pickup_time)}</strong>
             <span className={`status status-${o.status}`}>{PREORDER_STATUS_LABEL[o.status]}</span>
             {o.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
+            {locale === "es" && (
+              <span className="status bg-amber-50 text-amber-800" title="Auf Spanisch bestellt: der Link ist spanisch">
+                ES
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted">{fmtDateDE(o.pickup_date)}</div>
           <div className="mt-1 font-semibold">{o.name}</div>

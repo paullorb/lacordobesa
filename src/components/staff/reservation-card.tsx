@@ -2,18 +2,28 @@ import { resendConfirmation, setReservationStatus, saveStaffNotes } from "@/app/
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
-import { fmtDateDE } from "@/lib/dates";
+import { fmtDate, fmtDateDE } from "@/lib/dates";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { manageUrl } from "@/lib/site";
 import { RESERVATION_STATUS_LABEL } from "@/lib/statuses";
 import type { Tables } from "@/lib/database.types";
 
 export function ReservationCard({ r, showDate = false }: { r: Tables<"reservations">; showDate?: boolean }) {
+  // The guest's own language, for the link and the WhatsApp text they get back.
+  const locale = isLocale(r.locale) ? r.locale : DEFAULT_LOCALE;
   // manage_token arrives with migration 20261012093558; before that there is no guest link to share.
-  const guestLink = r.manage_token ? manageUrl(r.manage_token) : null;
-  const confirmText = [
-    `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
-    guestLink && `Falls du absagen oder verschieben musst: ${guestLink}`,
-  ]
+  const guestLink = r.manage_token ? manageUrl(r.manage_token, locale) : null;
+  const confirmText = (
+    locale === "es"
+      ? [
+          `¡Hola ${r.name}! Tu reserva en La Cordobesa el ${fmtDate(r.date, "es", { weekday: undefined })} a las ${fmtTime(r.start_time)} para ${r.party_size} ${r.party_size === 1 ? "persona" : "personas"} está confirmada. ¡Hasta pronto!`,
+          guestLink && `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
+        ]
+      : [
+          `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
+          guestLink && `Falls du absagen oder verschieben musst: ${guestLink}`,
+        ]
+  )
     .filter(Boolean)
     .join("\n\n");
 
@@ -28,6 +38,11 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
             </span>
             <span className={`status status-${r.status}`}>{RESERVATION_STATUS_LABEL[r.status]}</span>
             {r.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
+            {locale === "es" && (
+              <span className="status bg-amber-50 text-amber-800" title="Auf Spanisch gebucht: E-Mail und Link sind spanisch">
+                ES
+              </span>
+            )}
           </div>
           {showDate && <div className="text-xs text-muted">{fmtDateDE(r.date)}</div>}
           <div className="mt-1 font-semibold">{r.name}</div>

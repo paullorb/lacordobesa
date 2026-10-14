@@ -1,7 +1,7 @@
 "use server";
 
 import { addDays, isISODate, isTime } from "@/lib/dates";
-import { formErrors } from "@/lib/form-errors";
+import { formErrors, formLocale } from "@/lib/form-errors";
 import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
@@ -95,6 +95,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
     p_date: date,
     p_time: time,
     p_notes: notes || undefined,
+    // So the confirmation e-mail and its management link come back in the language they booked in.
+    p_locale: formLocale(formData),
   });
   if (error) return { ok: false, error: errorFor(error.message), retryTime: RETRY_TIME.has(error.message) };
   return { ok: true, id: data };
