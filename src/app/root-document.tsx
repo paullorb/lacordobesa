@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
-import { SITE_URL } from "@/lib/site";
+import { OG_IMAGE, SITE_URL } from "@/lib/site";
 
 // Self-hosted at build time, so no request goes to Google Fonts from the visitor's browser.
 // Declared once here rather than in each root layout, so both groups load the same two files.
@@ -49,7 +49,7 @@ export function rootMetadata(locale: Locale): Metadata {
     openGraph: {
       title: t.title,
       description: t.description,
-      images: ["/assets/hero-pasteleria.jpg"],
+      images: [OG_IMAGE],
       locale: OG_LOCALE[locale],
       type: "website",
     },

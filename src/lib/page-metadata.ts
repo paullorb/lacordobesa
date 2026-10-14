@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@/lib/dictionaries";
+import { OG_IMAGE } from "@/lib/site";
 import { alternates, localeHref, OG_LOCALE, type Locale } from "@/lib/i18n";
 
 /** Metadata for one public page in one locale.
@@ -21,7 +22,7 @@ export function pageMetadata(
     title: path === "/" ? { absolute: title } : title,
     description,
     alternates: { canonical: localeHref(locale, path), languages: alternates(path) },
-    openGraph: { title, description, locale: OG_LOCALE[locale], type: "website" },
+    openGraph: { title, description, images: [OG_IMAGE], locale: OG_LOCALE[locale], type: "website" },
   };
 }
 
