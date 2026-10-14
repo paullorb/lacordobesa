@@ -203,6 +203,15 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .craft-art figcaption { margin-top: 1.4rem; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: #b5e3f4; }
 .visit { display: grid; grid-template-columns: .95fr 1.05fr; gap: 4rem; align-items: start; }
 .visit-intro { color: var(--muted); line-height: 1.8; font-size: var(--fs-base); }
+.reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+.reviews-copy p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
+.reviews-list { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.review-card { display: grid; gap: .35rem; padding: 1.5rem 1.75rem; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
+.review-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.review-card strong { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 600; }
+.review-score { font-size: var(--fs-lg); font-weight: 700; color: var(--coral); }
+.review-open { font-size: var(--fs-sm); font-weight: 700; color: var(--blue-dark); }
+@media (prefers-reduced-motion: reduce) { .review-card { transition: none; } .review-card:hover { transform: none; } }
 .visit-card { padding: 2.4rem; background: var(--paper); border: 1px solid var(--line); }
 .visit-card h3 { margin: 0 0 1.5rem; font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 500; }
 .contact-row { display: grid; grid-template-columns: 38px 1fr; gap: .9rem; padding: 1rem 0; border-top: 1px solid var(--line); align-items: start; }
@@ -514,7 +523,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .menu-section { padding: 82px 20px; }
   .menu-grid { grid-template-columns: 1fr 1fr; }
   .menu-card:nth-child(n) { margin-top: 0; }
-  .craft-grid, .visit { grid-template-columns: 1fr; gap: 2.5rem; }
+  .craft-grid, .visit, .reviews { grid-template-columns: 1fr; gap: 2.5rem; }
   /* minmax(0, …): a plain 1fr cannot shrink below its longest unbreakable line (the email address),
      which pushed the visit section 13px past a phone screen and made the browser zoom the page out. */
   .visit { grid-template-columns: minmax(0, 1fr); }
