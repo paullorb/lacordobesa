@@ -85,8 +85,9 @@ begin
   end if;
 
   -- One dish, one line. Lines are checked one at a time below, so a repeated item_id would add up
-  -- past max_quantity and count as several dishes. The form never sends duplicates.
-  if (select count(distinct l->>'item_id') from jsonb_array_elements(p_lines) l) <> jsonb_array_length(p_lines) then
+  -- past max_quantity and count as several dishes. The form never sends duplicates. Compared as
+  -- uuid, not as text: 'ABC...' and 'abc...' are two strings but the same dish.
+  if (select count(distinct (l->>'item_id')::uuid) from jsonb_array_elements(p_lines) l) <> jsonb_array_length(p_lines) then
     raise exception 'invalid_quantity' using errcode = 'P0001';
   end if;
 
