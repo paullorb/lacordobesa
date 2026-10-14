@@ -19,6 +19,7 @@ import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
+import { REVIEWS } from "@/lib/reviews";
 import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
@@ -240,6 +241,27 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <figcaption>{t.craftTag}</figcaption>
             </figure>
           </div>
+        </section>
+
+        <section className="section reviews" aria-labelledby="reviews-title">
+          <div className="reviews-copy">
+            <p className="eyebrow">{t.reviewsEyebrow}</p>
+            <h2 id="reviews-title">{t.reviewsTitle}</h2>
+            <p>{t.reviewsText}</p>
+          </div>
+          <ul className="reviews-list">
+            {REVIEWS.map((r) => (
+              <li key={r.name}>
+                <a className="review-card" href={r.url} target="_blank" rel="noreferrer">
+                  <strong>{r.name}</strong>
+                  {r.score && <span className="review-score">{t.reviewsScore(r.score.value, r.score.scale, r.score.count)}</span>}
+                  <span className="review-open">
+                    {t.reviewsOpen} <span aria-hidden="true">↗</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="reserve-section" id="reservieren">

@@ -2,11 +2,12 @@
  *
  *  Google reads this to show opening hours, the address and a menu link directly in the
  *  search result. Everything here must therefore be true: a guessed coordinate or a wrong
- *  closing time is worse than leaving the property out, so optional facts we don't have
- *  (geo, priceRange) are simply omitted until someone fills them in. */
+ *  closing time is worse than leaving the property out, so optional facts we don't have are
+ *  simply omitted until someone fills them in. */
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
+import { REVIEWS } from "@/lib/reviews";
 import { SITE_URL } from "@/lib/site";
 
 /** schema.org expects the English day names; opening_hours.weekday is 0 = Sunday. */
@@ -57,13 +58,16 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
     telephone: CONTACT.phoneE164,
     email: CONTACT.email,
     address: address(),
+    // Google's own pin for the listing; OpenStreetMap puts the building within 5 m of it.
+    geo: { "@type": "GeoCoordinates", latitude: 50.13793, longitude: 8.63912 },
+    priceRange: "€€",
     servesCuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
     // hasMenu is the schema.org name; Google's LocalBusiness docs still read the older `menu`.
     hasMenu: `${SITE_URL}/karte`,
     menu: `${SITE_URL}/karte`,
     acceptsReservations: `${SITE_URL}/#reservieren`,
     currenciesAccepted: "EUR",
-    sameAs: [CONTACT.instagram],
+    sameAs: [CONTACT.instagram, ...REVIEWS.map((r) => r.url)],
     hasMap: CONTACT.mapsUrl,
     openingHoursSpecification: openingHours(hours),
   };
