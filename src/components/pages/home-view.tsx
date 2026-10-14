@@ -378,19 +378,24 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </div>
               </div>
             </div>
-            <a className="visit-photo" href={CONTACT.instagram} target="_blank" rel="noreferrer" aria-label={t.instagramAria}>
-              <Image
-                src={photos.hero?.image_url ?? "/assets/hero-pasteleria.jpg"}
-                alt={
-                  photos.hero?.caption ?? (photos.hero ? t.galleryPhotoAlt : t.heroPhotoAlt)
-                }
-                fill
-                sizes="(max-width: 800px) 100vw, 55vw"
-              />
-              <span className="photo-caption inline-icon">
-                <InstagramIcon size={15} /> {t.photoCaption} · {CONTACT.instagramHandle}
-              </span>
-            </a>
+            {/* The wrapper is the grid cell and stretches to the contact card beside it; the photo
+                inside is shorter and sticky, so it rides along as the card is read instead of
+                leaving half a column of empty cream under it. */}
+            <div className="visit-media">
+              <a className="visit-photo" href={CONTACT.instagram} target="_blank" rel="noreferrer" aria-label={t.instagramAria}>
+                <Image
+                  src={photos.hero?.image_url ?? "/assets/hero-pasteleria.jpg"}
+                  alt={
+                    photos.hero?.caption ?? (photos.hero ? t.galleryPhotoAlt : t.heroPhotoAlt)
+                  }
+                  fill
+                  sizes="(max-width: 800px) 100vw, 55vw"
+                />
+                <span className="photo-caption inline-icon">
+                  <InstagramIcon size={15} /> {t.photoCaption} · {CONTACT.instagramHandle}
+                </span>
+              </a>
+            </div>
           </div>
           <VenueMap
             locale={locale}
