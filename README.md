@@ -48,7 +48,8 @@ back is mechanical: `LOCALES` in [`src/lib/i18n.ts`](src/lib/i18n.ts), a diction
 ## Stack
 
 - [Next.js 16](https://nextjs.org) (App Router, Cache Components) + Tailwind v4
-- [Supabase](https://supabase.com) — Postgres, Row Level Security, Auth (project `lacordobesa`, eu-central-1)
+- [Supabase](https://supabase.com) — Postgres, Row Level Security, Auth (projects `lacordobesa` and
+  `lacordobesa-staging`, both eu-central-1; see *Environments*)
 - Deployed on Vercel
 
 ## Run locally
@@ -60,6 +61,55 @@ npm run dev
 ```
 
 Open http://localhost:3000. The staff area is at http://localhost:3000/staff.
+
+Point `.env.local` at the **staging** project, not the live one. See *Environments* right below: the app now
+refuses to start a query against production outside the production deployment, so a copied-from-prod
+`.env.local` fails on the first page load with an explanation rather than booking real tables.
+
+## Environments
+
+Two Supabase projects. The rule is that only the production deployment on Vercel ever talks to the
+production one.
+
+| | Supabase project | Who uses it |
+| --- | --- | --- |
+| Production | `lacordobesa` (`iabpugtwgjqldlzjjgqj`) | the deployment built from `main`, and nothing else |
+| Staging | `lacordobesa-staging` (`yfcpqyxonzjuflsqhasz`) | `npm run dev`, Playwright, agent sessions, anything exploratory |
+
+Until 2026-10-14 there was only the first one, and it was set for `production`, `preview` *and* `development`
+in Vercel as well as in every `.env.local`. So local development, every preview deployment and every agent
+session wrote into the live database. The damage is not stray rows: a test burst spends the site-wide quota
+inside `request_reservation` (15/hour, 80/24 h) and holds seats in `reservation_availability`, so submitting
+the reservation form twenty times to see whether it works can turn a real guest away.
+
+[`src/lib/supabase/env.ts`](src/lib/supabase/env.ts) is what keeps the split in place: it refuses to build a
+Supabase client against the production project unless `VERCEL_ENV=production`. A wrong `.env.local` now fails
+loudly on the first query. To reach live data on purpose (a one-off script, reproducing something that only
+exists in real data), set `ALLOW_PRODUCTION_DB=1` for that one command.
+
+Staging is not a fixture: it was built with `supabase db push` from [`supabase/migrations`](supabase/migrations)
+plus `seed.sql` and `seed_menu.sql`, which is also the only check that those files can stand a database up from
+nothing. Reset or re-seed it as roughly as you like. A schema change belongs in both, staging first:
+
+```bash
+supabase db push --db-url "$STAGING_DB_URL" --yes   # staging, from .env.staging.local
+supabase db push --db-url "$SUPABASE_DB_URL" --yes  # production, once it looks right
+```
+
+Staff login on staging is the user `paul`; its password, the project's keys and `STAGING_DB_URL` live in
+`.env.staging.local` (gitignored, on the owner's machine only). Staging has its own auth users, so a production
+password is never usable there. "Allow new users to sign up" is left at the Supabase default on staging, which
+is harmless because the allowlist in `public.staff` is what grants access, not having an account.
+
+**Vercel only builds production.** Preview builds are switched off in the project's Ignored Build Step:
+
+```sh
+if [ "$VERCEL_ENV" = "production" ]; then exit 1; else exit 0; fi
+```
+
+(exit 0 means "skip this build"). Branches and pull requests still get a deployment entry, it is just skipped
+before any build minutes are spent, since nobody reviews previews here. The `preview` environment variables
+point at staging regardless, so turning previews back on cannot reach production either.
 
 ## Staff accounts
 

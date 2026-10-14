@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { supabaseUrl } from "@/lib/supabase/env";
 
 /** Client on the project's secret key, for the public form Server Actions only.
  *
@@ -15,7 +16,7 @@ import type { Database } from "@/lib/database.types";
 export function createPrivilegedClient() {
   const key = process.env.SUPABASE_SECRET_KEY;
   if (!key) return null;
-  return createSupabaseClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+  return createSupabaseClient<Database>(supabaseUrl(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

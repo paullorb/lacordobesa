@@ -47,3 +47,6 @@ next-env.d.ts
 # Screenshots from `npm run shots`
 .shots/
 .audit/
+
+# Supabase CLI scratch state (linked project, versions)
+supabase/.temp/
