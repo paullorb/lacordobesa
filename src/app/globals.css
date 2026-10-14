@@ -252,6 +252,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .review-card:hover { border-color: var(--blue); transform: translateY(-2px); }
 .review-card strong { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 600; }
 .review-score { font-size: var(--fs-lg); font-weight: 700; color: var(--coral); }
+.review-checked { font-size: var(--fs-sm); color: var(--muted); }
 .review-open { font-size: var(--fs-sm); font-weight: 700; color: var(--blue-dark); }
 @media (prefers-reduced-motion: reduce) { .review-card { transition: none; } .review-card:hover { transform: none; } }
 .visit-card { padding: 2.4rem; background: var(--paper); border: 1px solid var(--line); }

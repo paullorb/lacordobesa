@@ -17,7 +17,7 @@ import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
-import { localeHref, type Locale } from "@/lib/i18n";
+import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { REVIEWS } from "@/lib/reviews";
 import { restaurantJsonLd } from "@/lib/structured-data";
@@ -255,6 +255,16 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 <a className="review-card" href={r.url} target="_blank" rel="noreferrer">
                   <strong>{r.name}</strong>
                   {r.score && <span className="review-score">{t.reviewsScore(r.score.value, r.score.scale, r.score.count)}</span>}
+                  {/* The score is a hand-copied snapshot, so say when it was read rather than pass it off as live. */}
+                  {r.score && r.checked && (
+                    <span className="review-checked">
+                      {t.reviewsAsOf(
+                        new Intl.DateTimeFormat(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
+                          new Date(`${r.checked}T00:00:00Z`),
+                        ),
+                      )}
+                    </span>
+                  )}
                   <span className="review-open">
                     {t.reviewsOpen} <span aria-hidden="true">↗</span>
                   </span>
