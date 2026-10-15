@@ -118,6 +118,9 @@ function Tracker() {
   // web-vitals reports LCP, CLS and INP from a capture-phase `visibilitychange` listener on window,
   // which runs before this one on document, so the batch already holds them. Not `pagehide`: an
   // unload fires it before `visibilitychange`, so a flush there would send the view in two halves.
+  // A tab that comes back and produces more events sends them in a later request, on purpose:
+  // queueing a second pageview on return would count the same visit twice, and the counters are
+  // per event, so a click needs no pageview beside it in the same request.
   useEffect(() => {
     function onVisibilityChange() {
       if (document.visibilityState === "hidden") flush();

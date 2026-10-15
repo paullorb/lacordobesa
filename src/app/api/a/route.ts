@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
   // as the form quotas in src/lib/public-forms.ts. It is used as an in-memory key and never stored.
   const trusted = process.env.VERCEL === "1" || process.env.NODE_ENV === "development";
   const address = trusted ? (h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null) : null;
+  // Admission first, before the body is read, so a limited address cannot keep the server parsing
+  // junk for free: every request costs one event. A valid batch pays for the rest of its events
+  // below, so a batch still costs what the single beacons it replaced did.
+  if (!allow(address)) return new Response(null, { status: 204 });
 
   const text = await request.text();
   if (text.length > MAX_BODY) return new Response(null, { status: 204 });
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
   // A single object is one event on its own, which is what an older tab still sends.
   const events = Array.isArray(body) ? body : [body];
   if (events.length === 0 || events.length > MAX_BATCH) return new Response(null, { status: 204 });
-  if (!allow(address, Date.now(), events.length)) return new Response(null, { status: 204 });
+  if (events.length > 1 && !allow(address, Date.now(), events.length - 1)) return new Response(null, { status: 204 });
 
   const ctx = { userAgent: userAgent ?? "", acceptLanguage: h.get("accept-language"), ownHost };
   await Promise.all(events.map((event) => record(event, ctx)));
