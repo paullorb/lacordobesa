@@ -41,6 +41,7 @@ export const es: Dictionary = {
     description:
       "Especialidades argentinas caseras en Frankfurt: empanadas, alfajores, tortas y más. Hechas con amor en La Cordobesa.",
     heroEyebrowBefore: "Un pedacito de ",
+    heroEyebrowFlag: "Argentina",
     heroEyebrowAfter: " en Frankfurt am Main",
     heroTitleLine1: "Como en casa.",
     heroTitleLine2: "Con mucho amor.",

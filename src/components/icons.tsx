@@ -269,14 +269,45 @@ export const HeartIcon = ({ size = 14, className }: IconProps) => (
   </Icon>
 );
 
-/** The Argentine flag: two bands and the sun, drawn rather than the 🇦🇷 emoji, which several
- *  platforms render as the letters "AR" in a box. */
-export const ArgentinaIcon = ({ size = 16, className }: IconProps) => (
-  <Icon size={size} className={className}>
-    <rect x="2.5" y="5.5" width="19" height="13" rx="1.6" />
-    <path d="M2.5 10h19M2.5 14h19" />
-    <circle cx="12" cy="12" r="1.7" />
-  </Icon>
+/**
+ * The Argentine flag.
+ *
+ * The one icon in this file that is not drawn in `currentColor`, and deliberately: a flag *is* its
+ * colours. The previous version followed the house rule and came out as a stroked rectangle with
+ * two lines across it, which at 16px in the hero rendered as a hatched box — the sentence it sits
+ * in reads "Ein Stück ▤ in Frankfurt am Main", and the flag is standing in for the word
+ * "Argentinien", so a glyph nobody recognises breaks the sentence rather than decorating it.
+ *
+ * Still not the 🇦🇷 emoji, for the original reason: several platforms render that as the letters
+ * "AR" in a box, and the ones that do draw it each draw it differently.
+ *
+ * 9:14, the official proportions. Celeste #74ACDF and the Sol de Mayo in #F6B40E are the flag's
+ * own colours rather than the site's. Sixteen rays instead of the real thirty-two with a face:
+ * at this size the extra detail is mush, and what has to survive is three bands and a gold sun.
+ *
+ * `title` makes it a word rather than decoration, because that is the job it is doing. Leave it
+ * out and it goes back to being hidden from screen readers.
+ */
+export const ArgentinaIcon = ({ size = 16, className, title }: IconProps & { title?: string }) => (
+  <svg
+    width={(size * 14) / 9}
+    height={size}
+    viewBox="0 0 28 18"
+    className={className}
+    role={title ? "img" : undefined}
+    aria-hidden={title ? undefined : true}
+    focusable="false"
+  >
+    {title && <title>{title}</title>}
+    <rect width="28" height="18" rx="2.2" fill="#74ACDF" />
+    <rect y="6" width="28" height="6" fill="#fff" />
+    <g fill="#F6B40E">
+      <path d="M13.87 7.46L14.00 6.05L14.13 7.46ZM14.47 7.52L15.13 6.27L14.71 7.62ZM15.00 7.82L16.09 6.91L15.18 8.00ZM15.38 8.29L16.73 7.87L15.48 8.53ZM15.54 8.87L16.95 9.00L15.54 9.13ZM15.48 9.47L16.73 10.13L15.38 9.71ZM15.18 10.00L16.09 11.09L15.00 10.18ZM14.71 10.38L15.13 11.73L14.47 10.48ZM14.13 10.54L14.00 11.95L13.87 10.54ZM13.53 10.48L12.87 11.73L13.29 10.38ZM13.00 10.18L11.91 11.09L12.82 10.00ZM12.62 9.71L11.27 10.13L12.52 9.47ZM12.46 9.13L11.05 9.00L12.46 8.87ZM12.52 8.53L11.27 7.87L12.62 8.29ZM12.82 8.00L11.91 6.91L13.00 7.82ZM13.29 7.62L12.87 6.27L13.53 7.52Z" />
+      <circle cx="14" cy="9" r="1.55" />
+    </g>
+    {/* A hairline, so the white band does not dissolve into a light background. */}
+    <rect x=".4" y=".4" width="27.2" height="17.2" rx="1.9" fill="none" stroke="rgba(21,47,59,.18)" strokeWidth=".8" />
+  </svg>
 );
 
 export const PinIcon = ({ size = 18, className }: IconProps) => (

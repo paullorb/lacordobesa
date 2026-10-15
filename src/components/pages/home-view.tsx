@@ -88,7 +88,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <p className="eyebrow">
               <span className="eyebrow-text">
                 {t.heroEyebrowBefore}
-                <ArgentinaIcon />
+                <ArgentinaIcon title={t.heroEyebrowFlag} />
                 {t.heroEyebrowAfter}
               </span>
             </p>

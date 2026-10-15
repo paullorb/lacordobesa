@@ -105,7 +105,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .eyebrow svg { flex: 0 0 auto; }
 /* An eyebrow with an icon inside the sentence: the icon rides the text line instead of being a flex item. */
 .eyebrow-text { line-height: 1.6; text-wrap: balance; }
-.eyebrow-text svg { display: inline-block; vertical-align: -.2em; }
+/* The eyebrow is set at .18em letter-spacing, so a flag butted straight against the next word
+   reads as one token. The margin gives it the breathing room the letters already have. */
+.eyebrow-text svg { display: inline-block; vertical-align: -.2em; margin-inline: .2em; }
 /* text-wrap: balance so a heading never leaves one short word stranded on its own line. */
 .site h1 { margin-bottom: 1.2rem; font-family: var(--serif); font-size: clamp(3.25rem, 6vw, 5.5rem); line-height: .99; letter-spacing: -.045em; font-weight: 500; text-wrap: balance; }
 .site h1 em { color: #aadcf1; font-weight: 500; }
