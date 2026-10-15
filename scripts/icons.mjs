@@ -22,7 +22,7 @@ import path from "node:path";
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const BLUE = "#52a8d2";
-const INK = "#152f3b";
+const CREAM = "#f5f1e9";
 
 // librsvg (what sharp rasterises with) does not draw <textPath>, so the lettering on the arc would be
 // silently missing from every PNG. Swap it, in memory only, for one rotated <text> per letter on the same
@@ -99,12 +99,12 @@ await out("icons/favicon-32.png", favicons[1].data);
 
 // Home-screen tiles. 180 is what iOS asks for; it scales it down for older devices.
 await out("icons/apple-touch-icon.png", await tile(180, BLUE, 1));
-await out("icons/staff-apple-touch-icon.png", await tile(180, INK, 0.84));
+await out("icons/staff-apple-touch-icon.png", await tile(180, CREAM, 0.84));
 
 // Web app manifest icons. Maskable ones keep the emblem inside the central 80% safe zone.
 await out("icons/icon-192.png", await round(192));
 await out("icons/icon-512.png", await round(512));
 await out("icons/icon-512-maskable.png", await tile(512, BLUE, 0.8));
-await out("icons/staff-icon-192.png", await tile(192, INK, 0.86));
-await out("icons/staff-icon-512.png", await tile(512, INK, 0.86));
-await out("icons/staff-icon-512-maskable.png", await tile(512, INK, 0.8));
+await out("icons/staff-icon-192.png", await tile(192, CREAM, 0.86));
+await out("icons/staff-icon-512.png", await tile(512, CREAM, 0.86));
+await out("icons/staff-icon-512-maskable.png", await tile(512, CREAM, 0.8));
