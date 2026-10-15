@@ -104,3 +104,68 @@ describe("the drawn arrows render", () => {
     });
   });
 });
+
+describe("the Argentine flag is a flag", () => {
+  // It stands in for the word "Argentinien" in the hero's first line, so a reader has to
+  // recognise it. Drawn in currentColor it came out as a stroked box with two lines across it —
+  // "Ein Stück ▤ in Frankfurt am Main" — which is the one icon on the site that cannot be
+  // monochrome, because a flag is its colours.
+  const pages = [
+    ["German", "/", "Argentinien"],
+    ["Spanish", "/es", "Argentina"],
+  ];
+
+  for (const [name, path, word] of pages) {
+    test(`${name}: three bands and a sun, in the flag's own colours`, { skip }, async () => {
+      await visit(path, {
+        body: async ({ page }) => {
+          const flag = page.locator(".eyebrow-text svg").first();
+          await flag.waitFor();
+          const fills = await flag.locator("[fill]").evaluateAll((els) =>
+            els.map((el) => el.getAttribute("fill").toLowerCase()),
+          );
+          assert.ok(fills.includes("#74acdf"), "no celeste band");
+          assert.ok(fills.includes("#fff") || fills.includes("#ffffff"), "no white band");
+          assert.ok(fills.includes("#f6b40e"), "no Sol de Mayo");
+        },
+      });
+    });
+
+    test(`${name}: a screen reader hears the word it replaces`, { skip }, async () => {
+      await visit(path, {
+        body: async ({ page }) => {
+          const flag = page.locator(".eyebrow-text svg").first();
+          assert.equal(await flag.getAttribute("role"), "img");
+          assert.equal((await flag.locator("title").textContent()).trim(), word);
+          // Which makes the eyebrow a whole sentence again rather than one with a hole in it.
+          const sentence = await page.locator(".eyebrow-text").first().innerText();
+          assert.ok(sentence.length > 10, `the eyebrow reads "${sentence}"`);
+        },
+      });
+    });
+  }
+
+  test("it keeps the official 9:14 proportions", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        const box = await page.locator(".eyebrow-text svg").first().boundingBox();
+        assert.ok(
+          Math.abs(box.width / box.height - 14 / 9) < 0.02,
+          `drawn at ${box.width.toFixed(1)}x${box.height.toFixed(1)}, which is not 9:14`,
+        );
+      },
+    });
+  });
+
+  test("it does not sit flush against the next word", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        const gap = await page.locator(".eyebrow-text svg").first().evaluate((el) => {
+          const style = getComputedStyle(el);
+          return Math.min(parseFloat(style.marginLeft), parseFloat(style.marginRight));
+        });
+        assert.ok(gap > 1, `the flag has ${gap}px of air beside it`);
+      },
+    });
+  });
+});

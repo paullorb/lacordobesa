@@ -43,6 +43,8 @@ export const de = {
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
     heroEyebrowBefore: "Ein Stück ",
+    /** Read out in place of the flag, which is standing in for the word. */
+    heroEyebrowFlag: "Argentinien",
     heroEyebrowAfter: " in Frankfurt am Main",
     heroTitleLine1: "Wie zuhause.",
     heroTitleLine2: "Con mucho amor.",
