@@ -259,22 +259,42 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .visit-intro { color: var(--muted); line-height: 1.8; font-size: var(--fs-base); }
 .reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .reviews-copy p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
-/* Equal rows: one listing carries a score and the other does not, so left to their content the two
-   cards came out 114px and 148px and the pair read as a mistake rather than a set. */
-.reviews-list { display: grid; grid-auto-rows: 1fr; gap: 1rem; margin: 0; padding: 0; list-style: none; }
-/* The row is now taller than the shorter card's content, so that card has to fill it. A flex column
-   rather than the grid it was, only so `margin-top: auto` can drop the "read them" line to the
-   bottom of both cards and line the two up. The gap behaves the same either way. */
+/* Equal rows: some listings carry a score and some do not (a figure only appears once somebody has
+   copied it off the platform), so left to their content the cards came out different heights and
+   the set read as a mistake. Two columns where there is room, one on a phone. */
+.reviews-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+/* The row is taller than the shorter card's content, so that card has to fill it. A flex column
+   so `margin-top: auto` can drop the "read them" line to the bottom of every card. */
 .reviews-list li { display: grid; }
-.review-card { display: flex; flex-direction: column; }
-.review-open { margin-top: auto; padding-top: .35rem; }
-.review-card { display: grid; gap: .35rem; padding: 1.5rem 1.75rem; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
+.review-card { display: flex; flex-direction: column; gap: .35rem; padding: 1.25rem 1.4rem; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
 .review-card:hover { border-color: var(--blue); transform: translateY(-2px); }
-.review-card strong { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 600; }
-.review-score { font-size: var(--fs-lg); font-weight: 700; color: var(--coral-text); }
-.review-checked { font-size: var(--fs-sm); color: var(--muted); }
-.review-open { font-size: var(--fs-sm); font-weight: 700; color: var(--blue-dark); }
+.review-head { display: flex; align-items: center; gap: .7rem; min-width: 0; margin-bottom: .2rem; }
+/* The platform's own mark on a quiet white tile, never recoloured. The ::after ring is the "rated
+   right now" cue, see the motion rules below. */
+.review-mark { position: relative; display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+.review-mark img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
+.review-card strong { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; }
+.review-score { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .6rem; font-size: var(--fs-sm); font-weight: 700; color: var(--coral-text); }
+.review-checked { font-size: var(--fs-xs); color: var(--muted); }
+.review-open { margin-top: auto; padding-top: .45rem; font-size: var(--fs-sm); font-weight: 700; color: var(--blue-dark); }
+.stars { position: relative; display: inline-flex; flex: none; }
+.stars svg { display: block; width: 16px; height: 16px; }
+.stars-base { display: flex; }
+.stars-base path { fill: rgba(21, 47, 59, .14); }
+.stars-fill { position: absolute; inset: 0 auto 0 0; display: flex; overflow: hidden; }
+.stars-fill svg { flex: none; }
+.stars-fill path { fill: #e0a526; }
+@media (max-width: 560px) { .reviews-list { grid-template-columns: 1fr; grid-auto-rows: auto; } }
 @media (prefers-reduced-motion: reduce) { .review-card { transition: none; } .review-card:hover { transform: none; } }
+/* The "being reviewed all the time" cue: a soft ring that breathes out from each platform's mark,
+   and a brightening that runs along the filled stars. Both are slow, loop for ever and are offset
+   per card (--i) so they never blink in step. Decorative only: no text claims anything. */
+@keyframes review-ring { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.45); } }
+@keyframes review-star { 0%, 55%, 100% { opacity: 1; transform: scale(1); } 25% { opacity: .5; transform: scale(.86); } }
+@media (prefers-reduced-motion: no-preference) {
+  .review-mark::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 2px solid var(--coral); opacity: 0; pointer-events: none; animation: review-ring 3.6s ease-out infinite; animation-delay: calc(var(--i, 0) * .9s); }
+  .stars-fill svg { animation: review-star 3.2s ease-in-out infinite; animation-delay: calc(var(--i, 0) * .9s + var(--n, 0) * .16s); transform-origin: center; }
+}
 .visit-card { padding: 2.4rem; background: var(--paper); border: 1px solid var(--line); }
 .visit-card h3 { margin: 0 0 1.5rem; font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 500; }
 .contact-row { display: grid; grid-template-columns: 38px 1fr; gap: .9rem; padding: 1rem 0; border-top: 1px solid var(--line); align-items: start; }

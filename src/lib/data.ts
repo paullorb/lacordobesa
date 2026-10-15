@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { addDays, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
+import { REVIEW_SCORES_KEY } from "@/lib/reviews";
 
 /** Cache tags, invalidated by the staff actions with updateTag(). */
 export const TAG = {
@@ -81,6 +82,17 @@ export async function getAnnouncement(): Promise<string> {
   const { data } = await supabase.from("site_settings").select("value").eq("key", "announcement").maybeSingle();
   const value = data?.value as { text?: string } | null;
   return value?.text ?? "";
+}
+
+/** The rating figures staff copied off the review platforms, raw from site_settings (null when none
+ *  were ever saved). resolveReviews() in lib/reviews turns this into what the page draws. */
+export async function getReviewScores(): Promise<unknown> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.content);
+  const supabase = createPublicClient();
+  const { data } = await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle();
+  return data?.value ?? null;
 }
 
 export async function getOpeningHours(): Promise<Tables<"opening_hours">[]> {

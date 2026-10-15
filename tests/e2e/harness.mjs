@@ -51,6 +51,7 @@ export const STAFF_PAGES = [
   ["broadcast", "/staff/broadcast"],
   ["gallery", "/staff/gallery"],
   ["hours", "/staff/oeffnungszeiten"],
+  ["reviews", "/staff/bewertungen"],
   ["settings", "/staff/einstellungen"],
 ];
 
