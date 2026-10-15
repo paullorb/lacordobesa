@@ -71,6 +71,21 @@ const COPY: Record<
     questionsHtml: (phoneLink) => `¿Preguntas? Llamanos al ${phoneLink}\n      o respondé directamente a este e-mail.`,
     signoff: "El equipo de La Cordobesa",
   },
+  en: {
+    when: (date, time) => `${fmtDate(date, "en", { weekday: "long", month: "long" })} at ${time}`,
+    people: (n) => `${n} ${n === 1 ? "person" : "people"}`,
+    subject: (date, time) => `Your table at La Cordobesa: ${fmtDate(date, "en", { weekday: undefined })} at ${time}`,
+    hello: (name) => `¡Hola ${name}!`,
+    heading: (name) => `¡Hola ${name}! Your table is confirmed.`,
+    intro: "Your table at La Cordobesa is confirmed:",
+    labels: { when: "When", for: "For", where: "Where" },
+    change: "Can't make it, or need a different time?",
+    changeText: "Can't make it, or need a different time? You can cancel or change your reservation here:",
+    changeButton: "Change or cancel reservation",
+    questions: (phone) => `Questions? Call us on ${phone} or just reply to this email.`,
+    questionsHtml: (phoneLink) => `Questions? Call us on ${phoneLink}\n      or just reply to this email.`,
+    signoff: "The La Cordobesa team",
+  },
 };
 
 /** The e-mail a guest gets when staff confirm their table, in the language they booked in.

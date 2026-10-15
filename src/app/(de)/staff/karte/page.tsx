@@ -257,7 +257,7 @@ function ItemForm({
           </label>
         </div>
         {/* Before migration 20261012102608 these are hidden and not submitted. Empty is fine and
-            normal: the Spanish menu page falls back to the German description and say so. */}
+            normal: the Spanish and English menu pages fall back to the German description and say so. */}
         {translationColumns && (
           <div className="grid gap-3 sm:col-span-6 sm:grid-cols-2">
             <input type="hidden" name="translations_field" value="1" />

@@ -14,7 +14,18 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
   const locale = isLocale(o.locale) ? o.locale : DEFAULT_LOCALE;
   const guestLink = preorderUrl(o.manage_token, locale);
   const confirmText = (
-    locale === "es"
+    locale === "en"
+      ? [
+          `¡Hola ${o.name}! Your order at La Cordobesa is confirmed:`,
+          ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          "",
+          `Pickup on ${fmtDate(o.pickup_date, "en", { weekday: undefined })} at ${fmtTime(o.pickup_time)}. You pay on collection.`,
+          "",
+          `Check the status any time here: ${guestLink}`,
+          "",
+          "¡Hasta pronto!",
+        ]
+      : locale === "es"
       ? [
           `¡Hola ${o.name}! Tu pedido en La Cordobesa está confirmado:`,
           ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
@@ -45,9 +56,12 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             <strong className="font-serif text-xl">{fmtTime(o.pickup_time)}</strong>
             <span className={`status status-${o.status}`}>{PREORDER_STATUS_LABEL[o.status]}</span>
             {o.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
-            {locale === "es" && (
-              <span className="status bg-amber-50 text-amber-800" title="Auf Spanisch bestellt: der Link ist spanisch">
-                ES
+            {locale !== DEFAULT_LOCALE && (
+              <span
+                className="status bg-amber-50 text-amber-800"
+                title={`Auf ${locale === "es" ? "Spanisch" : "Englisch"} bestellt: der Link ist ${locale === "es" ? "spanisch" : "englisch"}`}
+              >
+                {locale.toUpperCase()}
               </span>
             )}
           </div>

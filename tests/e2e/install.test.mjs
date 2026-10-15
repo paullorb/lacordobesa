@@ -32,6 +32,7 @@ describe("installing the site", () => {
   for (const [name, path, manifest, title] of [
     ["the home page", "/", "/manifest.webmanifest", "La Cordobesa"],
     ["a Spanish page", "/es/karte", "/manifest.webmanifest", "La Cordobesa"],
+    ["an English page", "/en/karte", "/manifest.webmanifest", "La Cordobesa"],
     ["the staff login", "/staff/login", "/staff.webmanifest", "Cordobesa Team"],
   ]) {
     test(`${name} links its manifest, a home-screen icon and a tab icon`, { skip }, async () => {

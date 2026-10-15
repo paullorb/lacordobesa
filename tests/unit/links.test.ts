@@ -24,6 +24,8 @@ describe("guest links", () => {
   test("a Spanish guest gets the Spanish page", () => {
     assert.equal(manageUrl(TOKEN, "es"), `${SITE_URL}/es/reservierung/${TOKEN}`);
     assert.equal(preorderUrl(TOKEN, "es"), `${SITE_URL}/es/vorbestellung/${TOKEN}`);
+    assert.equal(manageUrl(TOKEN, "en"), `${SITE_URL}/en/reservierung/${TOKEN}`);
+    assert.equal(preorderUrl(TOKEN, "en"), `${SITE_URL}/en/vorbestellung/${TOKEN}`);
   });
 
   test("unsubscribe is language-neutral", () => {
@@ -31,7 +33,7 @@ describe("guest links", () => {
   });
 
   test("all of them parse as URLs", () => {
-    for (const url of [manageUrl(TOKEN), manageUrl(TOKEN, "es"), preorderUrl(TOKEN), unsubscribeUrl(TOKEN)]) {
+    for (const url of [manageUrl(TOKEN), manageUrl(TOKEN, "es"), manageUrl(TOKEN, "en"), preorderUrl(TOKEN), unsubscribeUrl(TOKEN)]) {
       assert.doesNotThrow(() => new URL(url), url);
     }
   });

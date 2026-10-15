@@ -62,7 +62,7 @@ describe("budget bands", () => {
 });
 
 describe("menuDescription", () => {
-  const item = { description: "Gefüllte Teigtasche", description_es: "Empanada rellena" };
+  const item = { description: "Gefüllte Teigtasche", description_es: "Empanada rellena", description_en: "Filled pastry" };
 
   test("German reads German", () => {
     assert.equal(menuDescription(item, "de"), "Gefüllte Teigtasche");
@@ -72,34 +72,51 @@ describe("menuDescription", () => {
     assert.equal(menuDescription(item, "es"), "Empanada rellena");
   });
 
+  test("English reads English", () => {
+    assert.equal(menuDescription(item, "en"), "Filled pastry");
+  });
+
+  test("a dish with Spanish but no English text falls back to German, not to Spanish", () => {
+    assert.equal(
+      menuDescription({ description: "Gefüllte Teigtasche", description_es: "Empanada rellena", description_en: null }, "en"),
+      "Gefüllte Teigtasche",
+    );
+  });
+
   test("an untranslated dish falls back to German rather than to a blank line", () => {
-    assert.equal(menuDescription({ description: "Gefüllte Teigtasche", description_es: null }, "es"), "Gefüllte Teigtasche");
+    assert.equal(menuDescription({ description: "Gefüllte Teigtasche", description_es: null, description_en: null }, "es"), "Gefüllte Teigtasche");
   });
 
   test("a dish with no description at all stays empty", () => {
-    assert.equal(menuDescription({ description: null, description_es: null }, "es"), null);
+    assert.equal(menuDescription({ description: null, description_es: null, description_en: null }, "es"), null);
   });
 });
 
 describe("isUntranslated", () => {
   test("marks German text sitting under a Spanish heading", () => {
-    assert.ok(isUntranslated({ description: "Gefüllte Teigtasche", description_es: null }, "es"));
+    assert.ok(isUntranslated({ description: "Gefüllte Teigtasche", description_es: null, description_en: null }, "es"));
+  });
+
+  test("English is judged by its own column, not the Spanish one", () => {
+    const item = { description: "Gefüllte Teigtasche", description_es: "Empanada", description_en: null };
+    assert.ok(isUntranslated(item, "en"));
+    assert.equal(isUntranslated({ ...item, description_en: "Filled pastry" }, "en"), false);
   });
 
   test("a translated dish is not marked", () => {
-    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: "Empanada" }, "es"), false);
+    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: "Empanada", description_en: null }, "es"), false);
   });
 
   test("an empty string counts as translated, because staff chose to leave it blank", () => {
-    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: "" }, "es"), false);
+    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: "", description_en: null }, "es"), false);
   });
 
   test("the German page never marks anything", () => {
-    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: null }, "de"), false);
+    assert.equal(isUntranslated({ description: "Gefüllte Teigtasche", description_es: null, description_en: null }, "de"), false);
   });
 
   test("a dish with no description is nothing to translate", () => {
-    assert.equal(isUntranslated({ description: null, description_es: null }, "es"), false);
+    assert.equal(isUntranslated({ description: null, description_es: null, description_en: null }, "es"), false);
   });
 });
 

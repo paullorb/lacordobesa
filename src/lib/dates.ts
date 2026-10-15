@@ -31,7 +31,10 @@ export function startOfMonth(iso: string): string {
   return `${iso.slice(0, 7)}-01`;
 }
 
-/** "2026-10-12" -> "Mo., 12.10.2026" (de) / "lun, 12/10/2026" (es).
+/** "2026-10-12" -> "Mo., 12.10.2026" (de) / "lun, 12/10/2026" (es) / "Mon 12 Oct 2026" (en).
+ *
+ *  English spells the month: day-before-month numbers ("12/10/2026") are the British order and read
+ *  as 10 December to an American, and the page is read by both.
  *
  *  Formatted in UTC on purpose: the value is a calendar date, not an instant, so shifting it into a
  *  timezone is what would make it render as the wrong day. */
@@ -39,8 +42,8 @@ export function fmtDate(iso: string, locale: Locale, opts: Intl.DateTimeFormatOp
   return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     timeZone: "UTC",
     weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
+    day: locale === "en" ? "numeric" : "2-digit",
+    month: locale === "en" ? "short" : "2-digit",
     year: "numeric",
     ...opts,
   }).format(new Date(`${iso}T00:00:00Z`));

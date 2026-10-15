@@ -24,7 +24,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
-      <JsonLd data={menuJsonLd(menu)} />
+      <JsonLd data={menuJsonLd(menu, locale)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />
 

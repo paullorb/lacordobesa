@@ -8,8 +8,40 @@ import { LOGO } from "@/lib/brand";
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
+import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
+import { menuDescription } from "@/lib/menu-text";
 import { REVIEW_PLATFORMS } from "@/lib/reviews";
 import { SITE_URL } from "@/lib/site";
+
+/** The few sentences of structured data that are prose. A `Record<Locale, ...>`, so a new language
+ *  cannot be added without writing them. Dish names and descriptions come from the database; the
+ *  descriptions follow the page's language with the same German fallback the page uses. */
+const COPY: Record<Locale, { description: string; cuisine: string[]; menuName: string }> = {
+  de: {
+    description:
+      "Hausgemachte argentinische Spezialitäten in Frankfurt am Main: Empanadas, Alfajores, Kuchen, Pasta und Gerichte vom Grill.",
+    cuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
+    menuName: "Carta / Karte",
+  },
+  es: {
+    description:
+      "Especialidades argentinas caseras en Frankfurt am Main: empanadas, alfajores, tortas, pastas y platos a la parrilla.",
+    cuisine: ["Argentina", "Sudamericana", "Pastelería"],
+    menuName: "La carta",
+  },
+  en: {
+    description:
+      "Homemade Argentine specialities in Frankfurt am Main: empanadas, alfajores, cakes, pasta and dishes from the grill.",
+    cuisine: ["Argentine", "South American", "Bakery"],
+    menuName: "Menu",
+  },
+};
+
+/** Absolute URL of a page in a language. The German home page is the site root, with no trailing slash. */
+const pageUrl = (locale: Locale, path: string) => {
+  const href = localeHref(locale, path);
+  return href === "/" ? SITE_URL : `${SITE_URL}${href}`;
+};
 
 /** schema.org expects the English day names; opening_hours.weekday is 0 = Sunday. */
 const SCHEMA_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -43,17 +75,18 @@ function openingHours(hours: Tables<"opening_hours">[]) {
     }));
 }
 
-/** The business itself. Referenced by @id from the menu, so both graphs describe one place. */
-export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
+/** The business itself. Referenced by @id from the menu, so both graphs describe one place. The `@id`
+ *  is the same in every language: it is one business, however many pages describe it. */
+export function restaurantJsonLd(hours: Tables<"opening_hours">[], locale: Locale = "de") {
   return {
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "@id": `${SITE_URL}/#restaurant`,
     name: "La Cordobesa Pastelería Argentina",
     alternateName: CONTACT.name,
-    description:
-      "Hausgemachte argentinische Spezialitäten in Frankfurt am Main: Empanadas, Alfajores, Kuchen, Pasta und Gerichte vom Grill.",
-    url: SITE_URL,
+    description: COPY[locale].description,
+    inLanguage: INTL_LOCALE[locale],
+    url: pageUrl(locale, "/"),
     image: [`${SITE_URL}/assets/hero-pasteleria.jpg`],
     logo: `${SITE_URL}${LOGO.full}`,
     telephone: CONTACT.phoneE164,
@@ -62,11 +95,11 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
     // Google's own pin for the listing; OpenStreetMap puts the building within 5 m of it.
     geo: { "@type": "GeoCoordinates", latitude: 50.13793, longitude: 8.63912 },
     priceRange: "€€",
-    servesCuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
+    servesCuisine: COPY[locale].cuisine,
     // hasMenu is the schema.org name; Google's LocalBusiness docs still read the older `menu`.
-    hasMenu: `${SITE_URL}/karte`,
-    menu: `${SITE_URL}/karte`,
-    acceptsReservations: `${SITE_URL}/#reservieren`,
+    hasMenu: pageUrl(locale, "/karte"),
+    menu: pageUrl(locale, "/karte"),
+    acceptsReservations: pageUrl(locale, "/#reservieren"),
     currenciesAccepted: "EUR",
     sameAs: [CONTACT.instagram, ...REVIEW_PLATFORMS.map((r) => r.url)],
     hasMap: CONTACT.mapsUrl,
@@ -75,14 +108,14 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
 }
 
 /** The carta as a schema.org Menu, one MenuSection per category. */
-export function menuJsonLd(menu: MenuCategoryWithItems[]) {
+export function menuJsonLd(menu: MenuCategoryWithItems[], locale: Locale = "de") {
   return {
     "@context": "https://schema.org",
     "@type": "Menu",
-    "@id": `${SITE_URL}/karte#menu`,
-    name: "Carta / Karte",
-    url: `${SITE_URL}/karte`,
-    inLanguage: "de-DE",
+    "@id": `${pageUrl(locale, "/karte")}#menu`,
+    name: COPY[locale].menuName,
+    url: pageUrl(locale, "/karte"),
+    inLanguage: INTL_LOCALE[locale],
     provider: { "@id": `${SITE_URL}/#restaurant` },
     hasMenuSection: menu
       .filter((c) => c.items.length > 0)
@@ -93,7 +126,7 @@ export function menuJsonLd(menu: MenuCategoryWithItems[]) {
         hasMenuItem: c.items.map((item) => ({
           "@type": "MenuItem",
           name: item.name,
-          ...(item.description || item.subtitle ? { description: item.description ?? item.subtitle } : {}),
+          ...(item.description || item.subtitle ? { description: menuDescription(item, locale) ?? item.subtitle } : {}),
           // price_label is free text ("ab 4,50 €"), which schema.org's `price` rejects; `offers.description`
           // keeps the information without claiming a machine-readable amount.
           ...(item.price_label ? { offers: { "@type": "Offer", description: item.price_label, priceCurrency: "EUR" } } : {}),

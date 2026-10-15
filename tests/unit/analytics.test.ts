@@ -12,11 +12,14 @@ describe("normalizePath", () => {
     assert.equal(normalizePath("/"), "/");
     assert.equal(normalizePath("/es/gallery"), "/es/gallery");
     assert.equal(normalizePath("/es"), "/es");
+    assert.equal(normalizePath("/en/gallery"), "/en/gallery");
+    assert.equal(normalizePath("/en"), "/en");
   });
 
   test("drops the token from the private pages", () => {
     assert.equal(normalizePath("/reservierung/abc123SECRET"), "/reservierung/*");
     assert.equal(normalizePath("/es/abmelden/xyz"), "/es/abmelden/*");
+    assert.equal(normalizePath("/en/reservierung/abc123SECRET"), "/en/reservierung/*");
   });
 
   test("folds everything else into one row", () => {

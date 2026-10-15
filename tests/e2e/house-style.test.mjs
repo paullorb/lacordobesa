@@ -115,6 +115,7 @@ describe("the Argentine flag is a flag", () => {
   const pages = [
     ["German", "/", "Argentinien"],
     ["Spanish", "/es", "Argentina"],
+    ["English", "/en", "Argentina"],
   ];
 
   for (const [name, path, word] of pages) {
@@ -170,4 +171,34 @@ describe("the Argentine flag is a flag", () => {
       },
     });
   });
+});
+
+describe("no em or en dashes in the copy", () => {
+  // A standing rule for the site's text. Dish names and guest content are data, so the check is on
+  // the pages that carry only the dictionaries.
+  for (const [name, path] of [
+    ["German home", "/"],
+    ["Spanish home", "/es"],
+    ["English home", "/en"],
+    ["English menu", "/en/karte"],
+    ["English preorder", "/en/vorbestellen"],
+    ["English catering", "/en/catering"],
+  ]) {
+    test(name, { skip }, async () => {
+      await visit(path, {
+        body: async ({ page }) => {
+          const found = await page.evaluate(() => {
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            const out = [];
+            for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+              if (node.parentElement?.closest("nextjs-portal, [data-nextjs-toast], [data-next-badge-root], script, style")) continue;
+              if (/[–—]/.test(node.textContent)) out.push(node.textContent.trim().slice(0, 60));
+            }
+            return [...new Set(out)];
+          });
+          assert.deepEqual(found, []);
+        },
+      });
+    });
+  }
 });

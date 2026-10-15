@@ -79,7 +79,7 @@ export function ManageReservation({
         <div>
           <dt>{t.time}</dt>
           <dd>
-            {reservation.time} {t.at}
+            {`${reservation.time} ${t.at}`.trim()}
           </dd>
         </div>
         <div>

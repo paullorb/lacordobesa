@@ -161,24 +161,77 @@ describe("language", () => {
     });
   });
 
-  test("the switch keeps you on the same page", { skip }, async () => {
-    await visit("/karte", {
+  test("English pages are English", { skip }, async () => {
+    await visit("/en/karte", {
       body: async ({ page }) => {
-        // Below 1321px the nav lives behind the menu button, which is where the switch is too.
-        const link = page.locator('a[hreflang="es"]');
-        if (!(await link.isVisible())) await page.locator(".menu-toggle").click();
-        await link.click();
-        await page.waitForURL(/\/es\/karte$/, { timeout: 30_000 });
+        assert.equal(await page.locator("html").getAttribute("lang"), "en-GB");
+        assert.equal(await page.locator("h1").count(), 1);
       },
     });
   });
+
+  test("/en is a page of its own, not a redirect to German", { skip }, async () => {
+    const response = await fetch(`${BASE}/en`, { redirect: "manual" });
+    assert.equal(response.status, 200);
+  });
+
+  test("every page names all three languages as alternates, and itself as canonical", { skip }, async () => {
+    for (const [path, self] of [
+      ["/", "/"],
+      ["/es/karte", "/es/karte"],
+      ["/en/karte", "/en/karte"],
+    ]) {
+      await visit(path, {
+        body: async ({ page }) => {
+          const alternates = await page
+            .locator('link[rel="alternate"][hreflang]')
+            .evaluateAll((els) => Object.fromEntries(els.map((e) => [e.getAttribute("hreflang"), new URL(e.href).pathname])));
+          const karte = path.endsWith("karte");
+          assert.equal(alternates["de-DE"], karte ? "/karte" : "/");
+          assert.equal(alternates["es-AR"], karte ? "/es/karte" : "/es");
+          assert.equal(alternates["en-GB"], karte ? "/en/karte" : "/en");
+          const canonical = new URL(await page.locator('link[rel="canonical"]').getAttribute("href")).pathname;
+          assert.equal(canonical, self);
+          const og = await page.locator('meta[property="og:locale"]').getAttribute("content");
+          assert.equal(og, path.startsWith("/en") ? "en_GB" : path.startsWith("/es") ? "es_AR" : "de_DE");
+        },
+      });
+    }
+  });
+
+  test("the sitemap lists the English pages", { skip }, async () => {
+    const xml = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    for (const path of ["/en", "/en/karte", "/en/catering", "/en/vorbestellen", "/en/gallery"]) {
+      assert.ok(xml.includes(`${path}</loc>`), `${path} is missing from the sitemap`);
+    }
+    assert.ok(!xml.includes("/en/reservierung"), "a guest link is in the sitemap");
+  });
+
+  for (const [from, to, tail] of [
+    ["/karte", "es", "/es/karte"],
+    ["/karte", "en", "/en/karte"],
+    ["/es/karte", "en", "/en/karte"],
+    ["/en/karte", "de", "/karte"],
+  ]) {
+    test(`the switch keeps you on the same page, ${from} to ${to}`, { skip }, async () => {
+      await visit(from, {
+        body: async ({ page }) => {
+          // Below 1321px the nav lives behind the menu button, which is where the switch is too.
+          const link = page.locator(`.lang-switch a[hreflang="${to}"]`);
+          if (!(await link.isVisible())) await page.locator(".menu-toggle").click();
+          await link.click();
+          await page.waitForURL((url) => url.pathname === tail, { timeout: 30_000 });
+        },
+      });
+    });
+  }
 
   test("the switch is reachable at every width", { skip }, async () => {
     for (const width of [320, 390, 768, 1280, 1440]) {
       await visit("/karte", {
         width,
         body: async ({ page }) => {
-          const link = page.locator('a[hreflang="es"]');
+          const link = page.locator('.lang-switch a[hreflang="en"]');
           if (!(await link.isVisible())) {
             const toggle = page.locator(".menu-toggle");
             assert.ok(await toggle.isVisible(), `at ${width}px the switch is hidden and so is the menu button`);
@@ -260,6 +313,39 @@ describe("the legal pages", () => {
     });
   });
 
+  test("stay German for an English reader, with a short English note on top", { skip }, async () => {
+    for (const path of ["/impressum", "/datenschutz"]) {
+      await visit(`${path}?von=en`, {
+        body: async ({ page }) => {
+          assert.equal(await page.locator("html").getAttribute("lang"), "de-DE");
+          const note = page.locator(".legal-note");
+          await note.waitFor({ timeout: 15_000 });
+          assert.equal(await note.getAttribute("lang"), "en");
+          assert.match(await note.textContent(), /only available in German/);
+          assert.equal(await page.locator(".legal-back").first().getAttribute("href"), "/en");
+        },
+      });
+    }
+  });
+
+  test("a German reader gets no note", { skip }, async () => {
+    await visit("/impressum", {
+      body: async ({ page }) => {
+        await page.waitForTimeout(500);
+        assert.equal(await page.locator(".legal-note").count(), 0);
+      },
+    });
+  });
+
+  test("the English site links to them with the way back", { skip }, async () => {
+    await visit("/en", {
+      body: async ({ page }) => {
+        const href = await page.locator('a[href*="/datenschutz"]').first().getAttribute("href");
+        assert.match(href, /\?von=en$/);
+      },
+    });
+  });
+
   test("send a Spanish reader back to the Spanish site", { skip }, async () => {
     await visit("/datenschutz?von=es", {
       body: async ({ page }) => {
@@ -276,6 +362,11 @@ describe("every page says what it is", () => {
     ["/es", "es-AR"],
     ["/karte", "de-DE"],
     ["/es/karte", "es-AR"],
+    ["/en", "en-GB"],
+    ["/en/karte", "en-GB"],
+    ["/en/catering", "en-GB"],
+    ["/en/vorbestellen", "en-GB"],
+    ["/en/gallery", "en-GB"],
     ["/catering", "de-DE"],
     ["/vorbestellen", "de-DE"],
     ["/gallery", "de-DE"],
@@ -332,7 +423,7 @@ describe("the review platforms on the home page", () => {
 });
 
 describe("the console stays quiet", () => {
-  const pages = ["/", "/es", "/karte", "/catering", "/vorbestellen", "/gallery", "/impressum", "/datenschutz"];
+  const pages = ["/", "/es", "/en", "/en/karte", "/karte", "/catering", "/vorbestellen", "/gallery", "/impressum", "/datenschutz"];
   for (const path of pages) {
     test(path, { skip }, async () => {
       await visit(path, {

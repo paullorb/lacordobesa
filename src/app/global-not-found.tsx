@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  * it renders its own document and imports the stylesheet itself.
  *
  * German: a path that matched nothing carries no locale to read. The header's language switch is
- * still there, so a Spanish reader is one click from `/es`.
+ * still there, so a Spanish or English reader is one click from `/es` or `/en`.
  */
 export default function GlobalNotFound() {
   const t = getDictionary(DEFAULT_LOCALE).notFound;
