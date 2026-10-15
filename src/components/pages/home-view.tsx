@@ -2,7 +2,8 @@ import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
-import { ArgentinaIcon, ArrowIcon, ClockIcon, MailIcon, MenuIcon, PhoneIcon, PinIcon } from "@/components/icons";
+import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon } from "@/components/icons";
+import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -357,61 +358,33 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <p className="visit-intro">{t.visitIntro}</p>
               <div className="visit-card">
                 <h3>{CONTACT.name}</h3>
-                <div className="contact-row">
-                  <span className="contact-icon">
-                    <PinIcon />
-                  </span>
-                  <div>
-                    <small>{t.visitAddressLabel}</small>
-                    <address>
-                      {CONTACT.street}
-                      <br />
-                      {CONTACT.city}
-                    </address>
+                <ContactRow kind="address" label={t.visitAddressLabel}>
+                  <ContactAddress />
+                </ContactRow>
+                <ContactRow kind="hours" label={t.visitHours}>
+                  <OpenStatus hours={openingHours} closures={closures} locale={locale} className="open-status-inline" />
+                  <div className="hours">
+                    {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
+                      const h = hours.find((x) => x.weekday === wd);
+                      return (
+                        <div key={wd} style={{ display: "contents" }}>
+                          <span>{t.weekdays[wd]}</span>
+                          {!h || h.is_closed ? (
+                            <span className="closed">{t.closedLabel}</span>
+                          ) : (
+                            <span>{t.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-                <div className="contact-row">
-                  <span className="contact-icon">
-                    <ClockIcon />
-                  </span>
-                  <div>
-                    <small>{t.visitHours}</small>
-                    <OpenStatus hours={openingHours} closures={closures} locale={locale} className="open-status-inline" />
-                    <div className="hours">
-                      {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
-                        const h = hours.find((x) => x.weekday === wd);
-                        return (
-                          <div key={wd} style={{ display: "contents" }}>
-                            <span>{t.weekdays[wd]}</span>
-                            {!h || h.is_closed ? (
-                              <span className="closed">{t.closedLabel}</span>
-                            ) : (
-                              <span>{t.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <div className="contact-row">
-                  <span className="contact-icon">
-                    <PhoneIcon />
-                  </span>
-                  <div>
-                    <small>{t.callLabel}</small>
-                    <a href={`tel:${CONTACT.phoneE164}`}>{CONTACT.phoneDisplay}</a>
-                  </div>
-                </div>
-                <div className="contact-row">
-                  <span className="contact-icon">
-                    <MailIcon />
-                  </span>
-                  <div>
-                    <small>{t.writeLabel}</small>
-                    <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-                  </div>
-                </div>
+                </ContactRow>
+                <ContactRow kind="phone" label={t.callLabel}>
+                  <ContactPhone />
+                </ContactRow>
+                <ContactRow kind="email" label={t.writeLabel}>
+                  <ContactEmail />
+                </ContactRow>
                 <div className="visit-actions">
                   <a className="button" href={whatsappHref()} target="_blank" rel="noreferrer">
                     WhatsApp <ArrowIcon direction="up-right" />

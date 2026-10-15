@@ -324,6 +324,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .contact-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; color: var(--blue-dark); font-size: .9rem; }
 .contact-row small { display: block; margin-bottom: .25rem; color: var(--muted); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .contact-row a, .contact-row address, .contact-row .hours { font-size: var(--fs-sm); text-decoration: none; font-style: normal; line-height: 1.6; }
+.contact-email { overflow-wrap: normal; word-break: normal; }
 .hours { display: grid; grid-template-columns: auto auto; gap: .15rem 1.2rem; }
 .hours .closed { color: var(--muted); }
 /* The stretched cell. Its min-height is the photo's, so the row is never shorter than the thing
@@ -415,6 +416,13 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .preorder-group label { margin: 0; text-transform: none; letter-spacing: normal; font-size: var(--fs-base); }
 .preorder-group label small { display: block; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin-top: .1rem; }
 .preorder-meta { display: block; color: var(--muted); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-top: .25rem; }
+/* Folds a block of form away until it has something to say: 0fr to 1fr animates the height without
+   measuring it. The negative margin takes back the grid gap the folded block would otherwise leave. */
+.reveal { display: grid; grid-template-rows: 0fr; margin-top: -1rem; opacity: 0; transition: grid-template-rows .35s cubic-bezier(.22,.61,.36,1), margin-top .35s cubic-bezier(.22,.61,.36,1), opacity .25s ease; }
+.reveal[data-open="true"] { grid-template-rows: 1fr; margin-top: 0; opacity: 1; }
+.reveal-inner { display: grid; gap: 1rem; min-height: 0; overflow: hidden; padding: 3px; margin: -3px; }
+@media (prefers-reduced-motion: reduce) { .reveal { transition: none; } }
+.group-label { display: block; margin-bottom: .5rem; }
 .preorder-when { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .preorder-summary { list-style: none; margin: 0; padding: 1rem 1.2rem; background: var(--paper); display: grid; gap: .4rem; }
 .preorder-summary li { font-size: var(--fs-base); }
@@ -517,13 +525,18 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 /* One fold repeated across the window as a mask over a coral fill (see repulgueTile). */
 .footer-edge, .craft-edge { height: 11px; margin: 0 -24px; background: var(--coral); opacity: .9; mask-repeat: repeat-x; mask-size: auto 100%; mask-position: left center; -webkit-mask-repeat: repeat-x; -webkit-mask-size: auto 100%; }
 .craft-edge { position: absolute; top: 0; left: 0; right: 0; z-index: 2; margin: 0; }
-.footer-inner { width: min(1120px, 100%); margin: auto; padding: 4.5rem 0 3rem; display: grid; grid-template-columns: 1.1fr 1fr 1.1fr .9fr; gap: 2.5rem 3rem; align-items: start; }
+.footer-inner { width: min(1120px, 100%); margin: auto; padding: 4.5rem 0 3rem; display: grid; grid-template-columns: .8fr 1.2fr 1.1fr .8fr; gap: 2.5rem 3rem; align-items: start; }
 .footer-brand img { width: 64px; }
 .footer-brand p { max-width: 220px; margin: 1.1rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; line-height: 1.5; color: rgba(255,253,248,.8); }
 /* The heart sits in a run of text, so it needs to ride the baseline rather than the line box. */
 .footer-brand svg { display: inline-block; vertical-align: -.18em; margin: 0 .1em; color: var(--coral); }
-.site .footer-col h2 { margin: 0 0 1rem; font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; line-height: 1.4; color: #9ed8f2; }
-.footer-col address, .footer-col p { margin: 0 0 1rem; font-style: normal; font-size: var(--fs-sm); line-height: 1.7; color: rgba(255,253,248,.82); }
+.footer-col { min-width: 0; }
+.footer-col .contact-row { padding: 0 0 1.15rem; border-top: 0; }
+.footer-col .contact-row:last-child { padding-bottom: 0; }
+.footer-col .contact-icon { background: rgba(158,216,242,.12); color: #9ed8f2; }
+.footer-col .contact-row small { color: #9ed8f2; }
+.footer-col .contact-row :is(a, address) { color: rgba(255,253,248,.82); }
+.footer-col address { margin: 0; font-style: normal; font-size: var(--fs-sm); line-height: 1.7; }
 .footer-col a { text-decoration: none; }
 .footer-hours { display: grid; gap: .3rem; margin: 0; font-size: var(--fs-sm); }
 .footer-hours div { display: flex; justify-content: space-between; gap: 1rem; }
@@ -535,6 +548,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .footer-wordmark { width: min(1120px, 100%); margin: 0 auto; font-family: var(--serif); font-weight: 500; font-size: clamp(3.6rem, 13.2vw, 11.5rem); line-height: .82; letter-spacing: -.05em; white-space: nowrap; color: rgba(255,253,248,.92); }
 .footer-bottom { width: min(1120px, 100%); margin: 1.6rem auto 0; padding-top: 1.2rem; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: space-between; gap: .8rem 1.5rem; font-size: var(--fs-xs); color: rgba(255,253,248,.55); }
 .footer-legal { display: flex; gap: 1.2rem; }
+@media (max-width: 1040px) { .footer-inner { grid-template-columns: 1fr 1fr; } }
 /* The legal pages' footer is only the name and two links: one row, not the four-column grid. */
 .legal-footer .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem 2rem; padding: 2rem 0; }
 .legal-footer .footer-brand { display: flex; align-items: center; gap: .7rem; font-family: var(--serif); font-size: var(--fs-lg); }
@@ -604,7 +618,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
   .menu-index a:hover { background: var(--ink); color: var(--paper); }
   .site-footer .footer-links a:hover { background-size: 100% 1px; }
-  .footer-links a:hover, .footer-col a:hover, .footer-legal a:hover { color: #9ed8f2; }
+  .footer-links a:hover, .footer-col a:hover, .footer-col .contact-row a:hover, .footer-legal a:hover { color: #9ed8f2; }
   .contact-row a:hover { color: var(--blue-dark); }
   .chip:hover { background: var(--paper); }
   .gallery-tile:hover img { transform: scale(1.04); }
@@ -711,7 +725,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   /* minmax(0, …): a plain 1fr cannot shrink below its longest unbreakable line (the email address),
      which pushed the visit section 13px past a phone screen and made the browser zoom the page out. */
   .visit { grid-template-columns: minmax(0, 1fr); }
-  .contact-row a { overflow-wrap: anywhere; }
+  .contact-row a:not(.contact-email) { overflow-wrap: anywhere; }
   .craft-art { width: min(300px, 100%); }
   /* One column from here down, so there is no second column to ride alongside: the photo goes back
      to being a plain block that sits under the card. */

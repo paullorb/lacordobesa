@@ -7,7 +7,7 @@ import { ArrowIcon, OccasionIcon } from "@/components/icons";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
-import { BUDGET_CODES, OCCASION_CODES, type BudgetBand, type Occasion } from "@/lib/events";
+import { BUDGET_CODES, GUEST_OPTIONS, OCCASION_CODES, type BudgetBand, type Occasion } from "@/lib/events";
 import type { Locale } from "@/lib/i18n";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
@@ -38,7 +38,6 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
   const [budget, setBudget] = useState<BudgetBand | null>(null);
   const [contact, setContact] = useState({ name: "", phone: "", email: "", message: "" });
   const dateInput = useRef<HTMLInputElement>(null);
-  const guestsInput = useRef<HTMLInputElement>(null);
   const contactField = (key: keyof typeof contact) => ({
     value: contact[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
@@ -95,33 +94,37 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       changeLabel: t.changeWhen,
       body: (
         <div className="wizard-body">
-          <div className="preorder-when">
-            <div>
-              {/* Both optional on purpose: the date and the headcount are often what the guest wants to discuss. */}
-              <label htmlFor="event_date">{t.date}</label>
-              <input
-                ref={dateInput}
-                id="event_date"
-                type="date"
-                min={minDate}
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-              />
+          {/* Both optional on purpose: the date and the headcount are often what the guest wants to discuss. */}
+          <div>
+            <label htmlFor="event_date" className="group-label">{t.date}</label>
+            <input
+              ref={dateInput}
+              id="event_date"
+              type="date"
+              min={minDate}
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+            />
+          </div>
+          <div role="group" aria-labelledby="guests-label">
+            <span id="guests-label" className="group-label">{t.guests}</span>
+            <div className="slots">
+              {GUEST_OPTIONS.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className="slot"
+                  aria-pressed={guests === String(n)}
+                  onClick={() => setGuests(guests === String(n) ? "" : String(n))}
+                >
+                  {t.guestsOption(n)}
+                </button>
+              ))}
+              <button type="button" className="slot" aria-pressed={guests === ""} onClick={() => setGuests("")}>
+                {t.guestsUnknown}
+              </button>
             </div>
-            <div>
-              <label htmlFor="guests">{t.guests}</label>
-              <input
-                ref={guestsInput}
-                id="guests"
-                type="number"
-                min={1}
-                max={500}
-                inputMode="numeric"
-                placeholder={t.guestsPlaceholder}
-                value={guests}
-                onChange={(e) => setGuests(e.target.value)}
-              />
-            </div>
+            <p className="form-note">{t.guestsNote}</p>
           </div>
           <div>
             <button
@@ -130,7 +133,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
               // Checked here, because the inputs unmount on the next step and only hidden copies of
               // their values reach the server, where a past date or 900 guests would be a late error.
               onClick={() => {
-                if (dateInput.current?.reportValidity() && guestsInput.current?.reportValidity()) setStep(3);
+                if (dateInput.current?.reportValidity()) setStep(3);
               }}
             >
               {t.continueLabel} <ArrowIcon direction="right" />
