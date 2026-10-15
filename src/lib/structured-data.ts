@@ -4,6 +4,7 @@
  *  search result. Everything here must therefore be true: a guessed coordinate or a wrong
  *  closing time is worse than leaving the property out, so optional facts we don't have are
  *  simply omitted until someone fills them in. */
+import { LOGO } from "@/lib/brand";
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
@@ -54,7 +55,7 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
       "Hausgemachte argentinische Spezialitäten in Frankfurt am Main: Empanadas, Alfajores, Kuchen, Pasta und Gerichte vom Grill.",
     url: SITE_URL,
     image: [`${SITE_URL}/assets/hero-pasteleria.jpg`],
-    logo: `${SITE_URL}/assets/logo.svg`,
+    logo: `${SITE_URL}${LOGO.full}`,
     telephone: CONTACT.phoneE164,
     email: CONTACT.email,
     address: address(),

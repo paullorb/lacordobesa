@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { Analytics } from "@/components/analytics";
+import { APPS, ICONS } from "@/lib/brand";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
 import { OG_IMAGE, SITE_URL } from "@/lib/site";
@@ -16,7 +17,7 @@ const serif = Playfair_Display({
   variable: "--font-serif",
 });
 
-export const viewport: Viewport = { themeColor: "#f5f1e9" };
+export const viewport: Viewport = { themeColor: APPS.public.themeColor };
 
 /**
  * The document every page is rendered into.
@@ -45,11 +46,11 @@ export function rootMetadata(locale: Locale): Metadata {
     metadataBase: new URL(SITE_URL),
     title: { default: t.title, template: "%s · La Cordobesa" },
     description: t.description,
-    icons: { icon: "/assets/favicon.svg", apple: "/icons/apple-touch-icon.png" },
-    // The installable app is the staff area, and its manifest is scoped to /staff. Advertising it
-    // on a public page offers a browser a manifest whose scope does not contain the page, which it
-    // ignores anyway; the staff layout opts back in.
-    manifest: null,
+    // Where every icon comes from, and how to swap the logo: see lib/brand.ts.
+    icons: { icon: [...ICONS.favicon], apple: APPS.public.appleIcon },
+    // The public site installs as "La Cordobesa". The staff area links its own manifest, scoped to /staff.
+    manifest: APPS.public.path,
+    appleWebApp: { capable: true, title: APPS.public.shortName, statusBarStyle: "default" },
     openGraph: {
       title: t.title,
       description: t.description,

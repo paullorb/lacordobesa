@@ -12,7 +12,8 @@
     "test:e2e": "node --test --test-concurrency=2 \"tests/e2e/**/*.test.mjs\"",
     "test": "npm run test:unit && npm run test:e2e",
     "check": "npm run lint && npm run typecheck && npm run test:unit",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -5,18 +5,21 @@ import { Suspense } from "react";
 import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
+import { APPS, ICONS } from "@/lib/brand";
 import { signOut } from "@/app/staff/actions";
 import { StaffNav } from "@/app/staff/nav";
 import { Logo } from "@/components/logo";
 
 export const metadata: Metadata = {
-  manifest: "/manifest.webmanifest",
+  // Its own manifest, name and home-screen tile, so it installs beside the public site, not over it.
+  manifest: APPS.staff.path,
+  icons: { icon: [...ICONS.favicon], apple: APPS.staff.appleIcon },
   title: { default: "Team", template: "%s · La Cordobesa Team" },
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Cordobesa" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: APPS.staff.shortName },
 };
 
-export const viewport: Viewport = { themeColor: "#152f3b" };
+export const viewport: Viewport = { themeColor: APPS.staff.themeColor };
 
 export default function StaffLayout({ children }: LayoutProps<"/staff">) {
   return (
