@@ -37,7 +37,7 @@ describe(`${label}: the manifest`, () => {
   let manifest;
   const load = async () => {
     if (manifest) return manifest;
-    const response = await fetch(`${BASE}/manifest.webmanifest`);
+    const response = await fetch(`${BASE}/staff.webmanifest`);
     assert.equal(response.status, 200);
     assert.match(response.headers.get("content-type") ?? "", /json/);
     manifest = await response.json();
@@ -82,7 +82,7 @@ describe(`${label}: the pages advertise it where they should`, () => {
     await visit("/staff/login", {
       native: true,
       body: async ({ page }) => {
-        assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/manifest.webmanifest");
+        assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/staff.webmanifest");
         assert.ok(await page.locator('meta[name="theme-color"]').count(), "no theme-color");
         const touch = await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
         assert.ok(touch, "iOS has no home screen icon");
@@ -94,11 +94,11 @@ describe(`${label}: the pages advertise it where they should`, () => {
     });
   });
 
-  test("the public pages do not offer an app whose scope does not contain them", { skip }, async () => {
+  test("the public pages offer the public app, not the staff one", { skip }, async () => {
     await visit("/", {
       native: true,
       body: async ({ page }) => {
-        assert.equal(await page.locator('link[rel="manifest"]').count(), 0);
+        assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/manifest.webmanifest");
       },
     });
   });
