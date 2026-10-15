@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { track } from "@/components/analytics";
 import { getDictionary } from "@/lib/dictionaries";
 import { GALLERY_CATEGORIES } from "@/lib/gallery";
 import type { Locale } from "@/lib/i18n";
@@ -47,7 +48,10 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
       <ul className="gallery-grid">
         {visible.map((p, i) => (
           <li key={p.id}>
-            <button type="button" className="gallery-tile" onClick={() => setOpenId(p.id)}>
+            <button type="button" className="gallery-tile" onClick={() => {
+                track("gallery_open");
+                setOpenId(p.id);
+              }}>
               <Image
                 src={p.url}
                 alt={p.caption ?? t.photoAlt(categoryLabel(p.category))}

@@ -38,7 +38,7 @@ export function VenueMap({ locale, query, label, openUrl }: Props) {
             {t.consentAfter}
           </p>
           <div className="visit-actions">
-            <button type="button" className="button" onClick={() => setLoaded(true)}>
+            <button type="button" className="button" data-track="map_load" onClick={() => setLoaded(true)}>
               {t.load}
             </button>
             <a className="button secondary" href={openUrl} target="_blank" rel="noreferrer">

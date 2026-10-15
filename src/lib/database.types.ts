@@ -34,6 +34,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_daily: {
+        Row: {
+          browser: string
+          day: string
+          detail: string
+          device: string
+          event: string
+          hits: number
+          lang: string
+          path: string
+          referrer: string
+        }
+        Insert: {
+          browser?: string
+          day: string
+          detail?: string
+          device?: string
+          event: string
+          hits?: number
+          lang?: string
+          path?: string
+          referrer?: string
+        }
+        Update: {
+          browser?: string
+          day?: string
+          detail?: string
+          device?: string
+          event?: string
+          hits?: number
+          lang?: string
+          path?: string
+          referrer?: string
+        }
+        Relationships: []
+      }
       broadcast_optins: {
         Row: {
           channel: Database["public"]["Enums"]["broadcast_channel"]
@@ -623,6 +659,16 @@ export type Database = {
       }
     }
     Functions: {
+      analytics_breakdown: {
+        Args: {
+          p_by: string
+          p_detail?: string
+          p_event: string
+          p_from: string
+          p_to: string
+        }
+        Returns: { bucket: string; total: number }[]
+      }
       arrange_menu_categories: { Args: { p_ids: string[] }; Returns: number }
       arrange_menu_items: {
         Args: { p_category: string; p_ids: string[] }
@@ -737,6 +783,18 @@ export type Database = {
           p_email?: string
           p_name?: string
           p_phone?: string
+        }
+        Returns: undefined
+      }
+      track_event: {
+        Args: {
+          p_browser: string
+          p_detail: string
+          p_device: string
+          p_event: string
+          p_lang: string
+          p_path: string
+          p_referrer: string
         }
         Returns: undefined
       }

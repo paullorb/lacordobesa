@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Analytics } from "@/components/analytics";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
 import { OG_IMAGE, SITE_URL } from "@/lib/site";
@@ -29,7 +30,10 @@ export const viewport: Viewport = { themeColor: "#f5f1e9" };
 export function RootDocument({ locale, children }: { locale: Locale; children: ReactNode }) {
   return (
     <html lang={INTL_LOCALE[locale]} className={`${sans.variable} ${serif.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

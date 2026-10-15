@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import { useTrackForm } from "@/components/analytics";
 import { requestEventInquiry } from "@/app/catering/actions";
 import { ArrowIcon, OccasionIcon } from "@/components/icons";
 import { Wizard, type WizardStep } from "@/components/wizard";
@@ -26,6 +27,7 @@ const MESSAGE_MAX = 1500;
  */
 export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate: string }) {
   const [state, formAction, pending] = useActionState(requestEventInquiry, null);
+  useTrackForm("inquiry", state, pending);
   const t = getDictionary(locale).inquiryForm;
   const stepOf = getDictionary(locale).wizard.stepOf;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTrackForm } from "@/components/analytics";
 import { subscribeToSpecials } from "@/app/specials/actions";
 import { CHANNEL_LABEL, OPEN_CHANNELS, type BroadcastChannel } from "@/lib/broadcast";
 import { whatsappHref } from "@/lib/contact";
@@ -12,6 +13,7 @@ import { FIELD_LIMITS } from "@/lib/reservation-limits";
  *  every extra field here costs sign-ups, and none of them would be used. */
 export function SpecialsOptin({ locale }: { locale: Locale }) {
   const [state, formAction, pending] = useActionState(subscribeToSpecials, null);
+  useTrackForm("specials", state, pending);
   const [channel, setChannel] = useState<BroadcastChannel>(OPEN_CHANNELS[0]);
   const t = getDictionary(locale).optin;
 
