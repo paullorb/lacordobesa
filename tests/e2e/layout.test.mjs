@@ -104,6 +104,36 @@ describe("the page chrome spans the window", () => {
   }
 });
 
+/**
+ * Drops `upgrade-insecure-requests` from the page's CSP, for WebKit only.
+ *
+ * WebKit applies that directive to `http://localhost` as well, so every stylesheet, font and
+ * script on this server is rewritten to `https://localhost:3000` and dies with a TLS error. The
+ * page then renders with no CSS at all, which measures as 448px of content in 390px and reads as
+ * a layout bug: it was four of them. Chromium exempts localhost from the upgrade, which is why
+ * only the Safari tests saw it.
+ *
+ * Nothing to fix in the site. The header is right, and over HTTPS in production the directive has
+ * nothing left to upgrade; it only bites a plain-HTTP origin, which is exactly what a local server
+ * is and a deployment never is.
+ */
+async function allowPlainHttp(context) {
+  await context.route("**/*", async (route) => {
+    if (route.request().resourceType() !== "document") return route.continue();
+    const response = await route.fetch();
+    const headers = { ...response.headers() };
+    const csp = headers["content-security-policy"];
+    if (csp) {
+      headers["content-security-policy"] = csp
+        .split(";")
+        .map((directive) => directive.trim())
+        .filter((directive) => directive !== "upgrade-insecure-requests")
+        .join("; ");
+    }
+    await route.fulfill({ response, headers });
+  });
+}
+
 describe("Safari does not scale the page to fit", () => {
   // The same overflow, seen the way the team sees it. WebKit widens its layout viewport when the
   // content does not fit, which is the "zoomed in" screen in the report: visualViewport.scale
@@ -127,6 +157,7 @@ describe("Safari does not scale the page to fit", () => {
           storageState: staff ? await staffStorageState() : undefined,
           reducedMotion: "reduce",
         });
+        await allowPlainHttp(context);
         const page = await context.newPage();
         await page.goto(BASE + path, { waitUntil: "networkidle", timeout: 90_000 });
         const measured = await page.evaluate(() => ({

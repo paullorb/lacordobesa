@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { flushSync } from "react-dom";
 import { arrangeCategories, arrangeMenuItems, setMenuItemFeatured, type ActionResult } from "@/app/staff/actions";
+import { FLIP_EASE, motion, preloadMotion } from "@/lib/motion";
 
 export type ArrangerCategory = {
   id: string;
@@ -41,6 +43,12 @@ function layoutOf(categories: ArrangerCategory[], items: ArrangerItem[]): Layout
 const without = (list: string[], id: string) => list.filter((x) => x !== id);
 const insertAt = (list: string[], id: string, index: number) => [...list.slice(0, index), id, ...list.slice(index)];
 
+/** Everything on the page that a reorder can move: a dish row, a category section, a Startseite chip. */
+const MOVABLE = "[data-arrange-item], [data-arrange-cat], [data-arrange-chip]";
+/** A drag has to keep up with the finger, so its glide is short. A keypress can afford the full one. */
+const DRAG_GLIDE = 0.22;
+const KEY_GLIDE = 0.4;
+
 /**
  * The staff menu as staff see it on the site, rearranged by dragging.
  *
@@ -62,6 +70,56 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
   const featuredZone = useRef<HTMLDivElement>(null);
   const pointerY = useRef(0);
 
+  // Warmed on mount: a reorder is a finger drag or a keypress, and neither can wait for a chunk to
+  // arrive over the network, so by the time a handle is grabbed Flip is already here.
+  useEffect(() => {
+    void preloadMotion();
+  }, []);
+
+  /**
+   * Changes the layout, gliding every row from where it was to where it lands.
+   *
+   * Without this a reorder is a teleport. On a keypress that is actively confusing: ↓ on a handle
+   * silently rearranges the list and nothing says which row moved or how far, which is the one
+   * cue a keyboard user has no pointer to supply. Dragging has the same problem more mildly, as
+   * the rows a dish displaces jump around it.
+   *
+   * flushSync is the point: Flip has to read the new layout out of the DOM, so the commit cannot
+   * wait for React to get round to it.
+   */
+  function relayout(next: React.SetStateAction<Layout>, duration: number) {
+    // `move` runs on every pointermove and most of them land the dish exactly where it already is;
+    // its updaters return the layout they were given, unchanged, when that happens. Spotting that
+    // by identity keeps a measurement of every row in the menu out of the common case, which is
+    // the difference between a drag that tracks the finger on a phone and one that does not.
+    const resolved = typeof next === "function" ? next(layout) : next;
+    if (resolved === layout) return;
+    const m = motion();
+    if (!m) {
+      setLayout(resolved);
+      return;
+    }
+    // A selector rather than a ref into this subtree: the page renders one arranger, these three
+    // attributes belong to it alone, and reading a ref here would be a render-time ref access
+    // (the window handlers below are captured into a useRef on every render).
+    const state = m.Flip.getState(MOVABLE);
+    flushSync(() => setLayout(resolved));
+    // nested, because the dish rows live inside the category sections and both can move at once.
+    // prune, so a one-step swap on a sixty-dish menu animates the two rows that changed places.
+    m.Flip.from(state, {
+      duration,
+      ease: FLIP_EASE,
+      nested: true,
+      prune: true,
+      // `targets` so a row or chip that did not exist a moment ago is animated too, not just the
+      // ones that moved. The one that matters is the Startseite chip: dropping a dish on the home
+      // page has no other confirmation, and a chip that scales up says the drop was taken.
+      targets: MOVABLE,
+      onEnter: (els) =>
+        m.gsap.fromTo(els, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration, ease: FLIP_EASE }),
+    });
+  }
+
   const itemById = new Map(items.map((i) => [i.id, i]));
   const catById = new Map(categories.map((c) => [c.id, c]));
   const catOf = (l: Layout, id: string) => l.cats.find((c) => l.items[c].includes(id));
@@ -73,7 +131,9 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       const result = await run().catch((): ActionResult => ({ ok: false, error: "Keine Verbindung." }));
       if (result && !result.ok) {
         setError(`Nicht gespeichert: ${result.error}`);
-        setLayout(layoutOf(categories, items));
+        // The rows glide back to where they were, so a rejected save is visible as a movement and
+        // not only as a sentence above the list.
+        relayout(layoutOf(categories, items), KEY_GLIDE);
       }
     });
   }
@@ -136,11 +196,11 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       const target = under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
       if (!target || target === drag.id) return;
       const rect = under!.closest("[data-arrange-cat]")!.getBoundingClientRect();
-      setLayout((l) => {
+      relayout((l) => {
         const rest = without(l.cats, drag.id);
         const at = rest.indexOf(target) + (e.clientY > rect.top + rect.height / 2 ? 1 : 0);
         return { ...l, cats: insertAt(rest, drag.id, at) };
-      });
+      }, DRAG_GLIDE);
       return;
     }
 
@@ -151,7 +211,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     if (targetItem === drag.id) return;
     const targetCat = under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
     if (!targetCat) return;
-    setLayout((l) => {
+    relayout((l) => {
       const from = catOf(l, drag.id);
       if (!from) return l;
       const items = { ...l.items, [from]: without(l.items[from], drag.id) };
@@ -163,7 +223,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       if (from === targetCat && l.items[from].indexOf(drag.id) === at) return l;
       items[targetCat] = insertAt(items[targetCat], drag.id, at);
       return { ...l, items };
-    });
+    }, DRAG_GLIDE);
   }
 
   function end(e: PointerEvent) {
@@ -199,17 +259,17 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     if (!drag || e.pointerId !== drag.pointerId) return;
     setDrag(null);
     setOverFeatured(false);
-    setLayout(layoutOf(categories, items));
+    relayout(layoutOf(categories, items), KEY_GLIDE);
   }
 
   function feature(id: string, base: Layout = layout) {
     const inOrder = base.cats.flatMap((c) => base.items[c]).filter((x) => x === id || base.featured.includes(x));
-    setLayout({ ...base, featured: inOrder });
+    relayout({ ...base, featured: inOrder }, KEY_GLIDE);
     save(() => setMenuItemFeatured(id, true));
   }
 
   function unfeature(id: string) {
-    setLayout((l) => ({ ...l, featured: without(l.featured, id) }));
+    relayout((l) => ({ ...l, featured: without(l.featured, id) }), KEY_GLIDE);
     save(() => setMenuItemFeatured(id, false));
   }
 
@@ -232,7 +292,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     }
     const next = { ...layout.items, [from]: list };
     next[to] = insertAt(to === from ? list : layout.items[to], id, at);
-    setLayout({ ...layout, items: next });
+    relayout({ ...layout, items: next }, KEY_GLIDE);
     save(() => arrangeMenuItems(to, next[to]));
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-handle="${id}"]`)?.focus());
   }
@@ -244,7 +304,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     const index = layout.cats.indexOf(id) + step;
     if (index < 0 || index >= layout.cats.length) return;
     const cats = insertAt(without(layout.cats, id), id, index);
-    setLayout({ ...layout, cats });
+    relayout({ ...layout, cats }, KEY_GLIDE);
     save(() => arrangeCategories(cats));
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-handle="${id}"]`)?.focus());
   }
@@ -292,6 +352,8 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
               return (
                 <li
                   key={id}
+                  data-arrange-chip={id}
+                  data-flip-id={`chip-${id}`}
                   className={`flex min-h-10 items-center gap-1 rounded-full border border-line bg-white py-0.5 pr-1 text-sm ${
                     drag?.id === id ? "opacity-50" : ""
                   } ${item.available ? "" : "text-muted line-through"}`}
@@ -329,6 +391,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
             key={catId}
             id={`cat-${cat.slug}`}
             data-arrange-cat={catId}
+            data-flip-id={`cat-${catId}`}
             className={`grid gap-2 scroll-mt-28 ${drag?.id === catId ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
           >
             <div className="flex items-start gap-2">
@@ -350,7 +413,10 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
                 return (
                   <div
                     key={id}
+                    // The dish's own id, so a row dragged into another category is still the same
+                    // row to Flip and glides across, even though React has remounted it there.
                     data-arrange-item={id}
+                    data-flip-id={`row-${id}`}
                     className={`flex items-start gap-2 ${drag?.id === id && drag.kind === "item" ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
                   >
                     <button
