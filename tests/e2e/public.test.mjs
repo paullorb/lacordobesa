@@ -59,10 +59,13 @@ describe("the reservation calendar", () => {
     const tomorrow = new Date(Date.now() + 26 * 3_600_000);
     const expected = Number(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(tomorrow).slice(8));
     await visit("/", {
-      body: async ({ page, context }) => {
+      // Before the first load, not as a reload afterwards: the clock has to be wound on before any
+      // script reads it, and a second navigation finds everything cached and never goes idle.
+      before: async ({ page, context }) => {
         await context.clearCookies();
         await page.clock.setFixedTime(tomorrow);
-        await page.reload({ waitUntil: "networkidle" });
+      },
+      body: async ({ page }) => {
         await page.waitForTimeout(500);
         const marked = page.locator(".day", { has: page.locator("small") });
         await marked.first().waitFor({ timeout: 15_000 });

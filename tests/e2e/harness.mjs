@@ -202,17 +202,29 @@ export async function staffStorageState() {
  *
  * reducedMotion, because the public pages reveal their sections on a scroll-driven timeline:
  * without it everything below the fold sits at opacity 0 and measures as invisible.
+ *
+ * `motion: true` turns that off again, for the few tests whose subject *is* the movement. Nothing
+ * that measures a layout should ask for it.
+ *
+ * `before` runs with the fresh page *before* it is navigated, and whatever it returns reaches
+ * `body` as `before`. Anything that has to be in place for the very first load belongs there:
+ * recording the requests a page makes, or fixing the clock before a script can read it.
+ *
+ * Use it rather than navigating a second time. A page that is already loaded has everything in
+ * cache, so a second navigation reports only about half the requests the first one made (28 of 54
+ * on the home page) and never goes `networkidle` at all, because Playwright never sees the
+ * activity it is waiting to die down — which is how four of these tests came to hang for 30 s.
  */
 export async function visit(
   path,
-  { width = 1280, height = 900, native = false, staff = false, timezoneId, locale, at, standalone = false, body },
+  { width = 1280, height = 900, native = false, staff = false, motion = false, before, timezoneId, locale, at, standalone = false, body },
 ) {
   const context = await (await browser()).newContext({
     // `native` is the matrix's own mode: the project's device exactly as Playwright describes it,
     // with its viewport, user agent and touch. Otherwise the width asked for.
     ...(native ? deviceOptions() : { viewport: { width, height } }),
     storageState: staff ? await staffStorageState() : undefined,
-    reducedMotion: "reduce",
+    reducedMotion: motion ? "no-preference" : "reduce",
     ...(timezoneId ? { timezoneId } : {}),
     ...(locale ? { locale } : {}),
   });
@@ -222,9 +234,10 @@ export async function visit(
   if (standalone) await emulateStandalone(context);
   const page = await context.newPage();
   const errors = watchForErrors(page);
+  const prepared = before ? await before({ page, context }) : undefined;
   try {
     const response = await page.goto(BASE + path, { waitUntil: "networkidle", timeout: 90_000 });
-    return await body({ page, response, errors, context });
+    return await body({ page, response, errors, context, before: prepared });
   } finally {
     await context.close();
   }

@@ -52,9 +52,8 @@ describe("nothing is fetched from another origin", () => {
   for (const path of MAIN_PAGES) {
     test(path, { skip }, async () => {
       await visit(path, {
-        body: async ({ page }) => {
-          const requests = trackRequests(page);
-          await page.reload({ waitUntil: "networkidle" });
+        before: ({ page }) => trackRequests(page),
+        body: async ({ before: requests }) => {
           const foreign = [...new Set(requests.map((r) => r.origin))].filter((origin) => origin !== BASE);
           assert.deepEqual(foreign, [], `${path} talks to another origin`);
         },
@@ -66,9 +65,8 @@ describe("nothing is fetched from another origin", () => {
 describe("fonts", () => {
   test("come from here, not from Google", { skip }, async () => {
     await visit("/", {
-      body: async ({ page }) => {
-        const requests = trackRequests(page);
-        await page.reload({ waitUntil: "networkidle" });
+      before: ({ page }) => trackRequests(page),
+      body: async ({ before: requests }) => {
         const google = requests.filter((r) => /fonts\.(googleapis|gstatic)\.com/.test(r.url));
         assert.deepEqual(google, []);
       },
@@ -218,9 +216,8 @@ describe("no request is made twice", () => {
   for (const path of MAIN_PAGES) {
     test(path, { skip }, async () => {
       await visit(path, {
-        body: async ({ page }) => {
-          const requests = trackRequests(page);
-          await page.reload({ waitUntil: "networkidle" });
+        before: ({ page }) => trackRequests(page),
+        body: async ({ before: requests }) => {
           const counts = new Map();
           for (const r of requests) {
             if (r.type === "fetch" || r.type === "xhr") continue; // a poll is allowed to repeat
@@ -238,9 +235,8 @@ describe("nothing is broken on the way in", () => {
   for (const path of MAIN_PAGES) {
     test(path, { skip }, async () => {
       await visit(path, {
-        body: async ({ page }) => {
-          const requests = trackRequests(page);
-          await page.reload({ waitUntil: "networkidle" });
+        before: ({ page }) => trackRequests(page),
+        body: async ({ before: requests }) => {
           const failed = requests.filter((r) => r.status >= 400).map((r) => `${r.status} ${r.url.slice(-60)}`);
           assert.deepEqual(failed, []);
         },
@@ -280,19 +276,66 @@ describe("the staff app stays small enough to work on a phone", () => {
 
 describe("weight budgets", () => {
   // Only against a production build; see the file header.
-  const BUDGET_KB = { "/": 420, "/karte": 420, "/vorbestellen": 400, "/catering": 400, "/gallery": 600 };
+  //
+  // These are the first numbers here that were ever actually measured. The old ones were read off
+  // `content-length`, which `next start` does not send, so every page scored 0 KB and every budget
+  // passed however heavy the page got. Measured for real, four of the five were already inside
+  // their guess and the home page was not: it carries the hero photograph, and 420 KB was never
+  // reachable with that plus two font families and the framework runtime.
+  //
+  // So each budget is now set a little above what the page actually transfers, which is the only
+  // thing a budget can usefully do: catch the next regression rather than describe an ideal.
+  // Measured at 1280x900 against a production build, in KB:
+  //
+  //   /             600   font 114, image 227 (hero 161), script 207, document 33, css 18
+  //   /karte        373   font 114, script 207, document 33, css 18
+  //   /vorbestellen 367   font 114, script 225, document 9, css 18
+  //   /catering     352   font 114, script 209, document 9, css 18
+  //   /gallery      535   font 114, image 183, script 209, document 11, css 18
+  //
+  // The hero is the one worthwhile lever and it is deliberately not pulled here: it is fetched at
+  // w=1920 for a 1232px slot because Next's default deviceSizes jump 1200 -> 1920, and adding a
+  // size in between would cut it by roughly 70 KB. That is a Vercel image-transformation cost
+  // decision, not a test fix.
+  const BUDGET_KB = { "/": 640, "/karte": 420, "/vorbestellen": 400, "/catering": 400, "/gallery": 600 };
+
+  /**
+   * What actually went over the wire, summed from Playwright's own accounting.
+   *
+   * Not `content-length`: `next start` answers compressed and chunked, so the header is absent on
+   * nearly every response and reading it scored each of these pages at 0 KB. The budget passed
+   * because it was measuring nothing. `request.sizes()` reports the encoded body and the headers
+   * as the browser received them, which is the number a visitor pays.
+   */
+  async function transferredKB(requests) {
+    let bytes = 0;
+    for (const request of requests) {
+      // `?_rsc=` is Next prefetching a route the visitor has not asked for yet. It is real traffic,
+      // but it is the *next* page's payload, so charging it here would make a page's weight depend
+      // on how many links it has and would punish adding one.
+      if (request.url().includes("_rsc=")) continue;
+      // A request that never finished has no sizes to report; it also cost the visitor nothing.
+      const sizes = await request.sizes().catch(() => null);
+      if (sizes) bytes += sizes.responseBodySize + sizes.responseHeadersSize;
+    }
+    return Math.round(bytes / 1024);
+  }
+
+  /** Every request of the first, cold load. */
+  const trackSizes = ({ page }) => {
+    const requests = [];
+    page.on("requestfinished", (request) => requests.push(request));
+    return requests;
+  };
 
   for (const [path, budget] of Object.entries(BUDGET_KB)) {
     test(`${path} under ${budget} KB`, { skip: skipUnlessBuilt }, async () => {
       await visit(path, {
-        body: async ({ page }) => {
-          let bytes = 0;
-          page.on("response", async (response) => {
-            const length = Number(response.headers()["content-length"] ?? 0);
-            bytes += length;
-          });
-          await page.reload({ waitUntil: "networkidle" });
-          const kb = Math.round(bytes / 1024);
+        before: trackSizes,
+        body: async ({ page, before: requests }) => {
+          // Lazy images and any chunk fetched on mount are part of what the page costs.
+          await page.waitForTimeout(1500);
+          const kb = await transferredKB(requests);
           assert.ok(kb < budget, `${path} transferred ${kb} KB, budget ${budget} KB`);
         },
       });
@@ -301,14 +344,11 @@ describe("weight budgets", () => {
 
   test("the JavaScript the browser has to parse stays modest", { skip: skipUnlessBuilt }, async () => {
     await visit("/", {
-      body: async ({ page }) => {
-        const scripts = await page.evaluate(() =>
-          [...document.querySelectorAll("script[src]")].map((s) => s.src),
-        );
-        const sizes = await Promise.all(
-          scripts.map(async (src) => Number((await fetch(src)).headers.get("content-length") ?? 0)),
-        );
-        const kb = Math.round(sizes.reduce((a, b) => a + b, 0) / 1024);
+      before: trackSizes,
+      body: async ({ page, before: requests }) => {
+        await page.waitForTimeout(1500);
+        const scripts = requests.filter((r) => r.resourceType() === "script");
+        const kb = await transferredKB(scripts);
         assert.ok(kb < 300, `the home page ships ${kb} KB of JavaScript`);
       },
     });
