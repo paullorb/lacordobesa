@@ -309,30 +309,40 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
               <label htmlFor="r-phone">{t.phone}</label>
             </div>
           </div>
-          <div className="field-float">
-            <input
-              id="r-email"
-              name="email"
-              type="email"
-              maxLength={FIELD_LIMITS.email}
-              autoComplete="email"
-              placeholder="maria@example.com"
-              value={contact.email}
-              onChange={(e) => setContact({ ...contact, email: e.target.value })}
-            />
-            <label htmlFor="r-email">{t.email}</label>
-          </div>
-          <div className="field-float">
-            <textarea
-              id="r-notes"
-              name="notes"
-              rows={2}
-              maxLength={FIELD_LIMITS.notes}
-              placeholder={t.notesPlaceholder}
-              value={contact.notes}
-              onChange={(e) => setContact({ ...contact, notes: e.target.value })}
-            />
-            <label htmlFor="r-notes">{t.notes}</label>
+          {/* Name and phone are the only things we need to call back, so they come first alone. The
+              rest unfolds once both hold something. `inert` keeps the folded fields out of the tab order. */}
+          <div className="reveal" data-open={contactReady} inert={!contactReady}>
+            <div className="reveal-inner">
+              <div className="field-float">
+                <input
+                  id="r-email"
+                  name="email"
+                  type="email"
+                  maxLength={FIELD_LIMITS.email}
+                  autoComplete="email"
+                  placeholder="maria@example.com"
+                  value={contact.email}
+                  onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                />
+                <label htmlFor="r-email">{t.email}</label>
+              </div>
+              <div className="field-float">
+                <textarea
+                  id="r-notes"
+                  name="notes"
+                  rows={2}
+                  maxLength={FIELD_LIMITS.notes}
+                  placeholder={t.notesPlaceholder}
+                  value={contact.notes}
+                  onChange={(e) => setContact({ ...contact, notes: e.target.value })}
+                />
+                <label htmlFor="r-notes">{t.notes}</label>
+              </div>
+
+              <button className="button" type="submit" disabled={submitting}>
+                {submitting ? t.submitting : t.submit}
+              </button>
+            </div>
           </div>
 
           {state && !state.ok && attempt === `${date} ${time}` && (
@@ -348,17 +358,6 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
               )}
             </div>
           )}
-
-          {contactReady ? (
-            <button className="button" type="submit" disabled={submitting}>
-              {submitting ? t.submitting : t.submit}
-            </button>
-          ) : (
-            <p className="form-note" role="status">
-              {t.needContact}
-            </p>
-          )}
-          <p className="form-note">{t.nonBinding}</p>
         </form>
       ) : null,
     },

@@ -17,6 +17,10 @@ export const BUDGET_BANDS = {
   "ueber-2500": "mehr als 2.500 €",
 } as const;
 
+/** Headcounts the form offers as one tap. Each is stored as the number itself, so what the guest
+ *  picked is what staff read; the exact figure can follow in the message. */
+export const GUEST_OPTIONS = [10, 20, 30, 50, 80, 120] as const;
+
 export type Occasion = keyof typeof OCCASIONS;
 export type BudgetBand = keyof typeof BUDGET_BANDS;
 

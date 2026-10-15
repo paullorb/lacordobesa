@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { CONTACT } from "@/lib/contact";
+import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { fmtTime, getOpeningHours } from "@/lib/data";
 import { todayISO } from "@/lib/dates";
 import { HeartIcon } from "@/components/icons";
@@ -34,34 +35,33 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
         </div>
 
         <div className="footer-col">
-          <h2>{v.visitAddressLabel}</h2>
-          <address>
-            {CONTACT.street}
-            <br />
-            {CONTACT.city}
-          </address>
-          <p>
-            <a href={`tel:${CONTACT.phoneE164}`}>{CONTACT.phoneDisplay}</a>
-            <br />
-            <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-          </p>
+          <ContactRow kind="address" label={v.visitAddressLabel}>
+            <ContactAddress />
+          </ContactRow>
+          <ContactRow kind="phone" label={v.callLabel}>
+            <ContactPhone />
+          </ContactRow>
+          <ContactRow kind="email" label={v.writeLabel}>
+            <ContactEmail />
+          </ContactRow>
         </div>
 
         <div className="footer-col">
-          <h2>{v.visitHours}</h2>
-          <dl className="footer-hours">
-            {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
-              const h = hours.find((x) => x.weekday === wd);
-              return (
-                <div key={wd}>
-                  <dt>{v.weekdays[wd]}</dt>
-                  <dd className={!h || h.is_closed ? "closed" : undefined}>
-                    {!h || h.is_closed ? v.closedLabel : v.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
+          <ContactRow kind="hours" label={v.visitHours}>
+            <dl className="footer-hours">
+              {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
+                const h = hours.find((x) => x.weekday === wd);
+                return (
+                  <div key={wd}>
+                    <dt>{v.weekdays[wd]}</dt>
+                    <dd className={!h || h.is_closed ? "closed" : undefined}>
+                      {!h || h.is_closed ? v.closedLabel : v.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </ContactRow>
         </div>
 
         <ul className="footer-links">

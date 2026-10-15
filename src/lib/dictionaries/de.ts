@@ -36,7 +36,7 @@ export const de = {
     back: "Zurück zur Startseite",
     backHome: "Zur Startseite",
     madeWithBefore: "Con mucho ",
-    madeWithAfter: ", desde Frankfurt am Main.",
+    madeWithAfter: " desde Frankfurt am Main.",
   },
   /** Shown on top of the legal pages for a reader who arrived from another language: those two pages
    *  are German only, on purpose. Unused in German itself, but kept so every language has the key. */
@@ -264,8 +264,6 @@ export const de = {
     notesPlaceholder: "Kinderstuhl, Allergien, Anlass …",
     submit: "Tisch anfragen",
     submitting: "Wird gesendet …",
-    needContact: "Name und Telefonnummer eintragen, danach kannst du den Tisch anfragen.",
-    nonBinding: "Deine Anfrage ist unverbindlich, bis wir sie bestätigen.",
     otherTime: "Andere Uhrzeit wählen",
     person: "Person",
     people: "Personen",
@@ -369,7 +367,9 @@ export const de = {
     occasion: "Was möchtest du feiern?",
     date: "Datum (falls schon klar)",
     guests: "Personen (ungefähr)",
-    guestsPlaceholder: "z. B. 25",
+    guestsOption: (n: number) => `ca. ${n}`,
+    guestsUnknown: "Weiß ich noch nicht",
+    guestsNote: "Nur ungefähr? Genaueres kannst du uns im letzten Schritt schreiben.",
     budget: "Welcher Rahmen passt dir?",
     budgetNote: "Nur zur Orientierung, damit wir dir gleich etwas Passendes vorschlagen können.",
     name: "Name",
