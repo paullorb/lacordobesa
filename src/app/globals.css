@@ -582,7 +582,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .nav-actions { margin-left: auto; gap: .4rem; }
   .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; max-height: calc(100dvh - var(--menu-top, 74px)); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 24px 1.4rem; background: var(--cream); border-bottom: 1px solid var(--line); box-shadow: 0 18px 30px rgba(21,47,59,.12); flex-direction: column; align-items: stretch; gap: 0; }
   .site-nav.open { display: flex; }
-  .site-nav a:not(.nav-cta) { padding: .9rem 0; border-bottom: 1px solid var(--line); }
+  .site-nav a:not(.nav-cta) { display: flex; align-items: center; gap: .85rem; padding: .9rem 0; border-bottom: 1px solid var(--line); }
+  .site-nav .nav-icon { flex: none; color: var(--blue-dark); }
   .site-nav .nav-cta { margin-top: 1rem; justify-content: center; border: 0; }
   /* Its own row under the button, with thumb-sized targets, instead of 20px codes in a corner. */
   .site-nav .lang-switch { margin-top: 1rem; align-self: center; }
@@ -593,6 +594,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .nav-backdrop { position: fixed; inset: 0; z-index: 9; background: rgba(21,47,59,.42); }
 }
 @media (min-width: 1321px) {
+  /* The icons belong to the phone menu; the horizontal bar stays words only. */
+  .site-nav .nav-icon { display: none; }
   .nav-backdrop { display: none; }
   /* An underline that draws in from the left on hover and stays under the page being shown. */
   .site-nav a:not(.nav-cta) { padding: .3rem 0; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: color .2s, background-size .35s cubic-bezier(.2,.7,.2,1); }

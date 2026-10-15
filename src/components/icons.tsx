@@ -208,6 +208,67 @@ export function OccasionIcon({ code, size = 22, className }: IconProps & { code:
   );
 }
 
+// ---------------------------------------------------------------- navigation
+
+/** One drawing per link in the site header, shown beside the label in the phone menu. Keyed by the
+ *  same names as the dictionary's `nav` entries. */
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  // An open book: the story.
+  story: (
+    <>
+      <path d="M12 6.8v12.4" />
+      <path d="M12 6.8C10.4 5.5 7.6 5.2 4.5 5.8v12.2c3.1-.6 5.9-.3 7.5 1" />
+      <path d="M12 6.8c1.6-1.3 4.4-1.6 7.5-1v12.2c-3.1-.6-5.9-.3-7.5 1" />
+    </>
+  ),
+  // A card with lines of writing: the menu.
+  menu: (
+    <>
+      <path d="M6.5 3.8h11a1.2 1.2 0 0 1 1.2 1.2v14a1.2 1.2 0 0 1-1.2 1.2h-11A1.2 1.2 0 0 1 5.3 19V5a1.2 1.2 0 0 1 1.2-1.2Z" />
+      <path d="M8.6 8.4h6.8M8.6 12h6.8M8.6 15.6h4" />
+    </>
+  ),
+  // A paper bag: order ahead and collect.
+  preorder: (
+    <>
+      <path d="M5.2 8.3h13.6l-.9 11.4a1.2 1.2 0 0 1-1.2 1.1H7.3a1.2 1.2 0 0 1-1.2-1.1Z" />
+      <path d="M9 8.3V7a3 3 0 0 1 6 0v1.3" />
+    </>
+  ),
+  // Two glasses side by side: celebrating.
+  celebrate: (
+    <>
+      <path d="M5.2 5.5h6l-.6 5.2a2.4 2.4 0 0 1-4.8 0Z" />
+      <path d="M8.2 13.1v6M5.8 19.1h4.8" />
+      <path d="M12.8 5.5h6l-.6 5.2a2.4 2.4 0 0 1-4.8 0Z" />
+      <path d="M15.8 13.1v6M13.4 19.1h4.8" />
+    </>
+  ),
+  // A picture in a frame.
+  gallery: (
+    <>
+      <rect x="3.8" y="5" width="16.4" height="14" rx="2" />
+      <circle cx="9" cy="10" r="1.5" />
+      <path d="m4.4 17.2 4.4-4.1a1.4 1.4 0 0 1 1.9 0l2.6 2.5 1.6-1.4a1.4 1.4 0 0 1 1.9 0l3.2 3" />
+    </>
+  ),
+  // A map pin: where to find us.
+  visit: (
+    <>
+      <path d="M12 21c4-4.6 6-7.9 6-10.5a6 6 0 1 0-12 0C6 13.1 8 16.4 12 21Z" />
+      <circle cx="12" cy="10.4" r="2.2" />
+    </>
+  ),
+};
+
+export function NavIcon({ name, size = 22, className }: IconProps & { name: string }) {
+  return (
+    <Icon size={size} className={className}>
+      {NAV_ICONS[name] ?? FALLBACK}
+    </Icon>
+  );
+}
+
 // ---------------------------------------------------------------- arrows
 
 /** The arrows the copy used to set as characters.
