@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon } from "@/components/icons";
+import { ChapterNav } from "@/components/chapter-nav";
+import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
@@ -65,6 +67,20 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
   // The open-now status runs in the browser, so it gets just the fields it reads.
   const openingHours = hours.map(({ weekday, opens, closes, is_closed }) => ({ weekday, opens, closes, is_closed }));
+  const hoursRows: HoursRow[] = [1, 2, 3, 4, 5, 6, 0].map((wd) => {
+    const h = hours.find((x) => x.weekday === wd);
+    const closed = !h || h.is_closed || !h.opens || !h.closes;
+    return { weekday: wd, label: t.weekdays[wd], text: closed ? t.closedLabel : t.hoursRange(fmtTime(h.opens), fmtTime(h.closes)), closed };
+  });
+  const chapters = [
+    { id: "geschichte", label: t.chapters.story },
+    { id: "karte", label: t.chapters.menu },
+    ...(photos.featured.length || instagram.length ? [{ id: "fotos", label: t.chapters.photos }] : []),
+    { id: "handwerk", label: t.chapters.craft },
+    { id: "gaeste", label: t.chapters.reviews },
+    { id: "reservieren", label: t.chapters.reserve },
+    { id: "besuch", label: t.chapters.visit },
+  ];
 
   // Featured items on the home page; the full list lives behind each category.
   const featured = menu.flatMap((c) => c.items.filter((i) => i.is_featured).map((i) => ({ ...i, category: c })));
@@ -75,6 +91,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
       <JsonLd data={restaurantJsonLd(hours, locale)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
+      {/* Wide screens only (see .chapter-nav): the page's seven chapters, with the current one marked. */}
+      <ChapterNav label={t.chaptersLabel} chapters={chapters} />
 
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
@@ -184,29 +202,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <p>{t.menuText}</p>
             </div>
 
-            {specials.length > 0 && (
-              <div className="specials" id="specials">
-                {specials.map((s) => (
-                  <div className="special" key={s.id}>
-                    <span className="tag">{t.specialTag}</span>
-                    <div>
-                      <strong>{s.title}</strong>
-                      {s.description && <p>{s.description}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Right under the specials, which is where somebody has just seen what they would be
-                signing up for. An anchor target, since the abmelden page links back here. */}
-            <div id={specials.length > 0 ? undefined : "specials"}>
-              <SpecialsOptin locale={locale} />
-            </div>
-
             <div className="menu-grid">
               {cards.map((item, i) => (
-                <article className="menu-card" key={item.id}>
+                <article className="menu-card" key={item.id} data-spotlight="">
                   <div>
                     <span className="dish-number">
                       {String(i + 1).padStart(2, "0")} / {item.category.label}
@@ -233,12 +231,32 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 {t.menuFull} <ArrowIcon direction="right" />
               </Link>
             </p>
+
+            {/* After the dishes, not before them: the cards are what the section is for, and the
+                specials and the sign-up are the offer that follows once somebody has seen what we
+                make. An anchor target, since the abmelden page links back here. */}
+            {specials.length > 0 && (
+              <div className="specials" id="specials">
+                {specials.map((s) => (
+                  <div className="special" key={s.id}>
+                    <span className="tag">{t.specialTag}</span>
+                    <div>
+                      <strong>{s.title}</strong>
+                      {s.description && <p>{s.description}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div id={specials.length > 0 ? undefined : "specials"}>
+              <SpecialsOptin locale={locale} />
+            </div>
           </div>
         </section>
 
         <PhotoStrip locale={locale} featured={photos.featured} posts={instagram} />
 
-        <section className="craft">
+        <section className="craft" id="handwerk">
           {/* The same crimped edge the footer opens with, so both dark bands are closed the same way. */}
           <div className="craft-edge" aria-hidden="true" style={{ maskImage: repulgueTile(), WebkitMaskImage: repulgueTile() }} />
           <div className="section craft-grid">
@@ -259,7 +277,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
           </div>
         </section>
 
-        <section className="section reviews" aria-labelledby="reviews-title">
+        <section className="section reviews" id="gaeste" aria-labelledby="reviews-title">
           <div className="reviews-copy">
             <p className="eyebrow">{t.reviewsEyebrow}</p>
             <h2 id="reviews-title">{t.reviewsTitle}</h2>
@@ -277,6 +295,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                   {/* `--i` staggers the pulse and the star wave, so the cards take turns instead of blinking together. */}
                   <a
                     className="review-card"
+                    data-spotlight=""
                     href={r.url}
                     target="_blank"
                     rel="noreferrer"
@@ -363,21 +382,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </ContactRow>
                 <ContactRow kind="hours" label={t.visitHours}>
                   <OpenStatus hours={openingHours} closures={closures} locale={locale} className="open-status-inline" />
-                  <div className="hours">
-                    {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
-                      const h = hours.find((x) => x.weekday === wd);
-                      return (
-                        <div key={wd} style={{ display: "contents" }}>
-                          <span>{t.weekdays[wd]}</span>
-                          {!h || h.is_closed ? (
-                            <span className="closed">{t.closedLabel}</span>
-                          ) : (
-                            <span>{t.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <OpeningHours rows={hoursRows} todayLabel={t.todayMark} variant="grid" />
                 </ContactRow>
                 <ContactRow kind="phone" label={t.callLabel}>
                   <ContactPhone />

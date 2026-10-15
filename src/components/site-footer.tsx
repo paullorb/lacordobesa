@@ -6,6 +6,8 @@ import { fmtTime, getOpeningHours } from "@/lib/data";
 import { todayISO } from "@/lib/dates";
 import { HeartIcon } from "@/components/icons";
 import { InstagramIcon } from "@/components/instagram-icon";
+import { LocalTime } from "@/components/local-time";
+import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { Logo } from "@/components/logo";
 import { repulgueTile } from "@/components/repulgue";
 import { getDictionary } from "@/lib/dictionaries";
@@ -21,6 +23,11 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
   const v = dict.home;
   const href = (path: string) => localeHref(locale, path);
   const hours = await getOpeningHours();
+  const rows: HoursRow[] = [1, 2, 3, 4, 5, 6, 0].map((wd) => {
+    const h = hours.find((x) => x.weekday === wd);
+    const closed = !h || h.is_closed || !h.opens || !h.closes;
+    return { weekday: wd, label: v.weekdays[wd], text: closed ? v.closedLabel : v.hoursRange(fmtTime(h.opens), fmtTime(h.closes)), closed };
+  });
   return (
     <footer className="site-footer">
       <div className="footer-edge" aria-hidden="true" style={{ maskImage: repulgueTile(), WebkitMaskImage: repulgueTile() }} />
@@ -48,19 +55,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
 
         <div className="footer-col">
           <ContactRow kind="hours" label={v.visitHours}>
-            <dl className="footer-hours">
-              {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
-                const h = hours.find((x) => x.weekday === wd);
-                return (
-                  <div key={wd}>
-                    <dt>{v.weekdays[wd]}</dt>
-                    <dd className={!h || h.is_closed ? "closed" : undefined}>
-                      {!h || h.is_closed ? v.closedLabel : v.hoursRange(fmtTime(h.opens), fmtTime(h.closes))}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
+            <OpeningHours rows={rows} todayLabel={v.todayMark} variant="list" />
           </ContactRow>
         </div>
 
@@ -89,6 +84,8 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
         <span>
           © <Year /> La Cordobesa · Pastelería Argentina
         </span>
+        {/* The shop's clock: what time it is in Frankfurt, wherever the reader is. */}
+        <LocalTime locale={locale} />
         <span className="footer-legal">
           {/* Impressum and Datenschutzerklärung stay German in every locale: the German text is the
               legally binding one, and a translated version would be a second thing to keep correct.

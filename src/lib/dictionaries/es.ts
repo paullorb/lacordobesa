@@ -35,10 +35,14 @@ export const es: Dictionary = {
     backHome: "Ir al inicio",
     madeWithBefore: "Con mucho ",
     madeWithAfter: " desde Frankfurt am Main.",
+    localTime: (time: string) => `Frankfurt, ${time} h`,
   },
   legalNotice:
     "Esta página solo está en alemán. Si tenés alguna duda, escribinos o llamanos y con gusto te ayudamos.",
   home: {
+    chaptersLabel: "Secciones de esta página",
+    chapters: { story: "Historia", menu: "Carta", photos: "Fotos", craft: "A mano", reviews: "Opiniones", reserve: "Reservar", visit: "Visitanos" },
+    todayMark: "Hoy",
     title: "La Cordobesa · Un pedacito de Argentina en Frankfurt am Main",
     description:
       "Especialidades argentinas caseras en Frankfurt: empanadas, alfajores, tortas y más. Hechas con amor en La Cordobesa.",
@@ -537,5 +541,6 @@ export const es: Dictionary = {
     close: "Cerrar",
     previous: "Foto anterior",
     next: "Foto siguiente",
+    view: "Ver",
   },
 };

@@ -39,10 +39,14 @@ export const en: Dictionary = {
     backHome: "Go to home",
     madeWithBefore: "Con mucho ",
     madeWithAfter: " desde Frankfurt am Main.",
+    localTime: (time: string) => `Frankfurt, ${time}`,
   },
   legalNotice:
     "This page is only available in German. If you have a question about it, message or call us and we will gladly help.",
   home: {
+    chaptersLabel: "Sections of this page",
+    chapters: { story: "Story", menu: "Menu", photos: "Photos", craft: "Craft", reviews: "Guests", reserve: "Reserve", visit: "Visit" },
+    todayMark: "Today",
     title: "La Cordobesa · A piece of Argentina in Frankfurt am Main",
     description:
       "Homemade Argentine specialities in Frankfurt: empanadas, alfajores, cakes and more. Made with love at La Cordobesa.",
@@ -546,5 +550,6 @@ export const en: Dictionary = {
     close: "Close",
     previous: "Previous photo",
     next: "Next photo",
+    view: "View",
   },
 };

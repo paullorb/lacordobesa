@@ -37,11 +37,17 @@ export const de = {
     backHome: "Zur Startseite",
     madeWithBefore: "Con mucho ",
     madeWithAfter: " desde Frankfurt am Main.",
+    /** The shop's clock, in the footer: a visitor abroad sees what time it is in Frankfurt. */
+    localTime: (time: string) => `Frankfurt, ${time} Uhr`,
   },
   /** Shown on top of the legal pages for a reader who arrived from another language: those two pages
    *  are German only, on purpose. Unused in German itself, but kept so every language has the key. */
   legalNotice: "Diese Seite gibt es nur auf Deutsch.",
   home: {
+    /** The chapter list down the right edge of the landing page on a wide screen. */
+    chaptersLabel: "Abschnitte dieser Seite",
+    chapters: { story: "Geschichte", menu: "Karte", photos: "Fotos", craft: "Handwerk", reviews: "Gäste", reserve: "Reservieren", visit: "Besuch" },
+    todayMark: "Heute",
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
@@ -546,6 +552,7 @@ export const de = {
     close: "Schließen",
     previous: "Vorheriges Bild",
     next: "Nächstes Bild",
+    view: "Ansehen",
   },
 };
 

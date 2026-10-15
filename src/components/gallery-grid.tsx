@@ -19,6 +19,10 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
   const dialog = useRef<HTMLDialogElement>(null);
   const grid = useRef<HTMLUListElement>(null);
   const frame = useRef<HTMLDivElement>(null);
+  /** The "view" label that rides the pointer over a tile where there is a fine pointer (see
+   *  .gallery-cursor). Moved directly, not through state: a pointer moves far more often than
+   *  React should render. */
+  const cursor = useRef<HTMLSpanElement>(null);
   /** The tile a reader opened the lightbox from, so the photo can grow out of it. Cleared once used,
    *  because stepping to the next photo is not an opening and must not fly in from the old tile. */
   const openedFrom = useRef<DOMRect | null>(null);
@@ -126,7 +130,17 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
         </div>
       )}
 
-      <ul className="gallery-grid" ref={grid}>
+      <ul
+        className="gallery-grid"
+        ref={grid}
+        onPointerMove={(e) => {
+          const label = cursor.current;
+          if (!label) return;
+          label.style.translate = `${e.clientX}px ${e.clientY}px`;
+          label.toggleAttribute("data-on", !!(e.target as Element).closest(".gallery-tile"));
+        }}
+        onPointerLeave={() => cursor.current?.removeAttribute("data-on")}
+      >
         {visible.map((p, i) => (
           // The photo's own id, so Flip pairs the two layouts by photograph rather than by whichever
           // DOM node React happened to reuse.
@@ -152,6 +166,10 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
           </li>
         ))}
       </ul>
+      {/* Decorative: the tile is already a button whose name is the photo's caption. */}
+      <span className="gallery-cursor" ref={cursor} aria-hidden="true">
+        {t.view}
+      </span>
 
       <dialog
         ref={dialog}

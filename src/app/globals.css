@@ -83,7 +83,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
    "Besuch uns" break over two lines, which made the row 86px tall and the navigation look
    accidental at every desktop width. */
 .site-nav a:not(.nav-cta) { white-space: nowrap; font-size: var(--fs-sm); text-decoration: none; font-weight: 600; color: var(--ink); transition: color .2s; }
-.nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: var(--fs-xs); font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s; }
+.nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: var(--fs-xs); font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s, translate .5s cubic-bezier(.2,.7,.2,1); }
 .button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 /* The hover colour is a layer that wipes up from the bottom edge rather than a swap. --button-hover
    is what a variant sets to pick its own; the quiet and disabled buttons have none. */
@@ -1009,6 +1009,86 @@ body::after {
   padding: .7rem 1.3rem; border-radius: 999px; background: var(--ink); color: #fffdf8;
   font-size: var(--fs-sm); font-weight: 700; text-decoration: none;
 }
+
+/* ------------------------------------------------------------------ wayfinding and the pointer
+   The finishing layer on top of the motion above: where the reader is on the page, what the
+   pointer is over, and what time it is in the shop. Each piece is opt-in the same two ways as the
+   motion block, and each has a quiet fallback that is simply the page as it was. */
+
+/* How far down the page the reader is, as a coral line filling the header's bottom edge. Driven by
+   the document's own scroll position, so there is no listener and nothing to fall behind. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; pointer-events: none; animation: read-progress linear both; animation-timeline: scroll(root); }
+  }
+}
+@keyframes read-progress { to { transform: scaleX(1); } }
+
+/* The landing page's chapters, numbered down the right edge of a wide screen (components/chapter-nav.tsx).
+   The whole list is drawn in `difference` over the page, which turns its white type dark on the
+   cream and mint bands and light on the two dark ones without a rule per section. The blend has
+   to sit on the list itself: an ancestor with opacity or a transform would isolate it, and the
+   numbers would then blend against nothing and stay white everywhere. A chapter's name appears
+   beside its number on hover or focus and stays beside the current one. Below 1321px the menu
+   does this job and the list is not rendered at all. */
+.chapter-nav { display: none; }
+@media (min-width: 1321px) {
+  .chapter-nav { display: block; position: fixed; z-index: 4; right: 22px; top: 50%; translate: 0 -50%; color: #fff; mix-blend-mode: difference; opacity: 0; visibility: hidden; transition: opacity .45s, visibility .45s; }
+  .chapter-nav[data-shown] { opacity: 1; visibility: visible; }
+  .chapter-nav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+  .chapter-nav a { display: flex; align-items: center; justify-content: flex-end; gap: .7rem; min-height: 32px; padding: 0 .2rem; text-decoration: none; color: inherit; opacity: .42; transition: opacity .25s; }
+  .chapter-nav a:hover, .chapter-nav a:focus-visible, .chapter-nav a[aria-current] { opacity: 1; }
+  .chapter-num { position: relative; min-width: 2rem; text-align: right; font-family: var(--serif); font-style: italic; font-size: var(--fs-sm); line-height: 1; }
+  /* The mark: a short rule under the current chapter's number, the same line the eyebrows open with. */
+  .chapter-num::after { content: ""; position: absolute; right: 0; bottom: -5px; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+  .chapter-nav a[aria-current] .chapter-num::after { transform: scaleX(1); }
+  .chapter-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; opacity: 0; translate: 8px 0; transition: opacity .25s, translate .3s cubic-bezier(.2,.7,.2,1); }
+  .chapter-nav a:hover .chapter-label, .chapter-nav a:focus-visible .chapter-label, .chapter-nav a[aria-current] .chapter-label { opacity: 1; translate: 0 0; }
+  .chapter-nav a:focus-visible { outline-color: currentColor; outline-offset: 4px; }
+}
+
+/* A soft light on the card under the pointer (components/pointer-effects.tsx sets --px and --py).
+   Painted on a layer between the card's background and its content, which is what the isolation
+   and the negative z-index arrange. Only where there is a pointer to follow. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-spotlight] { position: relative; isolation: isolate; }
+  [data-spotlight]::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; background: radial-gradient(280px circle at var(--px, 50%) var(--py, 50%), rgba(82,168,210,.2), rgba(230,128,97,.07) 45%, transparent 70%); transition: opacity .4s; }
+  [data-spotlight]:hover::before { opacity: 1; }
+}
+
+/* The word "Ansehen" riding the pointer over a gallery tile, where the arrow would otherwise be.
+   Moved by the grid's pointer handler; the short transition is what makes it float a step behind
+   rather than sit glued to the pointer. Not rendered at all without a fine pointer, and the tile
+   only gives up its own cursor while the label is there to replace it. */
+.gallery-cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
+  .gallery-cursor[data-on] { opacity: 1; scale: 1; }
+  .gallery-grid:has(+ .gallery-cursor[data-on]) .gallery-tile { cursor: none; }
+}
+
+/* Today's row in the opening hours, marked by components/opening-hours.tsx once the browser knows
+   what day it is in Frankfurt. The other rows step back a little so the one that matters reads first. */
+/* --coral-text, not --coral: the pill is made of words, and the graphic coral is 2.71:1 under white. */
+.hours-today { display: inline-block; margin-left: .5rem; padding: .12rem .48rem; border-radius: 999px; background: var(--coral-text); color: #fffdf8; font-size: .66rem; font-weight: 700; letter-spacing: .12em; line-height: 1.4; text-transform: uppercase; vertical-align: .12em; }
+.hours [data-today] > span:first-child { font-weight: 700; color: var(--ink); }
+.hours [data-today] > span:last-child:not(.closed) { font-weight: 600; color: var(--ink); }
+/* The footer's columns are too narrow for the pill, so there today is a coral dot in the margin
+   beside the day, and the word itself is kept for a screen reader. */
+.footer-hours [data-today] { position: relative; }
+.footer-hours [data-today]::before { content: ""; position: absolute; left: -14px; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
+.footer-hours [data-today] dt { color: var(--paper); font-weight: 600; }
+.footer-hours [data-today] dd:not(.closed) { color: var(--paper); font-weight: 600; }
+.footer-hours .hours-today { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The shop's clock in the footer (components/local-time.tsx): a coral dot ticking beside the time. */
+.local-time { display: inline-flex; align-items: center; gap: .55rem; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.local-time-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
+@media (prefers-reduced-motion: no-preference) { .local-time-dot { animation: clock-tick 1s steps(1, end) infinite; } }
+@keyframes clock-tick { 50% { opacity: .3; } }
+
+/* The reservation copy stays level with the wizard as its steps grow and shrink beside it. */
+@media (min-width: 801px) { .reserve-copy { position: sticky; top: calc(var(--header-h) + 40px); } }
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }
