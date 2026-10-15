@@ -89,7 +89,7 @@ export function referrerHost(referrer: string | undefined, ownHost: string | nul
   }
 }
 
-/** A per-process limiter: at most `MAX_PER_WINDOW` beacons per address per minute, held in memory and
+/** A per-process limiter: at most `MAX_PER_WINDOW` events per address per minute, held in memory and
  *  gone when the instance is. Nothing is written anywhere, so the address is never stored, and it is
  *  only a speed bump: the counters can only be inflated, never filled with new rows, because every
  *  dimension is validated against a closed list (the referrer is bucketed, see referrerHost).
@@ -126,23 +126,30 @@ export function trackedAddresses() {
   return seen.size;
 }
 
-export function allow(address: string | null, now = Date.now()) {
+/** Whether `events` more events from this address fit into its current minute. A request carries a
+ *  whole page view, so the limit counts events, not requests: a batch is as expensive as the single
+ *  beacons it replaced. All or nothing, so a batch that does not fit cannot count a part of itself. */
+export function allow(address: string | null, now = Date.now(), events = 1) {
   if (!address) return true;
   if (now - lastSweep >= SWEEP_MS) sweep(now);
   const entry = seen.get(address);
   if (!entry || now - entry.start >= WINDOW_MS) {
     // Delete first so the Map's insertion order stays the order of window starts: oldest first.
     seen.delete(address);
-    seen.set(address, { start: now, count: 1 });
+    seen.set(address, { start: now, count: events });
     while (seen.size > MAX_ADDRESSES) seen.delete(seen.keys().next().value as string);
     scheduleSweep();
-    return true;
+    return events <= MAX_PER_WINDOW;
   }
-  entry.count += 1;
-  return entry.count <= MAX_PER_WINDOW;
+  if (entry.count + events > MAX_PER_WINDOW) {
+    entry.count = MAX_PER_WINDOW + 1;
+    return false;
+  }
+  entry.count += events;
+  return true;
 }
 
-/** Validates one beacon and, if it is acceptable, bumps its counter. Silent by design: analytics
+/** Validates one event and, if it is acceptable, bumps its counter. Silent by design: analytics
  *  must never be able to break the site, so a missing RPC (the migration not pushed yet), a database
  *  hiccup or a malformed body all end the same way, with nothing. */
 export async function record(

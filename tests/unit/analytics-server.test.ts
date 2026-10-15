@@ -47,6 +47,15 @@ describe("allow", () => {
     assert.equal(allow("10.0.0.1", T0 + 60_000), true);
   });
 
+  test("a batch counts as the events it carries, and does not fit in parts", () => {
+    const base = T0 + 5_000_000;
+    assert.equal(allow("10.0.2.1", base, 50), true);
+    assert.equal(allow("10.0.2.1", base + 1000, 11), false, "61 would be over the limit");
+    assert.equal(allow("10.0.2.1", base + 2000, 1), false, "a refused address stays refused for its minute");
+    assert.equal(allow("10.0.2.2", base, 61), false, "a first batch over the limit is refused outright");
+    assert.equal(allow("10.0.2.3", base, 60), true);
+  });
+
   test("an address is forgotten once its minute is over, with no traffic from anyone else needed to trigger it", () => {
     const base = T0 + 10_000_000;
     allow("10.0.1.1", base);

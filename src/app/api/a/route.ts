@@ -1,10 +1,16 @@
 import type { NextRequest } from "next/server";
+import { MAX_BATCH } from "@/lib/analytics";
 import { allow, isBot, record } from "@/lib/analytics-server";
 
 /** Ingest for the consent-free analytics (src/components/analytics.tsx).
  *
+ *  One request carries one page view: an array of events, each validated and counted on its own.
  *  Always answers 204, whatever happened: the beacon's sender is not waiting and must not learn
  *  what was filtered. Nothing here sets a cookie or stores an address. */
+
+/** Room for MAX_BATCH events with a long landing referrer, and nothing like a payload. */
+const MAX_BODY = 8000;
+
 export async function POST(request: NextRequest) {
   const h = request.headers;
   const ownHost = h.get("host");
@@ -29,17 +35,25 @@ export async function POST(request: NextRequest) {
   // as the form quotas in src/lib/public-forms.ts. It is used as an in-memory key and never stored.
   const trusted = process.env.VERCEL === "1" || process.env.NODE_ENV === "development";
   const address = trusted ? (h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null) : null;
+  // Admission first, before the body is read, so a limited address cannot keep the server parsing
+  // junk for free: every request costs one event. A valid batch pays for the rest of its events
+  // below, so a batch still costs what the single beacons it replaced did.
   if (!allow(address)) return new Response(null, { status: 204 });
 
   const text = await request.text();
-  if (text.length > 1000) return new Response(null, { status: 204 });
+  if (text.length > MAX_BODY) return new Response(null, { status: 204 });
   let body: unknown;
   try {
     body = JSON.parse(text);
   } catch {
     return new Response(null, { status: 204 });
   }
+  // A single object is one event on its own, which is what an older tab still sends.
+  const events = Array.isArray(body) ? body : [body];
+  if (events.length === 0 || events.length > MAX_BATCH) return new Response(null, { status: 204 });
+  if (events.length > 1 && !allow(address, Date.now(), events.length - 1)) return new Response(null, { status: 204 });
 
-  await record(body, { userAgent: userAgent ?? "", acceptLanguage: h.get("accept-language"), ownHost });
+  const ctx = { userAgent: userAgent ?? "", acceptLanguage: h.get("accept-language"), ownHost };
+  await Promise.all(events.map((event) => record(event, ctx)));
   return new Response(null, { status: 204 });
 }
