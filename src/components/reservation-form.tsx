@@ -5,6 +5,7 @@ import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n";
+import { track, useTrackForm } from "@/components/analytics";
 import { ArrowIcon } from "@/components/icons";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { Wizard, type WizardStep } from "@/components/wizard";
@@ -49,7 +50,11 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
   const people = (n: number) => `${n} ${n === 1 ? t.person : t.people}`;
   const [state, formAction, submitting] = useActionState<RequestState, FormData>(requestReservation, null);
+  useTrackForm("reservation", state, submitting);
   const [step, setStep] = useState<Step>(1);
+  useEffect(() => {
+    if (step > 1) track("reservation_step", String(step));
+  }, [step]);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [partySize, setPartySize] = useState<number | null>(null);

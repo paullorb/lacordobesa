@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { useTrackForm } from "@/components/analytics";
 import { requestPreorder } from "@/app/vorbestellen/actions";
 import type { PreorderableItem } from "@/lib/preorders";
 import { fmtDate } from "@/lib/dates";
@@ -56,6 +57,7 @@ export function PreorderForm({
   leadHours,
 }: Props) {
   const [state, formAction, pending] = useActionState(requestPreorder, null);
+  useTrackForm("preorder", state, pending);
   const t = getDictionary(locale).preorderForm;
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [date, setDate] = useState("");

@@ -93,9 +93,39 @@ export default function DatenschutzPage() {
 
       <h2>5. Cookies und Tracking</h2>
       <p>
-        Die öffentliche Website setzt keine Cookies und verwendet keine Analyse- oder Tracking-Dienste. Schriftarten
-        werden lokal von unserem Server ausgeliefert; es findet keine Verbindung zu Google Fonts statt. Lediglich der
-        interne, passwortgeschützte Bereich für unser Team setzt ein technisch notwendiges Anmelde-Cookie.
+        Die öffentliche Website setzt keine Cookies, legt nichts im Speicher deines Browsers ab und verwendet keine
+        Analyse- oder Tracking-Dienste von Dritten. Schriftarten werden lokal von unserem Server ausgeliefert; es
+        findet keine Verbindung zu Google Fonts statt. Lediglich der interne, passwortgeschützte Bereich für unser
+        Team setzt ein technisch notwendiges Anmelde-Cookie. Wie wir ohne Cookies zählen, was auf der Website
+        passiert, steht im nächsten Abschnitt.
+      </p>
+
+      <h2>5a. Reichweitenmessung ohne Cookies</h2>
+      <p>
+        Damit wir sehen, welche Seiten gelesen werden und an welcher Stelle Gäste eine Reservierung abbrechen,
+        zählen wir Aufrufe und Aktionen auf unserer eigenen Website. Dazu sendet dein Browser beim Aufruf einer Seite
+        und bei einigen Aktionen eine kurze Meldung an unseren eigenen Server: Reservierung oder ein anderes
+        Formular abgeschickt, erfolgreich oder fehlgeschlagen (ohne deine Eingaben), Klick auf Telefon, WhatsApp,
+        E-Mail, Karte oder Instagram, ein Foto in der Galerie geöffnet, und eine grobe Bewertung der Ladezeit der
+        Seite. Die Meldung enthält die aufgerufene Seite, die Art der Aktion, die Breite deines Browserfensters nur
+        als Gruppe (Handy, Tablet oder Desktop) und beim ersten Aufruf den Namen der Website, von der du kommst, ohne
+        deren Adresse und ohne Suchbegriffe. Aus den technischen Kopfdaten der Anfrage leiten wir außerdem die
+        Browser-Familie (zum Beispiel Safari oder Chrome) und deine bevorzugte Sprache ab.
+      </p>
+      <p>
+        Gespeichert werden ausschließlich Tageszähler, zum Beispiel „am 15. Oktober wurde die Karte 42 Mal auf einem
+        Handy aufgerufen“. Wir vergeben keine Kennung, setzen keine Cookies, nutzen keinen lokalen Speicher, erstellen
+        keinen Fingerabdruck und speichern weder deine IP-Adresse noch den Browser-Text im Ganzen. Deshalb lässt sich
+        nicht erkennen, ob du schon einmal da warst oder was du an einem anderen Tag getan hast. Damit niemand die
+        Zähler mit automatisierten Anfragen verfälscht, merkt sich der Server deine IP-Adresse höchstens eine Minute
+        lang im Arbeitsspeicher und speichert sie nicht. Es gehen keine Daten an Dritte; die Zähler liegen in unserer
+        Datenbank bei Supabase (Abschnitt 3), die Anfrage selbst läuft über Vercel (Abschnitt 2).
+      </p>
+      <p>
+        Bots und Browser, die „Do Not Track“ oder „Global Privacy Control“ senden, zählen wir nicht. Rechtsgrundlage ist
+        Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse daran, die Website an dem auszurichten, was Gäste
+        tatsächlich nutzen). Wenn du nicht mitgezählt werden möchtest, aktiviere „Do Not Track“ oder „Global Privacy
+        Control“ in deinem Browser oder widersprich uns nach Abschnitt 7.
       </p>
 
       <h2>6. Externe Links</h2>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { useTrackForm } from "@/components/analytics";
 import { joinWaitlist } from "@/app/reservierung/actions";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -23,6 +24,7 @@ export function WaitlistForm({
   maxPartySize: number;
 }) {
   const [state, formAction, pending] = useActionState(joinWaitlist, null);
+  useTrackForm("waitlist", state, pending);
   const t = getDictionary(locale).waitlist;
 
   if (state?.ok) {

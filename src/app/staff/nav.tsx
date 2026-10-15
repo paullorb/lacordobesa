@@ -30,7 +30,13 @@ const GROUPS: Group[] = [
     ],
   },
   { label: "Verschicken", items: [{ href: "/staff/broadcast", label: "Verschicken" }] },
-  { label: "Zahlen", items: [{ href: "/staff/zahlen", label: "Zahlen" }] },
+  {
+    label: "Zahlen",
+    items: [
+      { href: "/staff/zahlen", label: "Zahlen" },
+      { href: "/staff/besucher", label: "Besucher" },
+    ],
+  },
   { label: "Einstellungen", items: [{ href: "/staff/einstellungen", label: "Einstellungen" }] },
 ];
 

@@ -13,6 +13,11 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 - **Staff app** (`/staff`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
 - **Numbers** (`/staff/zahlen`): covers per day/week/month, no-show and cancellation rates, the weekday and time-of-day
   pattern, and the most pre-ordered dishes.
+- **Visitors** (`/staff/besucher`): consent-free analytics. The browser sends one beacon per pageview, form step,
+  contact click and Web Vital to `/api/a` (own origin, no cookies or storage, silent under Do Not Track); the server
+  drops bots, validates against closed lists and bumps a daily counter through `track_event` (secret key only). No
+  visitor id and no per-visitor row exists, so the numbers are visits, not people. Degrades silently if the migration
+  `20261015085039` is not applied.
 
 ## Languages
 
