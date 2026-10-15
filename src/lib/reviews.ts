@@ -14,6 +14,8 @@
  *
  *  What is shown is a link to the profile plus the headline figure, never the text of any review. */
 
+import { isISODate } from "@/lib/dates";
+
 export const REVIEW_SCORES_KEY = "review_scores";
 
 export type ReviewPlatformId = "google" | "coolibri" | "restaurantguru" | "werkenntdenbesten";
@@ -82,8 +84,6 @@ export const BASELINE_SCORES: ReviewScores = {
   coolibri: { value: "8,6", scale: "10", count: 80, checked: "2026-10-14" },
 };
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
 /** "8,6" or "8.6" as a number, or null when it is not one. */
 export function parseRatingValue(value: string): number | null {
   const n = Number(value.trim().replace(",", "."));
@@ -113,7 +113,7 @@ export function parseReviewScores(raw: unknown): ReviewScores {
       value: value.trim(),
       scale: scale.trim(),
       count: typeof count === "number" && Number.isInteger(count) && count > 0 ? count : null,
-      checked: typeof checked === "string" && ISO_DATE.test(checked) ? checked : "",
+      checked: isISODate(checked) ? checked : "",
     };
   }
   return out;

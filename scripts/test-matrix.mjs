@@ -113,4 +113,12 @@ console.log(
   `\n${results.length - failed.length - missing.length} projects passed, ${failed.length} failed, ${missing.length} unavailable.` +
     (missing.length ? " Unavailable projects are not a pass: they were not tested." : ""),
 );
-process.exit(failed.length ? 1 : 0);
+// A matrix that ran nothing proves nothing, so it must not exit 0: no browsers installed, or the one
+// project asked for by name cannot start here. Without names, a missing project (Edge, usually) is
+// tolerated as long as something ran; with names, every named project was asked for and must have run.
+const ran = results.length - missing.length;
+const missingRequested = wanted.length > 0 && missing.length > 0;
+if (ran === 0 || missingRequested) {
+  console.error(ran === 0 ? "Nothing ran: no requested project could start here." : "A project you asked for could not start here.");
+}
+process.exit(failed.length || ran === 0 || missingRequested ? 1 : 0);

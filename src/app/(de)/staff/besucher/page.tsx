@@ -132,7 +132,7 @@ async function Visitors() {
         <BarList
           caption="Woher die Besucher kommen"
           valueLabel="Aufrufe"
-          bars={toBars(referrers.rows, (k) => k || "Direkt oder unbekannt")}
+          bars={toBars(referrers.rows, (k) => (k === "other" ? "Andere Seiten" : k || "Direkt oder unbekannt"))}
         />
       </section>
 
