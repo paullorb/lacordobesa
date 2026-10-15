@@ -82,6 +82,9 @@ export const BASELINE_SCORES: ReviewScores = {
   // floor ("over 50"). Refresh this by hand now and then (issue #113).
   google: { value: "4,7", scale: "5", count: 50, checked: "2026-10-15" },
   coolibri: { value: "8,6", scale: "10", count: 80, checked: "2026-10-14" },
+  // Restaurant Guru builds its score from Google feedback, so it is not an independent count.
+  restaurantguru: { value: "4,8", scale: "5", count: 59, checked: "2026-10-15" },
+  werkenntdenbesten: { value: "4,8", scale: "5", count: 65, checked: "2026-10-15" },
 };
 
 /** "8,6" or "8.6" as a number, or null when it is not one. */

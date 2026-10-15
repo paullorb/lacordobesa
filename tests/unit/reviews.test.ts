@@ -42,13 +42,12 @@ describe("starsOutOfFive", () => {
 });
 
 describe("resolveReviews", () => {
-  test("before anything is saved, only the figures that were read by hand are shown", () => {
+  test("before anything is saved, the figures that were read by hand are shown", () => {
     const r = resolveReviews(null);
     assert.equal(r.find((p) => p.id === "coolibri")?.score?.value, BASELINE_SCORES.coolibri?.value);
     assert.equal(r.find((p) => p.id === "google")?.stars, 4.7);
-    for (const id of ["restaurantguru", "werkenntdenbesten"]) {
-      assert.equal(r.find((p) => p.id === id)?.score, null, `${id} must have no invented figure`);
-    }
+    assert.equal(r.find((p) => p.id === "restaurantguru")?.stars, 4.8);
+    assert.equal(r.find((p) => p.id === "werkenntdenbesten")?.score?.count, 65);
   });
 
   test("once staff save a set, it replaces the baseline entirely", () => {
