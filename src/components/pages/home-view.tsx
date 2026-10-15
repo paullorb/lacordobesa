@@ -1,7 +1,7 @@
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
-import { ArgentinaIcon, ClockIcon, MailIcon, MenuIcon, PhoneIcon, PinIcon } from "@/components/icons";
+import { ArgentinaIcon, ArrowIcon, ClockIcon, MailIcon, MenuIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -100,7 +100,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <p className="hero-text">{t.heroText}</p>
             <div className="hero-actions">
               <a className="button button-light" href="#reservieren">
-                {t.heroReserve} <span aria-hidden="true">↓</span>
+                {t.heroReserve} <ArrowIcon direction="down" />
               </a>
               <Link className="text-link" href={href("/karte")}>
                 {t.heroMenu}
@@ -216,7 +216,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             </div>
             <p className="menu-more">
               <Link className="button" href={href("/karte")}>
-                {t.menuFull} <span aria-hidden="true">→</span>
+                {t.menuFull} <ArrowIcon direction="right" />
               </Link>
             </p>
           </div>
@@ -266,7 +266,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                     </span>
                   )}
                   <span className="review-open">
-                    {t.reviewsOpen} <span aria-hidden="true">↗</span>
+                    {t.reviewsOpen} <ArrowIcon direction="up-right" size={14} />
                   </span>
                 </a>
               </li>
@@ -375,10 +375,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </div>
                 <div className="visit-actions">
                   <a className="button" href={whatsappHref()} target="_blank" rel="noreferrer">
-                    WhatsApp <span aria-hidden="true">↗</span>
+                    WhatsApp <ArrowIcon direction="up-right" />
                   </a>
                   <a className="button secondary" href={CONTACT.mapsUrl} target="_blank" rel="noreferrer">
-                    {t.visitRoute} <span aria-hidden="true">↗</span>
+                    {t.visitRoute} <ArrowIcon direction="up-right" />
                   </a>
                   <ShareButton
                     locale={locale}

@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { requestEventInquiry } from "@/app/catering/actions";
-import { OccasionIcon } from "@/components/icons";
+import { ArrowIcon, OccasionIcon } from "@/components/icons";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -131,7 +131,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
                 if (dateInput.current?.reportValidity() && guestsInput.current?.reportValidity()) setStep(3);
               }}
             >
-              {t.continueLabel} <span aria-hidden="true">→</span>
+              {t.continueLabel} <ArrowIcon direction="right" />
             </button>
           </div>
         </div>

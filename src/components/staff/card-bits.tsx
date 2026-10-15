@@ -9,6 +9,7 @@
  *  so putting these there would have pulled four server-rendered cards into the browser bundle for
  *  markup that never changes after render. */
 import { waNumber, whatsappTo } from "@/lib/contact";
+import { ArrowIcon } from "@/components/icons";
 
 /** Posts one status change. The action and the status are the only things that ever differed. */
 export function StatusButton({
@@ -67,7 +68,7 @@ export function WhatsAppButton({ phone, text, label = "WhatsApp" }: { phone: str
   if (!phone || waNumber(phone).length < 8) return null;
   return (
     <a className="btn-ghost" href={whatsappTo(phone, text)} target="_blank" rel="noreferrer">
-      {label} ↗
+      {label} <ArrowIcon direction="up-right" size={14} />
     </a>
   );
 }

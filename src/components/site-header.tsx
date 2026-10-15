@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { ArrowIcon } from "@/components/icons";
 import { EmpanadaIcon } from "@/components/empanada-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
@@ -74,7 +75,7 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
               </SectionLink>
             ))}
             <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
-              {t.nav.write} <span aria-hidden="true">↗</span>
+              {t.nav.write} <ArrowIcon direction="up-right" />
             </a>
             <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
           </nav>

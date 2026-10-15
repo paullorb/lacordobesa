@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowIcon } from "@/components/icons";
 import { WEEKDAYS_DE } from "@/lib/data";
 import { fmtDateDE, monthRange, shiftMonth } from "@/lib/dates";
 
@@ -44,11 +45,11 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
     <div className="card p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between">
         <Link href={hrefForMonth(shiftMonth(month, -1))} className="btn-ghost" aria-label="Vorheriger Monat">
-          ←
+          <ArrowIcon direction="left" size={18} />
         </Link>
         <strong className="font-serif text-lg">{title}</strong>
         <Link href={hrefForMonth(shiftMonth(month, 1))} className="btn-ghost" aria-label="Nächster Monat">
-          →
+          <ArrowIcon direction="right" size={18} />
         </Link>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">

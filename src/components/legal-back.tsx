@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { ArrowIcon } from "@/components/icons";
 import { getDictionary } from "@/lib/dictionaries";
 import { DEFAULT_LOCALE, isLocale, localeHref, type Locale } from "@/lib/i18n";
 import { LEGAL_FROM, legalHref } from "@/lib/legal-links";
@@ -23,7 +24,7 @@ export function LegalBackLink() {
   const locale = useArrivedFrom();
   return (
     <Link href={localeHref(locale, "/")} className="text-link legal-back">
-      <span aria-hidden="true">←</span> {getDictionary(locale).footer.back}
+      <ArrowIcon direction="left" size={14} /> {getDictionary(locale).footer.back}
     </Link>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowIcon } from "@/components/icons";
 import { PreorderForm, type PickupWindow } from "@/components/preorder-form";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -73,7 +74,7 @@ export async function PreorderView({ locale }: { locale: Locale }) {
                     {getDictionary(locale).home.callLabel} <span aria-hidden="true">·</span> {CONTACT.phoneDisplay}
                   </a>
                   <a className="button secondary" href={whatsappHref()} target="_blank" rel="noreferrer">
-                    WhatsApp <span aria-hidden="true">↗</span>
+                    WhatsApp <ArrowIcon direction="up-right" />
                   </a>
                 </div>
               </div>
