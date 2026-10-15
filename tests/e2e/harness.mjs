@@ -10,14 +10,73 @@
  *   npm run test:e2e       # another
  *
  * Browsers are not installed by `npm install`. Once per machine:
- *   npx playwright install chromium webkit
+ *   npx playwright install chromium firefox webkit
  *
  * With no server listening, or with no STAFF_USER / STAFF_PASS, the affected tests skip rather
  * than fail: `npm run check` has to stay runnable on a laptop with nothing else going on.
  */
-import { chromium, webkit, devices } from "playwright";
+import { chromium, firefox, webkit, devices } from "playwright";
 
 export const BASE = process.env.E2E_BASE ?? process.env.SHOTS_BASE ?? "http://localhost:3000";
+
+// ------------------------------------------------------------------ the device matrix
+
+/**
+ * The browsers and devices the suite can run as. Chosen with `E2E_PROJECT`, which defaults to
+ * desktop Chromium so `npm run test:e2e` behaves exactly as it always has; `npm run test:matrix`
+ * (scripts/test-matrix.mjs) walks the lot.
+ *
+ * Every entry is an engine plus a Playwright device descriptor. What this does and does not prove
+ * is written up in tests/README.md: the engines are real (Blink, Gecko, WebKit), the phones are
+ * emulation (viewport, user agent, touch, pixel ratio) and not iOS or Android.
+ */
+export const PROJECTS = {
+  chromium: { engine: "chromium", label: "Chrome, desktop", device: "Desktop Chrome" },
+  firefox: { engine: "firefox", label: "Firefox, desktop", device: "Desktop Firefox" },
+  webkit: { engine: "webkit", label: "Safari, desktop", device: "Desktop Safari" },
+  // Only runs where Microsoft Edge is installed: Playwright drives the real browser through its
+  // channel and does not download it. Elsewhere the matrix reports it as unavailable.
+  edge: { engine: "chromium", channel: "msedge", label: "Edge, desktop", device: "Desktop Edge" },
+  iphone: { engine: "webkit", label: "Safari on an iPhone 15", device: "iPhone 15", mobile: true },
+  ipad: { engine: "webkit", label: "Safari on an iPad Pro 11", device: "iPad Pro 11", mobile: true },
+  pixel: { engine: "chromium", label: "Chrome on a Pixel 7", device: "Pixel 7", mobile: true },
+  galaxy: { engine: "chromium", label: "Chrome on a Galaxy S24", device: "Galaxy S24", mobile: true },
+};
+
+export const PROJECT = process.env.E2E_PROJECT ?? "chromium";
+
+const ENGINES = { chromium, firefox, webkit };
+
+if (!PROJECTS[PROJECT]) {
+  throw new Error(`E2E_PROJECT=${PROJECT} is not one of ${Object.keys(PROJECTS).join(", ")}`);
+}
+
+/** The context options that make a context look like the project's device. Firefox has no mobile
+ *  mode, so `isMobile` is dropped there rather than letting Playwright refuse the context. */
+export function deviceOptions(name = PROJECT) {
+  const { device, engine } = PROJECTS[name];
+  const { defaultBrowserType: _ignored, ...options } = devices[device];
+  if (engine === "firefox") delete options.isMobile;
+  return options;
+}
+
+/** The phone the phone-sized tests use, in whichever engine the project runs. */
+function phoneOptions() {
+  const { defaultBrowserType: _ignored, ...options } = devices["iPhone 13"];
+  if (PROJECTS[PROJECT].engine === "firefox") delete options.isMobile;
+  return options;
+}
+
+/** Whether Microsoft Edge is installed, by trying to start it. */
+export async function edgeIsInstalled() {
+  try {
+    const b = await chromium.launch({ channel: "msedge" });
+    await b.close();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** Set when the suite runs against `next build && next start`, which turns the size budgets on. */
 export const PRODUCTION_BUILD = process.env.E2E_PRODUCTION === "1";
@@ -67,7 +126,10 @@ let shared = null;
 
 /** One browser for the whole run; contexts are cheap, launches are not. */
 export async function browser() {
-  if (!shared) shared = await chromium.launch();
+  if (!shared) {
+    const { engine, channel } = PROJECTS[PROJECT];
+    shared = await ENGINES[engine].launch(channel ? { channel } : {});
+  }
   return shared;
 }
 
@@ -134,12 +196,23 @@ export async function staffStorageState() {
  * reducedMotion, because the public pages reveal their sections on a scroll-driven timeline:
  * without it everything below the fold sits at opacity 0 and measures as invisible.
  */
-export async function visit(path, { width = 1280, height = 900, staff = false, body }) {
+export async function visit(
+  path,
+  { width = 1280, height = 900, native = false, staff = false, timezoneId, locale, at, standalone = false, body },
+) {
   const context = await (await browser()).newContext({
-    viewport: { width, height },
+    // `native` is the matrix's own mode: the project's device exactly as Playwright describes it,
+    // with its viewport, user agent and touch. Otherwise the width asked for.
+    ...(native ? deviceOptions() : { viewport: { width, height } }),
     storageState: staff ? await staffStorageState() : undefined,
     reducedMotion: "reduce",
+    ...(timezoneId ? { timezoneId } : {}),
+    ...(locale ? { locale } : {}),
   });
+  // The visitor's clock, frozen at an instant, before the first script runs. Together with
+  // `timezoneId` this is "it is 00:30 in Frankfurt and 15:30 in Los Angeles".
+  if (at) await context.clock.setFixedTime(at);
+  if (standalone) await emulateStandalone(context);
   const page = await context.newPage();
   const errors = watchForErrors(page);
   try {
@@ -150,10 +223,33 @@ export async function visit(path, { width = 1280, height = 900, staff = false, b
   }
 }
 
+/**
+ * What an installed web app looks like to the page: `display-mode: standalone` as a media query
+ * (Chrome, Edge, Android, Firefox desktop PWAs) and `navigator.standalone` (the iOS home screen).
+ *
+ * This is the page's view of being installed and nothing more. It does not give you the chromeless
+ * window, the status-bar inset or the OS app switcher, so it proves "the CSS and scripts that
+ * branch on standalone behave", not "the installed app looks right on an iPhone".
+ */
+export async function emulateStandalone(context) {
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, "standalone", { value: true, configurable: true });
+    const real = window.matchMedia.bind(window);
+    window.matchMedia = (query) => {
+      const result = real(query);
+      if (!/display-mode:\s*standalone/.test(query)) return result;
+      return new Proxy(result, {
+        get: (target, key) =>
+          key === "matches" ? true : typeof target[key] === "function" ? target[key].bind(target) : target[key],
+      });
+    };
+  });
+}
+
 /** A real iPhone, for the tests that are about what the team sees on the shop floor. */
 export async function visitOnPhone(path, { staff = false, body }) {
   const context = await (await browser()).newContext({
-    ...devices["iPhone 13"],
+    ...phoneOptions(),
     storageState: staff ? await staffStorageState() : undefined,
     reducedMotion: "reduce",
   });

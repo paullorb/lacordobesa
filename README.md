@@ -258,6 +258,7 @@ sent and the card reports "nicht konfiguriert".
 ```bash
 npm run check      # lint + typecheck + unit tests. The gate for a commit.
 npm run test:e2e   # browser tests; needs `npm run dev` in another terminal
+npm run test:matrix # the same suite as Chrome, Firefox, Safari and four phones/tablets (a few minutes)
 ```
 
 Node's own test runner drives both suites and no test dependency was added: the unit tests use

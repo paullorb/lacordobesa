@@ -1,35 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDays } from "@/lib/dates";
+import { addDays, berlinClock } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 
 type Hours = { weekday: number; opens: string | null; closes: string | null; is_closed: boolean };
 type State = { kind: "open" | "later" | "closed"; text: string } | null;
 
-const WEEKDAY: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-const calendar = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" });
-const clock = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Europe/Berlin",
-  weekday: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
 const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 const hhmm = (t: string) => t.slice(0, 5);
 
-/** Date, weekday and minutes past midnight in Frankfurt, wherever the visitor happens to be. */
-function frankfurtNow(now: Date) {
-  const parts = Object.fromEntries(clock.formatToParts(now).map((p) => [p.type, p.value]));
-  return { date: calendar.format(now), weekday: WEEKDAY[parts.weekday], minute: Number(parts.hour) * 60 + Number(parts.minute) };
-}
-
 function status(hours: Hours[], closures: string[], locale: Locale, now: Date): State {
   const t = getDictionary(locale).home;
-  const { date, weekday, minute } = frankfurtNow(now);
+  const { date, weekday, minute } = berlinClock(now);
   // A holiday or a week off overrides the weekly hours, as it does for reservations.
   const day = (ahead: number) =>
     closures.includes(addDays(date, ahead))
