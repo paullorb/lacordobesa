@@ -81,6 +81,14 @@ describe("parseReviewScores", () => {
     assert.deepEqual(out.coolibri, { value: "9", scale: "10", count: null, checked: "" });
     assert.equal(Object.keys(out).length, 1);
   });
+  test("drops a checked date that is the right shape but not a day", () => {
+    for (const checked of ["2026-02-31", "2026-13-01", "2026-99-99", "2026-00-10"]) {
+      const out = parseReviewScores({ coolibri: { value: "9", scale: "10", count: 5, checked } });
+      assert.equal(out.coolibri?.checked, "", checked);
+      assert.equal(out.coolibri?.value, "9", "the figure itself survives");
+    }
+    assert.equal(parseReviewScores({ coolibri: { value: "9", scale: "10", count: 5, checked: "2026-02-28" } }).coolibri?.checked, "2026-02-28");
+  });
   test("survives junk", () => {
     assert.deepEqual(parseReviewScores(null), {});
     assert.deepEqual(parseReviewScores("x"), {});

@@ -269,18 +269,18 @@ describe("today's page", () => {
 });
 
 describe("the installed app", () => {
-  test("the manifest is served and scoped to the staff area", { skip: skipAnon }, async () => {
-    const response = await fetch(`${BASE}/manifest.webmanifest`);
+  test("the staff manifest is served and scoped to the staff area", { skip: skipAnon }, async () => {
+    const response = await fetch(`${BASE}/staff.webmanifest`);
     assert.equal(response.status, 200);
     const manifest = await response.json();
     assert.ok(manifest.start_url.startsWith("/staff"), `start_url is ${manifest.start_url}`);
     assert.ok((manifest.icons ?? []).length > 0, "no icons");
   });
 
-  test("the public pages do not advertise it", { skip: skipAnon }, async () => {
+  test("the public pages advertise their own manifest, not the staff one", { skip: skipAnon }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        assert.equal(await page.locator('link[rel="manifest"]').count(), 0);
+        assert.equal(await page.locator('link[rel="manifest"]').getAttribute("href"), "/manifest.webmanifest");
       },
     });
   });
