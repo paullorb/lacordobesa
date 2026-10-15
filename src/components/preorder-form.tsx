@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { requestPreorder } from "@/app/vorbestellen/actions";
 import type { PreorderableItem } from "@/lib/preorders";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, leadBoundary } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
@@ -25,25 +25,6 @@ type Props = {
   maxLines: number;
   leadHours: number;
 };
-
-const berlin = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Europe/Berlin",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-});
-
-/** The first pickup the lead time allows, as a Frankfurt date and a time rounded up to the
- *  15-minute step. The same rule request_preorder() enforces with too_soon. */
-function leadBoundary(leadHours: number) {
-  const parts = Object.fromEntries(berlin.formatToParts(new Date(Date.now() + leadHours * 3_600_000)).map((p) => [p.type, p.value]));
-  const minute = Math.ceil((Number(parts.hour) * 60 + Number(parts.minute)) / 15) * 15;
-  const time = `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, time };
-}
 
 export function PreorderForm({
   locale,

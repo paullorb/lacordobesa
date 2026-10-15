@@ -92,3 +92,39 @@ export function isTime(value: unknown): value is string {
   const [h, m] = value.split(":").map(Number);
   return h <= 23 && m <= 59;
 }
+
+// ---------------------------------------------------------------- the shop's clock
+// Opening hours and pickup lead times are about what the clock on the shop wall says, not about the
+// visitor's. Both helpers below read an instant through Europe/Berlin and never through the
+// machine's timezone, so a guest in Los Angeles sees the same "open now" as a guest in Frankfurt.
+
+const WEEKDAY: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+const BERLIN_DATE = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+const BERLIN_CLOCK = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TZ,
+  weekday: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Date, weekday (0 = Sunday, as `opening_hours` has it) and minutes past midnight in Berlin. */
+export function berlinClock(now: Date): { date: string; weekday: number; minute: number } {
+  const parts = Object.fromEntries(BERLIN_CLOCK.formatToParts(now).map((p) => [p.type, p.value]));
+  return {
+    date: BERLIN_DATE.format(now),
+    weekday: WEEKDAY[parts.weekday],
+    minute: Number(parts.hour) * 60 + Number(parts.minute),
+  };
+}
+
+/** The first pickup a lead time allows, as a Berlin date and a time rounded up to the 15-minute
+ *  step. The same rule request_preorder() enforces with too_soon. */
+export function leadBoundary(leadHours: number, now: number = Date.now()): { date: string; time: string } {
+  const at = new Date(now + leadHours * 3_600_000);
+  const { date, minute } = berlinClock(at);
+  const rounded = Math.ceil(minute / 15) * 15;
+  // 23:50 rounds up to 24:00, which is 00:00 tomorrow rather than a time of day.
+  if (rounded >= 24 * 60) return { date: addDays(date, 1), time: "00:00" };
+  return { date, time: `${String(Math.floor(rounded / 60)).padStart(2, "0")}:${String(rounded % 60).padStart(2, "0")}` };
+}

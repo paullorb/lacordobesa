@@ -1,16 +1,18 @@
 /** Calendar maths. Every date in this app is a *calendar date* in Europe/Berlin, never an instant,
  *  and almost every date bug the project has had came from one of the two being treated as the
  *  other. These tests pin the boundaries where that distinction shows. */
-import { test, describe } from "node:test";
+import { test, describe, mock } from "node:test";
 import assert from "node:assert/strict";
 import {
   addDays,
+  berlinClock,
   dateAfterHours,
   fmtDate,
   fmtDateDE,
   isISODate,
   isMonth,
   isTime,
+  leadBoundary,
   monthRange,
   shiftMonth,
   startOfMonth,
@@ -194,6 +196,102 @@ describe("isTime", () => {
     for (const bad of ["24:00", "23:60", "9:30", "16:30:00", "", null, undefined, 1630]) {
       assert.equal(isTime(bad), false, `${String(bad)} should not be a time`);
     }
+  });
+});
+
+// ------------------------------------------------------------------ the visitor's timezone
+// The shop is in Frankfurt and so is its clock. A server on UTC, a guest in Los Angeles and a guest
+// in Tokyo must all get the same "today", the same "open now" and the same pickup boundary (#104).
+// The browser-side half of this is tests/e2e/timezone.test.mjs.
+
+const MACHINE_ZONES = ["UTC", "America/Los_Angeles", "Asia/Tokyo", "Pacific/Kiritimati", "Pacific/Pago_Pago", "Europe/Berlin"];
+
+/** Runs `body` as if the machine were in `zone` and the clock read `instant`. */
+function inZone(zone: string, instant: string, body: () => void) {
+  const before = process.env.TZ;
+  process.env.TZ = zone;
+  mock.timers.enable({ apis: ["Date"], now: new Date(instant) });
+  try {
+    body();
+  } finally {
+    mock.timers.reset();
+    if (before === undefined) delete process.env.TZ;
+    else process.env.TZ = before;
+  }
+}
+
+describe("the shop's clock does not depend on the machine's timezone", () => {
+  // [instant, Berlin date, Berlin weekday (0 = Sunday), minutes past Berlin midnight]
+  const moments: [string, string, number, number][] = [
+    ["2026-10-15T21:30:00Z", "2026-10-15", 4, 23 * 60 + 30], // 23:30 CEST, still Thursday
+    ["2026-10-15T22:30:00Z", "2026-10-16", 5, 30], //          00:30 CEST, already Friday
+    ["2026-10-24T22:30:00Z", "2026-10-25", 0, 30], //          the night the clocks go back
+    ["2026-10-25T23:30:00Z", "2026-10-26", 1, 30], //          and the first midnight in CET
+    ["2026-03-28T23:30:00Z", "2026-03-29", 0, 30], //          the night they go forward
+    ["2026-12-31T23:30:00Z", "2027-01-01", 5, 30], //          New Year in Berlin, still the 31st in New York
+  ];
+
+  for (const zone of MACHINE_ZONES) {
+    test(`todayISO and berlinClock agree when the machine is in ${zone}`, () => {
+      for (const [instant, date, weekday, minute] of moments) {
+        inZone(zone, instant, () => {
+          assert.equal(todayISO(), date, `todayISO at ${instant}`);
+          assert.deepEqual(berlinClock(new Date()), { date, weekday, minute }, `berlinClock at ${instant}`);
+        });
+      }
+    });
+  }
+
+  test("the machine really was in another timezone (the test is not vacuous)", () => {
+    inZone("Pacific/Kiritimati", "2026-10-15T21:30:00Z", () => {
+      // UTC+14: the local date is already the 16th while it is still the 15th in Berlin.
+      assert.equal(new Date().getDate(), 16);
+      assert.equal(todayISO(), "2026-10-15");
+    });
+  });
+
+  test("dateAfterHours crosses Berlin midnight, not the machine's", () => {
+    for (const zone of MACHINE_ZONES) {
+      inZone(zone, "2026-10-15T21:30:00Z", () => {
+        assert.equal(dateAfterHours(0), "2026-10-15");
+        assert.equal(dateAfterHours(1), "2026-10-16"); // 00:30 Berlin
+        assert.equal(dateAfterHours(24), "2026-10-16");
+        assert.equal(dateAfterHours(25), "2026-10-17");
+      });
+    }
+  });
+});
+
+describe("leadBoundary", () => {
+  test("rounds up to the 15-minute step in Berlin", () => {
+    // 10:07 Berlin plus a 24 h lead is 10:07 tomorrow, which the step rounds up to 10:15.
+    assert.deepEqual(leadBoundary(24, Date.parse("2026-10-15T08:07:00Z")), { date: "2026-10-16", time: "10:15" });
+    assert.deepEqual(leadBoundary(0, Date.parse("2026-10-15T08:15:00Z")), { date: "2026-10-15", time: "10:15" });
+  });
+
+  test("carries into the next day instead of answering 24:00", () => {
+    // 23:50 Berlin rounds up to 24:00, which is 00:00 tomorrow and not a time of day.
+    assert.deepEqual(leadBoundary(0, Date.parse("2026-10-15T21:50:00Z")), { date: "2026-10-16", time: "00:00" });
+  });
+
+  test("does not move with the machine's timezone", () => {
+    const now = Date.parse("2026-10-15T21:40:00Z");
+    for (const zone of MACHINE_ZONES) {
+      const before = process.env.TZ;
+      process.env.TZ = zone;
+      try {
+        assert.deepEqual(leadBoundary(2, now), { date: "2026-10-16", time: "01:45" }, zone);
+      } finally {
+        if (before === undefined) delete process.env.TZ;
+        else process.env.TZ = before;
+      }
+    }
+  });
+
+  test("a lead time that spans the clocks going back counts real hours", () => {
+    // 22:30 UTC on the 24th is 00:30 CEST on the 25th. Three real hours later it is 01:30 UTC,
+    // and by then Berlin is on CET, so the wall clock reads 02:30 and not 03:30.
+    assert.deepEqual(leadBoundary(3, Date.parse("2026-10-24T22:30:00Z")), { date: "2026-10-25", time: "02:30" });
   });
 });
 
