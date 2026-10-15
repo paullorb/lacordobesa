@@ -3,6 +3,7 @@ import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuItemAvailable } from "@/app/staff/actions";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
 import { MenuArranger } from "@/components/staff/menu-arranger";
+import { TranslationField } from "@/components/staff/translation-field";
 import { requireStaff } from "@/lib/auth";
 import type { Tables } from "@/lib/database.types";
 
@@ -138,12 +139,12 @@ function CategoryForm({
         <input id={`${id}-label`} name="label" defaultValue={cat?.label} required placeholder="z. B. Vorspeise" />
       </div>
       <div>
-        <label htmlFor={`${id}-sec`}>Untertitel (spanisch, optional)</label>
+        <label htmlFor={`${id}-sec`}>Untertitel (spanisch)</label>
         <input id={`${id}-sec`} name="label_secondary" defaultValue={cat?.label_secondary ?? ""} placeholder="Para compartir" />
       </div>
       {!cat && <input type="hidden" name="sort_order" value={nextSort ?? 0} />}
       <div className="sm:col-span-2">
-        <label htmlFor={`${id}-note`}>Hinweis unter der Kategorie (optional)</label>
+        <label htmlFor={`${id}-note`}>Hinweis unter der Kategorie</label>
         <input id={`${id}-note`} name="note" defaultValue={cat?.note ?? ""} placeholder="Alle Gerichte werden mit Salat oder Pommes serviert." />
       </div>
       {/* Before migration 0008 the toggle is hidden and not submitted, so saveCategory leaves the column out. */}
@@ -174,7 +175,7 @@ function ItemRow({
 }) {
   return (
     <details className={`rounded-md border border-line bg-white ${item.is_available ? "" : "opacity-60"}`}>
-      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 py-2 pl-10 pr-3">
         <span className="min-w-0 flex-1">
           <strong>{item.name}</strong>
           {item.subtitle && <span className="ml-2 text-xs uppercase tracking-wider text-blue-dark">{item.subtitle}</span>}
@@ -188,17 +189,15 @@ function ItemRow({
         {item.is_featured && <span className="status bg-sky-100 text-sky-800">Startseite</span>}
         {!item.is_available && <span className="status bg-gray-200 text-gray-600">Ausverkauft</span>}
         <span className="text-sm font-bold">{item.price_label}</span>
-        <form action={toggleMenuItemAvailable}>
-          <input type="hidden" name="id" value={item.id} />
-          <input type="hidden" name="is_available" value={item.is_available ? "false" : "true"} />
-          {/* The verb matters: a row of buttons reading "Ausverkauft" next to every dish reads as
-              a list of sold-out dishes rather than the thing that marks one. */}
-          <button className="btn-ghost !py-1" aria-label={`„${item.name}“ ${item.is_available ? "als ausverkauft melden" : "wieder anbieten"}`}>
-            {item.is_available ? "Ausverkauft melden" : "Wieder anbieten"}
-          </button>
-        </form>
       </summary>
       <div className="border-t border-line px-3 pb-3">
+        {/* The one control for availability: saved on its own, not with the form below, so a sold-out
+            dish is one tap away once its card is open and nowhere on the list before that. */}
+        <form action={toggleMenuItemAvailable} className="mt-3">
+          <input type="hidden" name="id" value={item.id} />
+          <input type="hidden" name="is_available" value={item.is_available ? "false" : "true"} />
+          <button className="btn-ghost">{item.is_available ? "Ausverkauft melden" : "Wieder anbieten"}</button>
+        </form>
         <ItemForm
           item={item}
           preorderColumns={preorderColumns}
@@ -244,44 +243,17 @@ function ItemForm({
           <input id={`${id}-price`} name="price_label" defaultValue={item?.price_label ?? ""} placeholder="4,50 € oder 3,50 / 4,50 €" />
         </div>
         <div className="sm:col-span-4">
-          <label htmlFor={`${id}-desc`}>Beschreibung / Übersetzung (deutsch, optional)</label>
+          <label htmlFor={`${id}-desc`}>Beschreibung (deutsch)</label>
           <input id={`${id}-desc`} name="description" defaultValue={item?.description ?? ""} placeholder="Gefüllte Teigtasche mit Rindfleisch, Zwiebeln und Paprika" />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor={`${id}-subtitle`}>Zusatz (optional)</label>
-          <input id={`${id}-subtitle`} name="subtitle" defaultValue={item?.subtitle ?? ""} placeholder="Recién hechas" />
-        </div>
-        <div className="flex items-end text-sm sm:col-span-6">
-          <label className="!mb-0 flex items-center gap-2 normal-case tracking-normal">
-            <input type="checkbox" name="is_available" defaultChecked={item?.is_available ?? true} /> Verfügbar
-          </label>
+          <label htmlFor={`${id}-subtitle`}>Zusatz</label>
+          <input id={`${id}-subtitle`} name="subtitle" defaultValue={item?.subtitle ?? ""} placeholder="Vegetarisch" />
         </div>
         {/* Before migration 20261012102608 these are hidden and not submitted. Empty is fine and
             normal: the Spanish and English menu pages fall back to the German description and say so. */}
         {translationColumns && (
-          <div className="grid gap-3 sm:col-span-6 sm:grid-cols-2">
-            <input type="hidden" name="translations_field" value="1" />
-            <div>
-              <label htmlFor={`${id}-des`}>Beschreibung spanisch (optional)</label>
-              <input
-                id={`${id}-des`}
-                name="description_es"
-                maxLength={500}
-                defaultValue={item?.description_es ?? ""}
-                placeholder="Empanada rellena de carne, cebolla y morrón"
-              />
-            </div>
-            <div>
-              <label htmlFor={`${id}-den`}>Beschreibung englisch (optional)</label>
-              <input
-                id={`${id}-den`}
-                name="description_en"
-                maxLength={500}
-                defaultValue={item?.description_en ?? ""}
-                placeholder="Pastry parcel filled with beef, onion and pepper"
-              />
-            </div>
-          </div>
+          <TranslationField id={id} es={item?.description_es ?? ""} en={item?.description_en ?? ""} className="sm:col-span-6" />
         )}
         {/* Before migration 20261012094815 these are hidden and not submitted, so saveMenuItem leaves
             the columns out entirely. */}

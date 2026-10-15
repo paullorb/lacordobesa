@@ -128,11 +128,11 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
             <input id="cl-from" name="from" type="date" min={today} required />
           </div>
           <div>
-            <label htmlFor="cl-to">Bis (optional)</label>
+            <label htmlFor="cl-to">Bis</label>
             <input id="cl-to" name="to" type="date" min={today} />
           </div>
           <div>
-            <label htmlFor="cl-reason">Grund (optional)</label>
+            <label htmlFor="cl-reason">Grund</label>
             <input id="cl-reason" name="reason" placeholder="Betriebsferien" />
           </div>
           <div className="self-end">

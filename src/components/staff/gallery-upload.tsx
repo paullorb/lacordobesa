@@ -86,7 +86,7 @@ export function GalleryUpload() {
         </select>
       </div>
       <div>
-        <label htmlFor="g-caption">Bildunterschrift (optional)</label>
+        <label htmlFor="g-caption">Bildunterschrift</label>
         <input id="g-caption" name="caption" maxLength={160} placeholder="Frisch aus dem Ofen" />
       </div>
       <div className="sm:col-span-2">
