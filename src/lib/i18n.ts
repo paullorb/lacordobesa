@@ -46,7 +46,10 @@ export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR" };
 export function localeHref(locale: Locale, path: string): string {
   const prefix = locale === DEFAULT_LOCALE ? "" : `/${locale}`;
   if (path === "/") return prefix || "/";
-  // An anchor-only path ("/#besuch") must keep the prefix attached to the root, not gain a slash.
+  // An anchor-only path ("/#besuch") must keep the prefix attached to the root, not gain a slash:
+  // "/es/#besuch" is a trailing-slash URL that redirects to "/es" and loses the hash on the way.
+  // next/link happened to normalise it away, so only a plain <a> or a copied URL ever saw it.
+  if (prefix && path.startsWith("/#")) return `${prefix}${path.slice(1)}`;
   return `${prefix}${path}`;
 }
 

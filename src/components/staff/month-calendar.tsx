@@ -82,7 +82,9 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
               style={isSel ? { color: "white" } : undefined}
               title={`${fmtDateDE(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": geschlossen" : ""}`}
             >
-              <span className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral px-1.5 text-white" : ""}`}>
+              {/* coral-text, not coral: white on the graphic coral is 2.75:1, and the one number
+                  on this grid that has to be found at a glance is today's. */}
+              <span className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral-text px-1.5 text-white" : ""}`}>
                 {Number(date.slice(8, 10))}
               </span>
               {info.reservations ? (

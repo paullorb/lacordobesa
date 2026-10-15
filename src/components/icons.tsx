@@ -137,6 +137,77 @@ export function MenuIcon({ slug, size = 20, className }: IconProps & { slug: str
   );
 }
 
+// ---------------------------------------------------------------- celebrations
+
+/** One drawing per occasion in lib/events.ts, so the first question of the celebration wizard is
+ *  six pictures rather than six lines of German. Keyed by the same codes the database constrains,
+ *  with a fallback for anything added to the list before somebody draws it. */
+const OCCASION_ICONS: Record<string, React.ReactNode> = {
+  // A cake with one candle.
+  geburtstag: (
+    <>
+      <path d="M4 19.5h16" />
+      <path d="M5.5 19.5v-6.2c0-1 .8-1.8 1.8-1.8h9.4c1 0 1.8.8 1.8 1.8v6.2" />
+      <path d="M5.5 15.2c1.5 1.1 3 1.1 4.3 0 1.4 1.1 2.9 1.1 4.3 0 1.3 1.1 2.8 1.1 4.4 0" />
+      <path d="M12 11.5V8.8" />
+      <path d="M12 4.5c1.4 1.3 1.4 2.5 0 3.3-1.4-.8-1.4-2 0-3.3Z" />
+    </>
+  ),
+  // A long table laid for a company dinner.
+  firmenfeier: (
+    <>
+      <path d="M3 10.5h18" />
+      <path d="M4.8 10.5v9M19.2 10.5v9" />
+      <path d="M7.5 7.2v3.3M12 6.2v4.3M16.5 7.2v3.3" />
+      <circle cx="7.5" cy="5.6" r="1.5" />
+      <circle cx="12" cy="4.6" r="1.5" />
+      <circle cx="16.5" cy="5.6" r="1.5" />
+    </>
+  ),
+  // A lit baptism candle.
+  taufe: (
+    <>
+      <path d="M9 10.5h6v9H9Z" />
+      <path d="M9 14h6" />
+      <path d="M12 10.5V8" />
+      <path d="M12 3.5c2 2.2 2 3.8 0 4.5-2-.7-2-2.3 0-4.5Z" />
+    </>
+  ),
+  // Two rings.
+  hochzeit: (
+    <>
+      <circle cx="9" cy="14.5" r="5" />
+      <circle cx="15.5" cy="14.5" r="5" />
+      <path d="M12.2 4.5 10 7.2h4.4Z" />
+    </>
+  ),
+  // A tray under a cloche, carried out of the door.
+  catering: (
+    <>
+      <path d="M3 18.5h18" />
+      <path d="M5.5 16.2a6.5 6.5 0 0 1 13 0Z" />
+      <path d="M12 9.7V7.5" />
+      <path d="M8.5 20.8h7" />
+    </>
+  ),
+  // Three sparks: something we have not thought of yet.
+  andere: (
+    <>
+      <path d="M8.5 4.5 9.7 8l3.5 1.2-3.5 1.2-1.2 3.5-1.2-3.5L3.8 9.2 7.3 8Z" />
+      <path d="M16.8 12.5l.8 2.3 2.4.8-2.4.8-.8 2.3-.8-2.3-2.4-.8 2.4-.8Z" />
+      <path d="M15.6 4.2v3M14.1 5.7h3" />
+    </>
+  ),
+};
+
+export function OccasionIcon({ code, size = 22, className }: IconProps & { code: string }) {
+  return (
+    <Icon size={size} className={className}>
+      {OCCASION_ICONS[code] ?? FALLBACK}
+    </Icon>
+  );
+}
+
 // ---------------------------------------------------------------- the rest
 
 export const HeartIcon = ({ size = 14, className }: IconProps) => (

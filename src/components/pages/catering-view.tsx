@@ -62,9 +62,10 @@ export async function CateringView({ locale }: { locale: Locale }) {
 }
 
 /** Earliest date the picker offers. Cached like dateBounds() on the landing page: reading the clock
- *  during a prerender is not allowed, and the RPC re-validates the date anyway. */
+ *  during a prerender is not allowed, and the RPC re-validates the date anyway. "minutes", so the
+ *  entry cannot survive into the next day and offer a date that has passed. */
 async function earliestDate() {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
   return todayISO();
 }

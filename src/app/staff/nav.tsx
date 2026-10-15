@@ -39,12 +39,17 @@ function isActive(pathname: string, href: string) {
 
 const pill = "whitespace-nowrap rounded-full px-3 py-1.5 font-semibold";
 
+// Wraps on a phone rather than scrolling sideways. A scrolling tab strip hid Einstellungen and
+// the Website link off the right edge with nothing on screen to say they were there, and on iOS
+// there is no scrollbar to hint at it either. Two rows of pills cost less than an unreachable tab.
+const row = "mx-auto flex max-w-5xl flex-wrap gap-1 px-2 pb-2 text-sm";
+
 export function StaffNav() {
   const pathname = usePathname();
   const current = GROUPS.find((g) => g.items.some((it) => isActive(pathname, it.href)));
   return (
     <>
-      <nav aria-label="Bereiche" className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-2 pb-2 text-sm">
+      <nav aria-label="Bereiche" className={row}>
         {GROUPS.map((g) => {
           const active = g === current;
           return (
@@ -70,7 +75,7 @@ export function StaffNav() {
         </a>
       </nav>
       {current && current.items.length > 1 && (
-        <nav aria-label={current.label} className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-2 pb-2 text-sm">
+        <nav aria-label={current.label} className={row}>
           {current.items.map((it) => {
             const active = isActive(pathname, it.href);
             return (

@@ -178,7 +178,11 @@ function ItemRow({
         <span className="min-w-0 flex-1">
           <strong>{item.name}</strong>
           {item.subtitle && <span className="ml-2 text-xs uppercase tracking-wider text-blue-dark">{item.subtitle}</span>}
-          {item.description && <span className="block truncate text-xs text-muted">{item.description}</span>}
+          {/* line-clamp rather than truncate: `truncate` is white-space:nowrap, whose min-content is
+            the whole sentence, and a grid track never shrinks below min-content. That one class
+            made the page 667px wide inside a 390px phone, which is what tipped Safari into
+            shrink-to-fit and left the header ending two thirds across the screen. */}
+        {item.description && <span className="line-clamp-1 text-xs text-muted">{item.description}</span>}
         </span>
         {item.is_preorderable && <span className="status bg-cream text-ink">vorbestellbar</span>}
         {item.is_featured && <span className="status bg-sky-100 text-sky-800">Startseite</span>}
@@ -187,7 +191,11 @@ function ItemRow({
         <form action={toggleMenuItemAvailable}>
           <input type="hidden" name="id" value={item.id} />
           <input type="hidden" name="is_available" value={item.is_available ? "false" : "true"} />
-          <button className="btn-ghost !py-1">{item.is_available ? "Ausverkauft" : "Wieder da"}</button>
+          {/* The verb matters: a row of buttons reading "Ausverkauft" next to every dish reads as
+              a list of sold-out dishes rather than the thing that marks one. */}
+          <button className="btn-ghost !py-1" aria-label={`„${item.name}“ ${item.is_available ? "als ausverkauft melden" : "wieder anbieten"}`}>
+            {item.is_available ? "Ausverkauft melden" : "Wieder anbieten"}
+          </button>
         </form>
       </summary>
       <div className="border-t border-line px-3 pb-3">

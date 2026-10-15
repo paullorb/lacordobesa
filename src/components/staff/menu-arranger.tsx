@@ -255,7 +255,10 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     "aria-label": `${label} verschieben (Pfeiltasten hoch und runter)`,
     title: "Ziehen zum Verschieben",
     // touch-none: without it the browser takes a finger drag on the handle as a page scroll.
-    className: "shrink-0 cursor-grab touch-none select-none rounded px-1.5 py-2 leading-none text-muted hover:bg-cream hover:text-ink active:cursor-grabbing",
+    // min-h/min-w: this is the one control on the page that has to be grabbed accurately, and it
+    // was 23x32, under the 24px WCAG 2.2 floor in one direction and well under a thumb in both.
+    className:
+      "flex min-h-10 min-w-9 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded leading-none text-muted hover:bg-cream hover:text-ink active:cursor-grabbing",
   });
 
   return (
@@ -289,7 +292,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
               return (
                 <li
                   key={id}
-                  className={`flex items-center gap-1 rounded-full border border-line bg-white py-0.5 pr-1 text-sm ${
+                  className={`flex min-h-10 items-center gap-1 rounded-full border border-line bg-white py-0.5 pr-1 text-sm ${
                     drag?.id === id ? "opacity-50" : ""
                   } ${item.available ? "" : "text-muted line-through"}`}
                 >
@@ -303,7 +306,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
                   {item.name}
                   <button
                     type="button"
-                    className="rounded-full px-1.5 text-muted hover:bg-cream hover:text-ink"
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-cream hover:text-ink"
                     aria-label={`${item.name} von der Startseite nehmen`}
                     onClick={() => unfeature(id)}
                     disabled={pending}
