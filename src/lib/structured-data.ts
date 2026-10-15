@@ -7,7 +7,7 @@
 import { CONTACT } from "@/lib/contact";
 import type { MenuCategoryWithItems } from "@/lib/data";
 import type { Tables } from "@/lib/database.types";
-import { REVIEWS } from "@/lib/reviews";
+import { REVIEW_PLATFORMS } from "@/lib/reviews";
 import { SITE_URL } from "@/lib/site";
 
 /** schema.org expects the English day names; opening_hours.weekday is 0 = Sunday. */
@@ -67,7 +67,7 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[]) {
     menu: `${SITE_URL}/karte`,
     acceptsReservations: `${SITE_URL}/#reservieren`,
     currenciesAccepted: "EUR",
-    sameAs: [CONTACT.instagram, ...REVIEWS.map((r) => r.url)],
+    sameAs: [CONTACT.instagram, ...REVIEW_PLATFORMS.map((r) => r.url)],
     hasMap: CONTACT.mapsUrl,
     openingHoursSpecification: openingHours(hours),
   };

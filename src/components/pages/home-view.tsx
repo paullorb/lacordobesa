@@ -6,6 +6,7 @@ import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
+import { ReviewStars } from "@/components/review-stars";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
 import { EmpanadaMark, Repulgue } from "@/components/repulgue";
@@ -19,7 +20,7 @@ import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
-import { REVIEWS } from "@/lib/reviews";
+import { resolveReviews } from "@/lib/reviews";
 import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
@@ -29,6 +30,7 @@ import {
   getMenu,
   getOpeningHours,
   getReservationSettings,
+  getReviewScores,
   getUpcomingClosures,
 } from "@/lib/data";
 import { getInstagramPosts } from "@/lib/instagram";
@@ -46,7 +48,7 @@ const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, menu, specials, hours, closures, reservation, photos, instagram] = await Promise.all([
+  const [announcement, menu, specials, hours, closures, reservation, photos, instagram, reviewScores] = await Promise.all([
     getAnnouncement(),
     getMenu(),
     getActiveSpecials(),
@@ -55,7 +57,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
     getReservationSettings(),
     getHomePhotos(),
     getInstagramPosts(),
+    getReviewScores(),
   ]);
+  const reviews = resolveReviews(reviewScores);
 
   // The open-now status runs in the browser, so it gets just the fields it reads.
   const openingHours = hours.map(({ weekday, opens, closes, is_closed }) => ({ weekday, opens, closes, is_closed }));
@@ -250,27 +254,51 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <p>{t.reviewsText}</p>
           </div>
           <ul className="reviews-list">
-            {REVIEWS.map((r) => (
-              <li key={r.name}>
-                <a className="review-card" href={r.url} target="_blank" rel="noreferrer">
-                  <strong>{r.name}</strong>
-                  {r.score && <span className="review-score">{t.reviewsScore(r.score.value, r.score.scale, r.score.count)}</span>}
-                  {/* The score is a hand-copied snapshot, so say when it was read rather than pass it off as live. */}
-                  {r.score && r.checked && (
-                    <span className="review-checked">
-                      {t.reviewsAsOf(
-                        new Intl.DateTimeFormat(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
-                          new Date(`${r.checked}T00:00:00Z`),
-                        ),
-                      )}
+            {reviews.map((r, i) => {
+              const scoreText = r.score
+                ? r.score.count
+                  ? t.reviewsScore(r.score.value, r.score.scale, r.score.count)
+                  : t.reviewsScoreBare(r.score.value, r.score.scale)
+                : null;
+              return (
+                <li key={r.id}>
+                  {/* `--i` staggers the pulse and the star wave, so the cards take turns instead of blinking together. */}
+                  <a
+                    className="review-card"
+                    href={r.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
+                    <span className="review-head">
+                      <span className="review-mark">
+                        <Image src={r.mark} alt="" width={36} height={36} unoptimized={r.mark.endsWith(".svg")} />
+                      </span>
+                      <strong>{r.name}</strong>
                     </span>
-                  )}
-                  <span className="review-open">
-                    {t.reviewsOpen} <ArrowIcon direction="up-right" size={14} />
-                  </span>
-                </a>
-              </li>
-            ))}
+                    {scoreText && (
+                      <span className="review-score">
+                        {r.stars !== null && <ReviewStars value={r.stars} />}
+                        {scoreText}
+                      </span>
+                    )}
+                    {/* The score is a hand-copied snapshot, so say when it was read rather than pass it off as live. */}
+                    {r.score?.checked && (
+                      <span className="review-checked">
+                        {t.reviewsAsOf(
+                          new Intl.DateTimeFormat(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
+                            new Date(`${r.score.checked}T00:00:00Z`),
+                          ),
+                        )}
+                      </span>
+                    )}
+                    <span className="review-open">
+                      {t.reviewsOpen} <ArrowIcon direction="up-right" size={14} />
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </section>
 

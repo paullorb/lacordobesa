@@ -27,6 +27,7 @@ const GROUPS: Group[] = [
       { href: "/staff/specials", label: "Specials" },
       { href: "/staff/gallery", label: "Galerie" },
       { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten" },
+      { href: "/staff/bewertungen", label: "Bewertungen" },
     ],
   },
   { label: "Verschicken", items: [{ href: "/staff/broadcast", label: "Verschicken" }] },

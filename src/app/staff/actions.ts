@@ -6,7 +6,7 @@ import { requireStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
 import { staffEmail } from "@/lib/staff";
-import { addDays, isISODate, isTime } from "@/lib/dates";
+import { addDays, isISODate, isTime, todayISO } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { mailConfigured, sendMail } from "@/lib/mail";
@@ -14,6 +14,14 @@ import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
+import {
+  parseReviewScores,
+  parseRatingValue,
+  resolveReviews,
+  REVIEW_PLATFORMS,
+  REVIEW_SCORES_KEY,
+  type ReviewScores,
+} from "@/lib/reviews";
 
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
@@ -555,6 +563,53 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.content);
   updateTag(TAG.hours);
+  refresh();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------- review platforms
+/** Saves the rating figures copied off each review platform (home page "Unsere Gäste sagen es besser").
+ *
+ *  A platform left blank is saved as "no figure", which the page draws as a plain link. The date shown
+ *  next to a figure is set here and not typed: it moves to today when the figures change or when
+ *  "heute nochmal geprüft" is ticked, and otherwise stays at the day they were last read. */
+export async function saveReviewScores(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const { data: row } = await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle();
+  // What the form was showing: the saved set, or the built-in baseline before the first save.
+  const before: ReviewScores = Object.fromEntries(
+    resolveReviews(row?.value ?? null).flatMap((r) => (r.score ? [[r.id, r.score]] : [])),
+  );
+  const today = todayISO();
+  const next: ReviewScores = {};
+  for (const p of REVIEW_PLATFORMS) {
+    const value = str(formData, `${p.id}_value`);
+    if (!value) continue;
+    const scale = str(formData, `${p.id}_scale`) || p.scale;
+    const rating = parseRatingValue(value);
+    const scaleNum = parseRatingValue(scale);
+    if (rating === null || scaleNum === null || scaleNum <= 0 || rating < 0 || rating > scaleNum) {
+      return { ok: false, error: `${p.name}: Bitte eine Bewertung zwischen 0 und ${scale} eintragen, z. B. 4,6.` };
+    }
+    const countText = str(formData, `${p.id}_count`);
+    const count = countText ? Number(countText) : null;
+    if (count !== null && (!Number.isInteger(count) || count < 1 || count > 1_000_000)) {
+      return { ok: false, error: `${p.name}: Die Anzahl der Bewertungen muss eine ganze Zahl sein (oder leer).` };
+    }
+    const old = before[p.id];
+    const unchanged = old && old.value === value && old.scale === scale && old.count === count;
+    next[p.id] = {
+      value,
+      scale,
+      count,
+      checked: unchanged && old.checked && !bool(formData, `${p.id}_recheck`) ? old.checked : today,
+    };
+  }
+  // Same validation the page applies on the way out, so nothing unreadable is ever stored.
+  const clean = parseReviewScores(next);
+  const { error } = await supabase.from("site_settings").upsert({ key: REVIEW_SCORES_KEY, value: clean });
+  if (error) return { ok: false, error: error.message };
+  updateTag(TAG.content);
   refresh();
   return { ok: true };
 }

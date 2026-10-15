@@ -265,6 +265,41 @@ describe("every page says what it is", () => {
   }
 });
 
+describe("the review platforms on the home page", () => {
+  test("lists four platforms, each a link to its own profile with its mark loaded", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        const cards = page.locator(".review-card");
+        assert.equal(await cards.count(), 4);
+        const hosts = await cards.evaluateAll((els) => els.map((e) => new URL(e.href).hostname));
+        assert.deepEqual(hosts, ["maps.google.com", "coolibri.de", "de.restaurantguru.com", "www.werkenntdenbesten.de"]);
+        // Lazy images below the fold only load once scrolled to.
+        await page.locator("section.reviews").scrollIntoViewIfNeeded();
+        await page
+          .waitForFunction(() => [...document.querySelectorAll(".review-mark img")].every((i) => i.complete && i.naturalWidth > 0), null, {
+            timeout: 10_000,
+          })
+          .catch(() => {});
+        const marks = await page
+          .locator(".review-mark img")
+          .evaluateAll((els) => els.map((i) => i.complete && i.naturalWidth > 0));
+        assert.deepEqual(marks, [true, true, true, true]);
+      },
+    });
+  });
+
+  test("draws stars only for a platform that has a figure", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        const cards = await page
+          .locator(".review-card")
+          .evaluateAll((els) => els.map((e) => ({ stars: !!e.querySelector(".stars"), score: !!e.querySelector(".review-score") })));
+        for (const c of cards) assert.equal(c.stars, c.score, "stars without a figure, or a figure without stars");
+      },
+    });
+  });
+});
+
 describe("the console stays quiet", () => {
   const pages = ["/", "/es", "/karte", "/catering", "/vorbestellen", "/gallery", "/impressum", "/datenschutz"];
   for (const path of pages) {
