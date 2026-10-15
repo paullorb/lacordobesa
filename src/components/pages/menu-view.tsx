@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MenuIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
+import { MenuIndex } from "@/components/menu-index";
 import { MenuItemIcon } from "@/components/menu-icons";
 import { Repulgue } from "@/components/repulgue";
 import { SiteFooter } from "@/components/site-footer";
@@ -54,16 +55,9 @@ export async function MenuView({ locale }: { locale: Locale }) {
           {anyUntranslated && <p className="form-note menu-translation-note">{t.descriptionsInGerman}</p>}
 
           {/* Sticks under the header while the reader is in the menu, so a long card is one tap
-              from any category rather than a scroll back to the top. Plain anchors: no script. */}
-          <nav className="menu-index" aria-label={t.indexLabel}>
-            <ul>
-              {categories.map((c) => (
-                <li key={c.id}>
-                  <a href={`#${c.slug}`}>{c.label}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+              from any category rather than a scroll back to the top. Plain anchors; the script
+              only marks the category under the reader. */}
+          <MenuIndex label={t.indexLabel} categories={categories.map((c) => ({ slug: c.slug, label: c.label }))} />
 
           <div className="menu-cats">
             {categories.map((c, i) => (

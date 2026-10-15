@@ -317,7 +317,8 @@ export type ArrowDirection = keyof typeof ARROWS & ("up-right" | "right" | "left
  * changes nothing.
  */
 export const ArrowIcon = ({ direction, size = 16, className }: IconProps & { direction: ArrowDirection }) => (
-  <Icon size={size} className={className ? `icon-inline ${className}` : "icon-inline"}>
+  // The direction as a class too, so a button can nudge its arrow the way it points on hover.
+  <Icon size={size} className={`icon-inline arrow-${direction}${className ? ` ${className}` : ""}`}>
     {ARROWS[direction]}
   </Icon>
 );

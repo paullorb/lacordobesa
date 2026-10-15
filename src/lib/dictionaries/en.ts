@@ -55,6 +55,7 @@ export const en: Dictionary = {
       "Empanadas, sweet classics and homemade specialities, prepared the Argentine way and served with plenty of love.",
     heroReserve: "Reserve a table",
     heroMenu: "See the menu",
+    heroScroll: "Scroll",
     marqueeLabel: "Homemade specialities",
     storyEyebrow: "Nuestro mundo chiquito",
     storyTitle: "With a taste that brings back memories.",

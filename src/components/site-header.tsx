@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ArrowIcon, NavIcon } from "@/components/icons";
+import { ArrowIcon, NavIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import { EmpanadaIcon } from "@/components/empanada-icon";
+import { InstagramIcon } from "@/components/instagram-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
+import { EmpanadaMark } from "@/components/repulgue";
+import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 
@@ -79,6 +82,30 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
               {t.nav.write} <ArrowIcon direction="up-right" />
             </a>
             <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
+            {/* Only in the open menu, where there is a whole screen to fill: the address, the phone
+                and the Instagram handle, so the menu is a page about the shop rather than a list of
+                links. The stylesheet hides it in the desktop bar, which stays words only. */}
+            <div className="nav-aside">
+              <p className="nav-aside-label">{t.footer.contact}</p>
+              <a href={CONTACT.mapsUrl} target="_blank" rel="noreferrer">
+                <PinIcon className="nav-icon" />
+                <span>
+                  {CONTACT.street}
+                  <br />
+                  {CONTACT.city}
+                </span>
+              </a>
+              <a href={`tel:${CONTACT.phoneE164}`}>
+                <PhoneIcon className="nav-icon" />
+                <span>{CONTACT.phoneDisplay}</span>
+              </a>
+              <a href={CONTACT.instagram} target="_blank" rel="noreferrer">
+                <InstagramIcon className="nav-icon" />
+                <span>{CONTACT.instagramHandle}</span>
+              </a>
+            </div>
+            {/* The signature, drawn large in the corner the links leave empty on a wide screen. */}
+            <EmpanadaMark className="nav-art" />
           </nav>
           <div className="nav-actions">
             <SectionLink className="nav-cta nav-reserve" href={href("/#reservieren")}>
