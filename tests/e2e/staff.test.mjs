@@ -147,8 +147,10 @@ describe("the menu editor", () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
+        const inSummary = await page.locator("main details summary form").count();
+        assert.equal(inSummary, 0, "the availability button belongs in the expanded card, not the collapsed row");
         const labels = await page
-          .locator("main details summary form button")
+          .locator('main details form:has(input[name="is_available"]) button')
           .evaluateAll((els) => [...new Set(els.map((e) => e.textContent.trim()))]);
         assert.ok(labels.length > 0, "no availability buttons found");
         for (const label of labels) {
