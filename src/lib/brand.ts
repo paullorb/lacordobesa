@@ -15,8 +15,8 @@
  *   favicon.ico, favicon-32.png  the tab icon everywhere else. Safari ignores an SVG tab icon, and
  *                             browsers (and Vercel's project list) ask for /favicon.ico by default
  *   apple-touch-icon.png      the iPhone/iPad home-screen tile for the public site
- *   staff-apple-touch-icon.png  the same for the staff app, on the dark colour so the two do not
- *                             look alike next to each other on a home screen
+ *   staff-apple-touch-icon.png  the same for the staff app, on the cream page colour (the public one is on
+ *                             the emblem's blue, so the two still differ on a home screen)
  *   icon-192 / icon-512 / *-maskable  the web app manifest icons (Android, Chrome, Edge)
  *   og-image.jpg              the link preview (a photo, not the logo; see `OG_IMAGE` in `lib/site.ts`)
  *
