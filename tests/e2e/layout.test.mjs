@@ -148,6 +148,38 @@ describe("Safari does not scale the page to fit", () => {
   }
 });
 
+describe("form fields do not make iOS zoom in", () => {
+  // iOS Safari zooms into a focused field whose text is under 16px, and does not zoom back out when
+  // the form is submitted: the log in screen stayed magnified before and after signing in.
+  const pages = [
+    ["staff log in", "/staff/login", false],
+    ["staff reservations", "/staff/reservierungen", true],
+    ["staff menu", "/staff/karte", true],
+    ["staff hours", "/staff/oeffnungszeiten", true],
+    ["home", "/", false],
+    ["catering", "/catering", false],
+  ];
+
+  for (const [name, path, staff] of pages) {
+    test(name, { skip: staff ? skipUnlessStaff() : skipUnlessServing() }, async () => {
+      await visitOnPhone(path, {
+        staff,
+        body: async ({ page }) => {
+          const small = await page.evaluate(() =>
+            [...document.querySelectorAll("input, select, textarea")]
+              .filter((el) => !["hidden", "checkbox", "radio", "file", "range", "color"].includes(el.type))
+              .filter((el) => el.getBoundingClientRect().width > 0)
+              .map((el) => ({ el: `${el.tagName.toLowerCase()}#${el.id || el.name}`, size: parseFloat(getComputedStyle(el).fontSize) }))
+              .filter((f) => f.size < 16)
+              .map((f) => `${f.el} ${f.size}px`),
+          );
+          assert.deepEqual(small, [], `${path} has fields under 16px`);
+        },
+      });
+    });
+  }
+});
+
 describe("the staff navigation is reachable on a phone", () => {
   // Two tabs used to sit off the right edge of a sideways-scrolling strip with nothing on screen
   // to say they were there, and iOS draws no scrollbar to hint at it. Einstellungen was one of them.
@@ -184,7 +216,7 @@ describe("the staff navigation is reachable on a phone", () => {
       body: async ({ page }) => {
         const viewport = page.viewportSize().width;
         const links = await page.locator('nav[aria-label="Inhalte"] a').all();
-        assert.equal(links.length, 4, "Karte, Specials, Galerie, Öffnungszeiten");
+        assert.equal(links.length, 5, "Karte, Specials, Galerie, Öffnungszeiten, Bewertungen");
         for (const link of links) {
           const box = await link.boundingBox();
           assert.ok(box.x + box.width <= viewport + 1, `"${(await link.textContent()).trim()}" runs off the screen`);

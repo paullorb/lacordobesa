@@ -877,7 +877,8 @@ body::after {
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }
-.staff input, .staff select, .staff textarea { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink focus:outline-2 focus:outline-blue; }
+/* text-base, not text-sm: iOS Safari zooms into any field under 16px and never zooms back out. */
+.staff input, .staff select, .staff textarea { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-base text-ink focus:outline-2 focus:outline-blue; }
 /* Not the `w-full` of the rule above, and a touch larger than the 13px the browser draws. */
 .staff input[type="checkbox"] { width: 1.1rem; height: 1.1rem; }
 /* The hit area for a 17px checkbox is the label wrapped around it, and these sit in dense forms
