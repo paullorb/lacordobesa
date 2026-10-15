@@ -8,6 +8,7 @@ import { EmpanadaIcon } from "@/components/empanada-icon";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
+import { PointerEffects } from "@/components/pointer-effects";
 import { EmpanadaMark } from "@/components/repulgue";
 import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
@@ -58,6 +59,8 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
 
   return (
     <>
+      {/* Attached here because every public page renders the header, and nowhere else is on all of them. */}
+      <PointerEffects />
       <header className="site-header" ref={header}>
         {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
         <a className="skip-link" href="#main">

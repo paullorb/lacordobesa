@@ -47,7 +47,7 @@ export function PhotoStrip({
   if (photos.length === 0) return null;
 
   return (
-    <section className="section photo-strip-section" aria-labelledby="photos-title">
+    <section className="section photo-strip-section" id="fotos" aria-labelledby="photos-title">
       <div className="inner">
         <div className="section-heading">
           <p className="eyebrow">{t.eyebrow}</p>
