@@ -190,6 +190,37 @@ describe("language", () => {
     }
   });
 
+  test("every link in the phone menu carries a decorative icon", { skip }, async () => {
+    await visit("/", {
+      width: 390,
+      body: async ({ page }) => {
+        await page.locator(".menu-toggle").click();
+        const links = page.locator("nav#navigation a:not(.nav-cta):not([hreflang])");
+        const count = await links.count();
+        assert.ok(count >= 6, `expected the six section links, found ${count}`);
+        for (let i = 0; i < count; i++) {
+          const icon = links.nth(i).locator("svg.nav-icon");
+          assert.equal(await icon.count(), 1, `link ${i} has no icon`);
+          assert.equal(await icon.getAttribute("aria-hidden"), "true");
+          const box = await icon.boundingBox();
+          assert.ok(box && box.width >= 16, `link ${i} icon is not painted`);
+        }
+      },
+    });
+  });
+
+  test("the desktop bar stays words only", { skip }, async () => {
+    await visit("/", {
+      width: 1440,
+      body: async ({ page }) => {
+        const shown = await page.locator("nav#navigation svg.nav-icon").evaluateAll((els) =>
+          els.filter((el) => el.getBoundingClientRect().width > 0).length,
+        );
+        assert.equal(shown, 0);
+      },
+    });
+  });
+
   test("an anchor link to the Spanish home page has no trailing slash", { skip }, async () => {
     // "/es/#besuch" redirects to "/es" and drops the hash on the way.
     await visit("/es/karte", {

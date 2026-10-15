@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ArrowIcon } from "@/components/icons";
+import { ArrowIcon, NavIcon } from "@/components/icons";
 import { EmpanadaIcon } from "@/components/empanada-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
@@ -20,12 +20,12 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
   const t = getDictionary(locale);
   const href = (p: string) => localeHref(locale, p);
   const links = [
-    { href: href("/#geschichte"), label: t.nav.story },
-    { href: href("/karte"), label: t.nav.menu },
-    { href: href("/vorbestellen"), label: t.nav.preorder },
-    { href: href("/catering"), label: t.nav.celebrate },
-    { href: href("/gallery"), label: t.nav.gallery },
-    { href: href("/#besuch"), label: t.nav.visit },
+    { href: href("/#geschichte"), label: t.nav.story, icon: "story" },
+    { href: href("/karte"), label: t.nav.menu, icon: "menu" },
+    { href: href("/vorbestellen"), label: t.nav.preorder, icon: "preorder" },
+    { href: href("/catering"), label: t.nav.celebrate, icon: "celebrate" },
+    { href: href("/gallery"), label: t.nav.gallery, icon: "gallery" },
+    { href: href("/#besuch"), label: t.nav.visit, icon: "visit" },
   ];
 
   useEffect(() => {
@@ -71,6 +71,7 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
           <nav id="navigation" className={`site-nav${open ? " open" : ""}`} onClick={() => setOpen(false)}>
             {links.map((l) => (
               <SectionLink key={l.href} href={l.href}>
+                <NavIcon name={l.icon} className="nav-icon" />
                 {l.label}
               </SectionLink>
             ))}
