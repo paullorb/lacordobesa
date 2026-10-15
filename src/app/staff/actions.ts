@@ -287,51 +287,37 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
   return { ok: true };
 }
 
+/** UUIDs rather than merely non-empty strings: the reorder RPCs take `uuid[]`, so anything else
+ *  comes back from PostgREST as a cast failure in English rather than the sentence below. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isIdList = (ids: unknown): ids is string[] =>
-  Array.isArray(ids) && ids.length <= 500 && ids.every((id) => typeof id === "string" && id.length > 0);
+  Array.isArray(ids) && ids.length <= 500 && ids.every((id) => typeof id === "string" && UUID.test(id));
 
 /** Puts `ids` into `categoryId` in that order: what a drag on the menu page ends with. Rows already
- *  in place are skipped, so a move near the bottom of a list writes a couple of rows, not all. */
+ *  in place are left alone by the RPC, so a move near the bottom of a list writes a couple of rows
+ *  rather than all of them. */
 export async function arrangeMenuItems(categoryId: string, ids: string[]): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   if (typeof categoryId !== "string" || !isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
-  const { data: current, error: readError } = await supabase.from("menu_items").select("id, category_id, sort_order").in("id", ids);
-  if (readError) return { ok: false, error: readError.message };
-  const byId = new Map((current ?? []).map((r) => [r.id, r]));
-  const changes = ids
-    .map((id, i) => ({ id, sort_order: i + 1 }))
-    .filter(({ id, sort_order }) => {
-      const r = byId.get(id);
-      return r && (r.category_id !== categoryId || r.sort_order !== sort_order);
-    });
-  const results = await Promise.all(
-    changes.map(({ id, sort_order }) =>
-      supabase.from("menu_items").update({ category_id: categoryId, sort_order }).eq("id", id),
-    ),
-  );
-  const failed = results.find((r) => r.error);
+  // One statement, in the database (migration 20261015061507). This used to read the current order
+  // and then fire an update per moved row through Promise.all: one of them failing, or two people
+  // dragging at once, committed part of the new order and left the rest, and returning an error
+  // rolled none of it back.
+  const { error } = await supabase.rpc("arrange_menu_items", { p_category: categoryId, p_ids: ids });
   updateTag(TAG.content);
   refresh();
-  return failed?.error ? { ok: false, error: failed.error.message } : { ok: true };
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 /** The order of the categories, top to bottom. */
 export async function arrangeCategories(ids: string[]): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   if (!isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
-  const { data: current, error: readError } = await supabase.from("menu_categories").select("id, sort_order").in("id", ids);
-  if (readError) return { ok: false, error: readError.message };
-  const sortOf = new Map((current ?? []).map((r) => [r.id, r.sort_order]));
-  const results = await Promise.all(
-    ids
-      .map((id, i) => ({ id, sort_order: i + 1 }))
-      .filter(({ id, sort_order }) => sortOf.has(id) && sortOf.get(id) !== sort_order)
-      .map(({ id, sort_order }) => supabase.from("menu_categories").update({ sort_order }).eq("id", id)),
-  );
-  const failed = results.find((r) => r.error);
+  // Atomic, for the same reason as arrangeMenuItems above.
+  const { error } = await supabase.rpc("arrange_menu_categories", { p_ids: ids });
   updateTag(TAG.content);
   refresh();
-  return failed?.error ? { ok: false, error: failed.error.message } : { ok: true };
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
 
 /** Puts a dish on the home page, or takes it off. */

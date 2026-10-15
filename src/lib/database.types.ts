@@ -337,6 +337,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "preorder_lines_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "preorder_lines_preorder_id_fkey"
             columns: ["preorder_id"]
             isOneToOne: false
@@ -604,10 +611,23 @@ export type Database = {
           subtitle: string | null
           updated_at: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
+      arrange_menu_categories: { Args: { p_ids: string[] }; Returns: number }
+      arrange_menu_items: {
+        Args: { p_category: string; p_ids: string[] }
+        Returns: number
+      }
       cancel_preorder_by_token: {
         Args: { p_token: string }
         Returns: undefined
