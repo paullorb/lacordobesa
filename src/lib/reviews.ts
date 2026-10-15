@@ -9,8 +9,8 @@
  *    here scrapes or estimates a rating, and a platform with no number saved is shown as a plain link
  *    with its mark, never with stars.
  *
- *  Google needs the same treatment until somebody supplies a Places API key (which the site does not
- *  have): the profile link works, the stars appear as soon as the numbers are entered.
+ *  Google gets the same treatment, with its figure kept in BASELINE_SCORES, because a Places API key
+ *  costs money the shop does not spend yet.
  *
  *  What is shown is a link to the profile plus the headline figure, never the text of any review. */
 
@@ -76,6 +76,9 @@ export type ReviewScores = Partial<Record<ReviewPlatformId, ReviewScore>>;
 /** What was read off the pages before there was a staff form. Used only while nothing has been saved
  *  in the staff area; the first save writes the whole set, which then replaces this. */
 export const BASELINE_SCORES: ReviewScores = {
+  // Typed in by hand: a Places API key costs money the shop does not need to spend yet. Count is the
+  // floor ("over 50"). Refresh this by hand now and then (issue #113).
+  google: { value: "4,7", scale: "5", count: 50, checked: "2026-10-15" },
   coolibri: { value: "8,6", scale: "10", count: 80, checked: "2026-10-14" },
 };
 

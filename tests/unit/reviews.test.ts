@@ -42,10 +42,11 @@ describe("starsOutOfFive", () => {
 });
 
 describe("resolveReviews", () => {
-  test("before anything is saved, only the figure that was read by hand is shown", () => {
+  test("before anything is saved, only the figures that were read by hand are shown", () => {
     const r = resolveReviews(null);
     assert.equal(r.find((p) => p.id === "coolibri")?.score?.value, BASELINE_SCORES.coolibri?.value);
-    for (const id of ["google", "restaurantguru", "werkenntdenbesten"]) {
+    assert.equal(r.find((p) => p.id === "google")?.stars, 4.7);
+    for (const id of ["restaurantguru", "werkenntdenbesten"]) {
       assert.equal(r.find((p) => p.id === id)?.score, null, `${id} must have no invented figure`);
     }
   });
