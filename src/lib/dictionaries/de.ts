@@ -55,6 +55,8 @@ export const de = {
       "Empanadas, süße Klassiker und hausgemachte Spezialitäten, nach argentinischer Art zubereitet und mit viel Liebe serviert.",
     heroReserve: "Tisch reservieren",
     heroMenu: "Zur Karte",
+    /** Beside the small line at the foot of the hero that says there is more below. */
+    heroScroll: "Scrollen",
     marqueeLabel: "Hausgemachte Spezialitäten",
     storyEyebrow: "Unsere kleine Welt",
     storyTitle: "Mit Geschmack, der Erinnerungen weckt.",

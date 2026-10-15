@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { ArgentinaIcon, ArrowIcon, ClockIcon, MailIcon, MenuIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
@@ -9,7 +10,7 @@ import { JsonLd } from "@/components/json-ld";
 import { ReviewStars } from "@/components/review-stars";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
-import { EmpanadaMark, Repulgue } from "@/components/repulgue";
+import { EmpanadaMark, Repulgue, repulgueTile } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
 import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
@@ -96,10 +97,12 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 {t.heroEyebrowAfter}
               </span>
             </p>
-            {/* Each line is its own block so the two can rise in one after the other. */}
+            {/* Each line is its own block and each word its own clipped box, so the headline rises
+                word by word out of its own baseline. The spaces between the boxes are real text,
+                so the heading still reads as two sentences. */}
             <h1 id="hero-title">
-              <span className="hero-line">{t.heroTitleLine1}</span>
-              <em className="hero-line">{t.heroTitleLine2}</em>
+              <span className="hero-line">{words(t.heroTitleLine1, 0)}</span>
+              <em className="hero-line">{words(t.heroTitleLine2, t.heroTitleLine1.split(" ").length)}</em>
             </h1>
             <p className="hero-text">{t.heroText}</p>
             <div className="hero-actions">
@@ -114,6 +117,12 @@ export async function HomeView({ locale }: { locale: Locale }) {
           <div className="hero-note">
             <OpenStatus hours={openingHours} closures={closures} locale={locale} />
             <Logo />
+          </div>
+          {/* A line that keeps wiping across, beside one word: the page goes on below the fold.
+              Decorative, and it fades with the rest of the hero as the reader takes the hint. */}
+          <div className="hero-scroll" aria-hidden="true">
+            <span>{t.heroScroll}</span>
+            <span className="hero-scroll-line" />
           </div>
         </section>
 
@@ -229,6 +238,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
         <PhotoStrip locale={locale} featured={photos.featured} posts={instagram} />
 
         <section className="craft">
+          {/* The same crimped edge the footer opens with, so both dark bands are closed the same way. */}
+          <div className="craft-edge" aria-hidden="true" style={{ maskImage: repulgueTile(), WebkitMaskImage: repulgueTile() }} />
           <div className="section craft-grid">
             <div>
               <p className="eyebrow">{t.craftEyebrow}</p>
@@ -447,6 +458,19 @@ export async function HomeView({ locale }: { locale: Locale }) {
       <SiteFooter locale={locale} />
     </div>
   );
+}
+
+/** One clipped box per word of the headline, numbered on through both lines so the stagger does
+ *  not restart on the second. The box is what the word rises out of (see .hero-word). */
+function words(line: string, offset: number) {
+  return line.split(" ").map((word, i) => (
+    <Fragment key={word + i}>
+      {i > 0 && " "}
+      <span className="hero-word" style={{ "--w": offset + i } as React.CSSProperties}>
+        <span>{word}</span>
+      </span>
+    </Fragment>
+  ));
 }
 
 /** Date-picker bounds. Baked into the static shell, so the clock is only read when the entry is

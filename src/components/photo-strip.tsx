@@ -76,6 +76,11 @@ export function PhotoStrip({
                 aria-label={photo.alt}
               >
                 <Image src={photo.src} alt={photo.alt} width={400} height={400} sizes="(max-width: 800px) 45vw, 22vw" />
+                {/* The caption, shown on hover where there is a pointer. The link already carries
+                    the same words as its name, so this one is hidden from the reading order. */}
+                <span className="photo-strip-caption" aria-hidden="true">
+                  {photo.alt}
+                </span>
               </a>
             </li>
           ))}

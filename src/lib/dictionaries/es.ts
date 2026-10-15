@@ -51,6 +51,7 @@ export const es: Dictionary = {
       "Empanadas, clásicos dulces y especialidades caseras, hechas a la manera argentina y servidas en Frankfurt con todo el cariño.",
     heroReserve: "Reservar mesa",
     heroMenu: "Ver la carta",
+    heroScroll: "Deslizá",
     marqueeLabel: "Especialidades caseras",
     storyEyebrow: "Nuestro mundo chiquito",
     storyTitle: "Con un sabor que te trae recuerdos.",

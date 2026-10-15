@@ -1,11 +1,12 @@
 /** Instagram's own glyph (single path, like the brand's press kit asset), tinted with currentColor. */
-export function InstagramIcon({ size = 18 }: { size?: number }) {
+export function InstagramIcon({ size = 18, className }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="currentColor"
+      className={className}
       aria-hidden="true"
       focusable="false"
       xmlns="http://www.w3.org/2000/svg"
