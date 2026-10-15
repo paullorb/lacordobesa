@@ -103,14 +103,15 @@ export default function DatenschutzPage() {
       <h2>5a. Reichweitenmessung ohne Cookies</h2>
       <p>
         Damit wir sehen, welche Seiten gelesen werden und an welcher Stelle Gäste eine Reservierung abbrechen,
-        zählen wir Aufrufe und Aktionen auf unserer eigenen Website. Dazu sendet dein Browser beim Aufruf einer Seite
-        und bei einigen Aktionen eine kurze Meldung an unseren eigenen Server: Reservierung oder ein anderes
-        Formular abgeschickt, erfolgreich oder fehlgeschlagen (ohne deine Eingaben), Klick auf Telefon, WhatsApp,
-        E-Mail, Karte oder Instagram, ein Foto in der Galerie geöffnet, und eine grobe Bewertung der Ladezeit der
-        Seite. Die Meldung enthält die aufgerufene Seite, die Art der Aktion, die Breite deines Browserfensters nur
-        als Gruppe (Handy, Tablet oder Desktop) und beim ersten Aufruf den Namen der Website, von der du kommst, ohne
-        deren Adresse und ohne Suchbegriffe. Aus den technischen Kopfdaten der Anfrage leiten wir außerdem die
-        Browser-Familie (zum Beispiel Safari oder Chrome) und deine bevorzugte Sprache ab.
+        zählen wir Aufrufe und Aktionen auf unserer eigenen Website. Dazu sendet dein Browser für jede aufgerufene
+        Seite eine kurze Meldung an unseren eigenen Server, sobald du sie verlässt oder den Tab wechselst: die Seite
+        selbst und, falls geschehen, Reservierung oder ein anderes Formular abgeschickt, erfolgreich oder
+        fehlgeschlagen (ohne deine Eingaben), Klick auf Telefon, WhatsApp, E-Mail, Karte oder Instagram, ein Foto in
+        der Galerie geöffnet, und eine grobe Bewertung der Ladezeit der Seite. Die Meldung enthält die aufgerufene
+        Seite, die Art der Aktion, die Breite deines Browserfensters nur als Gruppe (Handy, Tablet oder Desktop) und
+        beim ersten Aufruf den Namen der Website, von der du kommst, ohne deren Adresse und ohne Suchbegriffe. Aus den
+        technischen Kopfdaten der Anfrage leiten wir außerdem die Browser-Familie (zum Beispiel Safari oder Chrome)
+        und deine bevorzugte Sprache ab.
       </p>
       <p>
         Gespeichert werden ausschließlich Tageszähler, zum Beispiel „am 15. Oktober wurde die Karte 42 Mal auf einem

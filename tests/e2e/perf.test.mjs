@@ -231,6 +231,40 @@ describe("no request is made twice", () => {
   }
 });
 
+describe("the analytics of a page view travel as one request", () => {
+  // The beacon used to go out once per event, and a load alone made three (pageview, TTFB, FCP),
+  // which is what "no request is made twice" tripped over. Now the events of a view are queued and
+  // sent together when the view ends. A tab switch or an unload is not observable from here (the
+  // beacon leaves as Playwright tears the page down), but a client-side navigation is, and it ends
+  // the view the same way.
+  test("nothing during the load, one batch when the visitor moves on", { skip }, async () => {
+    await visit("/", {
+      before: ({ page }) => {
+        const beacons = [];
+        page.on("request", (request) => {
+          if (new URL(request.url()).pathname === "/api/a") beacons.push(request.postData());
+        });
+        return beacons;
+      },
+      body: async ({ page, before: beacons }) => {
+        assert.deepEqual(beacons, [], "a load on its own sent a beacon");
+        await page.locator('a[href="/karte"]:visible').first().click();
+        await page.waitForURL(/\/karte$/);
+        await page.waitForTimeout(500);
+        assert.equal(beacons.length, 1, `expected one batch, got ${beacons.length}: ${beacons.join(" | ")}`);
+        const events = JSON.parse(beacons[0]);
+        assert.ok(Array.isArray(events), "the batch is an array of events");
+        assert.deepEqual(
+          events.filter((e) => e.e === "pageview").map((e) => e.p),
+          ["/"],
+          "the batch carries the view's pageview once",
+        );
+        assert.ok(events.some((e) => e.e === "vital"), "the batch carries the view's vitals");
+      },
+    });
+  });
+});
+
 describe("nothing is broken on the way in", () => {
   for (const path of MAIN_PAGES) {
     test(path, { skip }, async () => {

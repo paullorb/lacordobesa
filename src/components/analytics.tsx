@@ -3,17 +3,24 @@
 import { usePathname } from "next/navigation";
 import { useReportWebVitals } from "next/web-vitals";
 import { Suspense, useEffect, useRef } from "react";
-import { isStaffPath, VITALS, type AnalyticsEvent, type Beacon, type ClickTarget, type FormName } from "@/lib/analytics";
+import { isStaffPath, MAX_BATCH, VITALS, type AnalyticsEvent, type Beacon, type ClickTarget, type FormName } from "@/lib/analytics";
 
 /** Consent-free analytics, browser half. Mounted once per language in the root document.
  *
  *  What makes it consent-free, in the order a reviewer would check:
  *  - it reads or writes no cookie, localStorage, sessionStorage or IndexedDB, and sets no id;
- *  - it sends one small JSON beacon to our own origin (/api/a), and nothing to a third party;
+ *  - it sends one small JSON beacon per page view to our own origin (/api/a), and nothing to a third party;
  *  - what it reads from the device is the viewport width, in three buckets, and `document.referrer`
  *    on the landing page (the server keeps only its host);
  *  - it does nothing at all when the browser sends Do Not Track or Global Privacy Control;
  *  - the server counts into daily totals and keeps no row per visitor (migration 20261015085039).
+ *
+ *  One request per page view, not one per event. The events of a view (its pageview, the Web Vitals
+ *  as they arrive, any clicks and form steps) are queued and leave together when the view ends: the
+ *  page is hidden (a tab switch or an unload), or the visitor navigates client-side to the next
+ *  path. That is when LCP, CLS and INP are final anyway, so sending earlier would only split one
+ *  view into several requests. `sendBeacon` exists for exactly this moment: the browser carries the
+ *  request through unload. tests/e2e/perf.test.mjs counts requests per page and fails on a second.
  *
  *  Failing is silent: `sendBeacon` returns false or throws on a blocked request, and nobody notices. */
 
@@ -24,9 +31,11 @@ function optedOut() {
 
 let landed = false;
 const reported = new Set<string>();
+const queue: Beacon[] = [];
 
-/** Fire one event. Safe to call anywhere on the client; does nothing on the server, in the staff area,
- *  or for a visitor who has asked not to be tracked. */
+/** Record one event. Safe to call anywhere on the client; does nothing on the server, in the staff area,
+ *  or for a visitor who has asked not to be tracked. The event is queued and sent with the rest of the
+ *  page view's events, see `flush`. */
 export function track(event: AnalyticsEvent, detail = "") {
   if (typeof window === "undefined" || optedOut() || isStaffPath(location.pathname)) return;
   const beacon: Beacon = { e: event, d: detail, p: location.pathname, w: window.innerWidth };
@@ -34,8 +43,18 @@ export function track(event: AnalyticsEvent, detail = "") {
   // navigations whose referrer is our own previous page, which the server would drop anyway.
   if (event === "pageview" && !landed) beacon.r = document.referrer;
   if (event === "pageview") landed = true;
+  queue.push(beacon);
+  // The server refuses a bigger batch, so a page that somehow produces one sends early rather than
+  // losing it all. In practice a view queues a pageview, five vitals and a handful of clicks.
+  if (queue.length >= MAX_BATCH) flush();
+}
+
+/** Send everything queued so far as one request. */
+function flush() {
+  if (queue.length === 0) return;
+  const body = JSON.stringify(queue.splice(0));
   try {
-    navigator.sendBeacon("/api/a", JSON.stringify(beacon));
+    navigator.sendBeacon("/api/a", body);
   } catch {
     // Analytics never gets to throw into the page.
   }
@@ -63,10 +82,12 @@ function Tracker() {
   const last = useRef<string | null>(null);
 
   // A pageview per path, including client-side navigations. The ref also swallows React's
-  // double-invoked effect in development.
+  // double-invoked effect in development. A new path ends the previous view, whose events go out
+  // before the new one starts queueing its own.
   useEffect(() => {
     if (last.current === pathname || (document.visibilityState as string) === "prerender") return;
     last.current = pathname;
+    flush();
     track("pageview");
   }, [pathname]);
 
@@ -92,6 +113,18 @@ function Tracker() {
     reported.add(key);
     track("vital", `${metric.name}:${metric.rating}`);
   });
+
+  // The view ends when the page becomes hidden: a tab switch, or an unload, which hides the page too.
+  // web-vitals reports LCP, CLS and INP from a capture-phase `visibilitychange` listener on window,
+  // which runs before this one on document, so the batch already holds them. Not `pagehide`: an
+  // unload fires it before `visibilitychange`, so a flush there would send the view in two halves.
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") flush();
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
   return null;
 }

@@ -70,5 +70,10 @@ export function deviceFromWidth(width: number): Device | "" {
   return "desktop";
 }
 
-/** The wire format of one beacon. */
+/** The wire format of one event. A request carries the events of one page view as an array of these. */
 export type Beacon = { e: string; d?: string; p: string; r?: string; w?: number };
+
+/** The most events one request may carry. A view queues a pageview, up to five vitals and whatever the
+ *  visitor clicks, so a real batch stays well under this; the browser sends early rather than exceed it,
+ *  and the server drops a request that does. */
+export const MAX_BATCH = 32;
