@@ -80,11 +80,12 @@ export async function closeBrowser() {
  *  demand and closed by the caller, because most tests do not need it. */
 export const safari = () => webkit.launch();
 
-/** True when something is listening and serving the site. */
+/** True when something answers at BASE. Any HTTP status counts: a 4xx/5xx home page is a regression
+ *  for the tests to report, not a reason to skip them. Only a failed connection means "no server". */
 export async function serverIsUp() {
   try {
-    const response = await fetch(BASE, { signal: AbortSignal.timeout(90_000) });
-    return response.ok;
+    await fetch(BASE, { signal: AbortSignal.timeout(90_000) });
+    return true;
   } catch {
     return false;
   }

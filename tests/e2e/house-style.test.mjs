@@ -32,8 +32,10 @@ const ALL = [
   ...STAFF_PAGES.map(([name, path]) => [`staff ${name}`, path, true]),
 ];
 
-/** U+2190–U+21FF (arrows) and the dingbat arrows people reach for instead. */
-const ARROWS = "[\\u2190-\\u21FF\\u27A1\\u2B05-\\u2B07\\uFE0F]";
+/** U+2190–U+21FF (arrows) and the dingbat arrows people reach for instead. A variation selector
+ *  (U+FE0F) is deliberately not listed: on its own it belongs to any emoji, a guest's name included,
+ *  and when it follows an arrow the arrow has already matched. */
+const ARROWS = "[\\u2190-\\u21FF\\u27A1\\u2B05-\\u2B07]";
 
 describe("arrows are drawn, not typed", () => {
   for (const [name, path, staff] of ALL) {

@@ -18,7 +18,9 @@ npx playwright install chromium webkit
 
 ## unit/ — pure functions, run on Node
 
-`node --test` with native TypeScript stripping, so there is no build step. `tests/alias-hook.mjs`
+`node --test` with native TypeScript stripping, so there is no build step. That needs **Node 22.18
+or newer**; `tests/require-node.mjs` says so up front on an older one instead of failing on a missing
+`registerHooks` export. `tests/alias-hook.mjs`
 teaches Node the `@/` alias and the extensionless imports that go with it, and maps `server-only`
 to nothing so a module that imports it can still be loaded. Anything that reaches for `next/*` at
 runtime is out of scope here and is covered by the browser tests instead.
