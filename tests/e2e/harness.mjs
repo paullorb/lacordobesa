@@ -81,18 +81,23 @@ export async function edgeIsInstalled() {
 /** Set when the suite runs against `next build && next start`, which turns the size budgets on. */
 export const PRODUCTION_BUILD = process.env.E2E_PRODUCTION === "1";
 
-/** Every public page, in both languages where there is one. Mirrors scripts/shots.mjs. */
+/** Every public page, in all three languages where there are. Mirrors scripts/shots.mjs. */
 export const PUBLIC_PAGES = [
   ["home", "/"],
   ["home-es", "/es"],
+  ["home-en", "/en"],
   ["menu", "/karte"],
   ["menu-es", "/es/karte"],
+  ["menu-en", "/en/karte"],
   ["preorder", "/vorbestellen"],
   ["preorder-es", "/es/vorbestellen"],
+  ["preorder-en", "/en/vorbestellen"],
   ["catering", "/catering"],
   ["catering-es", "/es/catering"],
+  ["catering-en", "/en/catering"],
   ["gallery", "/gallery"],
   ["gallery-es", "/es/gallery"],
+  ["gallery-en", "/en/gallery"],
   ["impressum", "/impressum"],
   ["datenschutz", "/datenschutz"],
   ["staff-login", "/staff/login"],

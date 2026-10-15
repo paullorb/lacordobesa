@@ -1,5 +1,6 @@
-/** Locale routing and the two dictionaries. German is unprefixed, Spanish lives under /es, and a
- *  Spanish page showing German copy is a defect the project has shipped before. */
+/** Locale routing and the dictionaries. German is unprefixed, Spanish lives under /es and English
+ *  under /en, and a Spanish or English page showing German copy is a defect the project has shipped
+ *  before. */
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { alternates, DEFAULT_LOCALE, INTL_LOCALE, isLocale, LOCALE_NAME, LOCALES, localeHref, OG_LOCALE } from "@/lib/i18n";
@@ -16,6 +17,12 @@ describe("localeHref", () => {
   test("Spanish is prefixed, and the root loses its trailing slash", () => {
     assert.equal(localeHref("es", "/"), "/es");
     assert.equal(localeHref("es", "/karte"), "/es/karte");
+  });
+
+  test("English is prefixed the same way", () => {
+    assert.equal(localeHref("en", "/"), "/en");
+    assert.equal(localeHref("en", "/karte"), "/en/karte");
+    assert.equal(localeHref("en", "/#besuch"), "/en#besuch");
   });
 
   test("an anchor-only path keeps the prefix attached to the root", () => {
@@ -35,10 +42,11 @@ describe("isLocale", () => {
   test("accepts exactly the supported locales", () => {
     assert.ok(isLocale("de"));
     assert.ok(isLocale("es"));
+    assert.ok(isLocale("en"));
   });
 
   test("rejects anything arriving from a form field", () => {
-    for (const bad of ["", "en", "DE", "de-DE", "es-AR", "../de"]) {
+    for (const bad of ["", "fr", "EN", "DE", "de-DE", "es-AR", "en-GB", "../de"]) {
       assert.equal(isLocale(bad), false, `${bad} should not be a locale`);
     }
   });
@@ -60,11 +68,20 @@ describe("locale tables", () => {
   test("Spanish is Argentine, because this is an Argentine bakery", () => {
     assert.equal(INTL_LOCALE.es, "es-AR");
   });
+
+  test("English is British, because it is read in Frankfurt", () => {
+    assert.equal(INTL_LOCALE.en, "en-GB");
+    assert.equal(OG_LOCALE.en, "en_GB");
+  });
+
+  test("the three languages are German, Spanish and English, in that order", () => {
+    assert.deepEqual([...LOCALES], ["de", "es", "en"]);
+  });
 });
 
 describe("alternates", () => {
   test("names every locale by its BCP-47 tag", () => {
-    assert.deepEqual(alternates("/karte"), { "de-DE": "/karte", "es-AR": "/es/karte" });
+    assert.deepEqual(alternates("/karte"), { "de-DE": "/karte", "es-AR": "/es/karte", "en-GB": "/en/karte" });
   });
 
   test("covers all locales for any path", () => {
@@ -79,6 +96,10 @@ describe("legalHref", () => {
 
   test("Spanish carries the way back", () => {
     assert.equal(legalHref("/datenschutz", "es"), `/datenschutz?${LEGAL_FROM}=es`);
+  });
+
+  test("English carries the way back too", () => {
+    assert.equal(legalHref("/impressum", "en"), `/impressum?${LEGAL_FROM}=en`);
   });
 });
 
@@ -105,54 +126,85 @@ function kinds(value: unknown, prefix = "", out: Record<string, string> = {}): R
   return out;
 }
 
+const read = (dict: unknown, path: string) =>
+  path.split(".").reduce<unknown>((acc, k) => (acc as Record<string, unknown>)?.[k], dict);
+
+/** The strings that are blank on purpose. English gives a time on the 24-hour clock with nothing after
+ *  it, where German says "Uhr" and Spanish "hs"; the components skip the separator. */
+const BLANK_ON_PURPOSE: Partial<Record<(typeof LOCALES)[number], string[]>> = {
+  en: ["reservation.at", "manage.at", "managePreorder.at"],
+};
+
 describe("dictionaries", () => {
   const de = getDictionary("de");
-  const es = getDictionary("es");
+  const others = LOCALES.filter((l) => l !== DEFAULT_LOCALE);
 
-  test("both languages have exactly the same keys", () => {
-    const dePaths = paths(de).sort();
-    const esPaths = paths(es).sort();
-    assert.deepEqual(
-      esPaths.filter((p) => !dePaths.includes(p)),
-      [],
-      "Spanish has keys German does not",
-    );
-    assert.deepEqual(
-      dePaths.filter((p) => !esPaths.includes(p)),
-      [],
-      "German has keys Spanish does not",
-    );
-  });
+  for (const locale of others) {
+    const dict = getDictionary(locale);
 
-  test("a key is the same kind of thing in both languages", () => {
-    const deKinds = kinds(de);
-    const esKinds = kinds(es);
-    const mismatched = Object.keys(deKinds).filter((k) => deKinds[k] !== esKinds[k]);
-    assert.deepEqual(mismatched, []);
-  });
+    test(`${locale} has exactly the same keys as German`, () => {
+      const dePaths = paths(de).sort();
+      const localePaths = paths(dict).sort();
+      assert.deepEqual(
+        localePaths.filter((p) => !dePaths.includes(p)),
+        [],
+        `${locale} has keys German does not`,
+      );
+      assert.deepEqual(
+        dePaths.filter((p) => !localePaths.includes(p)),
+        [],
+        `German has keys ${locale} does not`,
+      );
+    });
 
-  test("nothing is blank", () => {
-    const blank = Object.entries(kinds(es))
-      .filter(([, kind]) => kind === "string")
-      .map(([path]) => path)
-      .filter((path) => {
-        const value = path.split(".").reduce<unknown>((acc, k) => (acc as Record<string, unknown>)?.[k], es);
-        return typeof value === "string" && value.trim() === "";
-      });
-    assert.deepEqual(blank, []);
-  });
+    test(`a key is the same kind of thing in German and ${locale}`, () => {
+      const deKinds = kinds(de);
+      const kindsHere = kinds(dict);
+      const mismatched = Object.keys(deKinds).filter((k) => deKinds[k] !== kindsHere[k]);
+      assert.deepEqual(mismatched, []);
+    });
 
-  test("the Spanish copy is not simply the German copy", () => {
-    // Not every string differs (brand names, "WhatsApp", a phone number), but most must.
-    const deStrings = Object.entries(kinds(de)).filter(([, k]) => k === "string");
-    const read = (dict: unknown, path: string) =>
-      path.split(".").reduce<unknown>((acc, k) => (acc as Record<string, unknown>)?.[k], dict);
-    const identical = deStrings.filter(([path]) => read(de, path) === read(es, path)).length;
-    assert.ok(identical / deStrings.length < 0.35, `${identical}/${deStrings.length} strings are untranslated`);
+    test(`${locale}: nothing is blank`, () => {
+      const allowed = BLANK_ON_PURPOSE[locale] ?? [];
+      const blank = Object.entries(kinds(dict))
+        .filter(([, kind]) => kind === "string")
+        .map(([path]) => path)
+        .filter((path) => {
+          const value = read(dict, path);
+          return typeof value === "string" && value.trim() === "" && !allowed.includes(path);
+        });
+      assert.deepEqual(blank, []);
+    });
+
+    test(`the ${locale} copy is not simply the German copy`, () => {
+      // Not every string differs (brand names, "WhatsApp", a phone number), but most must.
+      const deStrings = Object.entries(kinds(de)).filter(([, k]) => k === "string");
+      const identical = deStrings.filter(([path]) => read(de, path) === read(dict, path)).length;
+      assert.ok(identical / deStrings.length < 0.35, `${identical}/${deStrings.length} strings are untranslated`);
+    });
+
+    test(`${locale}: the function-valued copy interpolates its arguments`, () => {
+      // A translation that drops a placeholder ("Step of 4") still type-checks, so call the functions.
+      const probe = (value: unknown, path: string) => {
+        if (typeof value === "function") {
+          const out = (value as (...a: unknown[]) => string)("ARG1", "ARG2", "ARG3");
+          assert.equal(typeof out, "string", path);
+          const numeric = (value as (...a: unknown[]) => string)(7, 9, 11);
+          assert.match(numeric, /7|9|11/, `${locale}.${path} ignores its arguments`);
+          return;
+        }
+        if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) probe(v, path ? `${path}.${k}` : k);
+      };
+      probe(dict, "");
+    });
+  }
+
+  test("the legal-page note exists in every language", () => {
+    for (const locale of LOCALES) assert.ok(getDictionary(locale).legalNotice.length > 0, locale);
   });
 });
 
-describe("German copy has no dashes", () => {
+describe("copy has no dashes", () => {
   // A standing rule for this site: commas, colons or "·" instead of em and en dashes.
   const offenders: string[] = [];
   const walk = (value: unknown, path: string) => {
@@ -164,9 +216,8 @@ describe("German copy has no dashes", () => {
     for (const [k, v] of Object.entries(value)) walk(v, path ? `${path}.${k}` : k);
   };
 
-  test("no em or en dash in either dictionary", () => {
-    walk(getDictionary("de"), "de");
-    walk(getDictionary("es"), "es");
+  test("no em or en dash in any dictionary", () => {
+    for (const locale of LOCALES) walk(getDictionary(locale), locale);
     assert.deepEqual(offenders, []);
   });
 });

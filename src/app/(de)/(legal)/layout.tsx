@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { LegalBackLink, LegalBrandLink, LegalFooterLinks } from "@/components/legal-back";
+import { LegalBackLink, LegalBrandLink, LegalFooterLinks, LegalLanguageNote } from "@/components/legal-back";
 import { Logo } from "@/components/logo";
 
 export default function LegalLayout({ children }: LayoutProps<"/">) {
@@ -8,7 +8,7 @@ export default function LegalLayout({ children }: LayoutProps<"/">) {
     <div className="site">
       <header className="site-header">
         <div className="nav">
-          {/* Both ways home read `?von=`, so a reader who arrived from /es goes back to /es rather
+          {/* Both ways home read `?von=`, so a reader who arrived from /es or /en goes back there rather
               than being moved to the German site. Suspense because that reads the URL. */}
           <Suspense
             fallback={
@@ -35,6 +35,9 @@ export default function LegalLayout({ children }: LayoutProps<"/">) {
         </div>
       </header>
       <main id="main" className="legal">
+        <Suspense fallback={null}>
+          <LegalLanguageNote />
+        </Suspense>
         {children}
       </main>
       <footer className="site-footer legal-footer">

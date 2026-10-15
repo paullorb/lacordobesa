@@ -124,6 +124,7 @@ those helpers with the machine set to six zones and with the clock at the DST ch
 tests run the home page as Los Angeles, Tokyo, Pago Pago and Kiritimati around Frankfurt's midnight.
 
 There is no language negotiation, on purpose (see `src/lib/i18n.ts`): `/` is German whatever the
-browser asks for, `/es` is Spanish, and the switch is a link. `timezone.test.mjs` pins that. English
-does not exist yet; the proposal is in the pull request for #104.
+browser asks for, `/es` is Spanish, `/en` is English, and the switch is a link. `timezone.test.mjs` pins that.
+The unit tests check every dictionary against German key by key, and the e2e tests cover the `/en` routes, the
+three-way switch on every device in the matrix, hreflang and og:locale, and the German-only legal pages with their note.
 

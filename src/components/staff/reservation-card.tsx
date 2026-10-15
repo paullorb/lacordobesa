@@ -14,7 +14,12 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
   // manage_token arrives with migration 20261012093558; before that there is no guest link to share.
   const guestLink = r.manage_token ? manageUrl(r.manage_token, locale) : null;
   const confirmText = (
-    locale === "es"
+    locale === "en"
+      ? [
+          `¡Hola ${r.name}! Your reservation at La Cordobesa on ${fmtDate(r.date, "en", { weekday: undefined })} at ${fmtTime(r.start_time)} for ${r.party_size} ${r.party_size === 1 ? "person" : "people"} is confirmed. ¡Hasta pronto!`,
+          guestLink && `If you need to cancel or change the time: ${guestLink}`,
+        ]
+      : locale === "es"
       ? [
           `¡Hola ${r.name}! Tu reserva en La Cordobesa el ${fmtDate(r.date, "es", { weekday: undefined })} a las ${fmtTime(r.start_time)} para ${r.party_size} ${r.party_size === 1 ? "persona" : "personas"} está confirmada. ¡Hasta pronto!`,
           guestLink && `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
@@ -38,9 +43,12 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
             </span>
             <span className={`status status-${r.status}`}>{RESERVATION_STATUS_LABEL[r.status]}</span>
             {r.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
-            {locale === "es" && (
-              <span className="status bg-amber-50 text-amber-800" title="Auf Spanisch gebucht: E-Mail und Link sind spanisch">
-                ES
+            {locale !== DEFAULT_LOCALE && (
+              <span
+                className="status bg-amber-50 text-amber-800"
+                title={`Auf ${locale === "es" ? "Spanisch" : "Englisch"} gebucht: E-Mail und Link sind ${locale === "es" ? "spanisch" : "englisch"}`}
+              >
+                {locale.toUpperCase()}
               </span>
             )}
           </div>

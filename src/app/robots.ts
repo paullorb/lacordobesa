@@ -23,10 +23,13 @@ export default function robots(): MetadataRoute.Robots {
           "/reservierung/",
           "/vorbestellung/",
           "/abmelden/",
-          // Rules match from the start of the path, so the Spanish token pages need their own.
+          // Rules match from the start of the path, so the Spanish and English token pages need their own.
           "/es/reservierung/",
           "/es/vorbestellung/",
           "/es/abmelden/",
+          "/en/reservierung/",
+          "/en/vorbestellung/",
+          "/en/abmelden/",
         ],
       },
     ],

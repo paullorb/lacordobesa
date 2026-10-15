@@ -36,7 +36,7 @@ export function ManagePreorder({ locale, token, order }: { locale: Locale; token
         <div>
           <dt>{t.time}</dt>
           <dd>
-            {order.pickupTime} {t.at}
+            {`${order.pickupTime} ${t.at}`.trim()}
           </dd>
         </div>
         <div>

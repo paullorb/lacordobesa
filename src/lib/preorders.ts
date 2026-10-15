@@ -51,7 +51,7 @@ export async function getPickupRange(): Promise<{ minDate: string; maxDate: stri
   return { minDate, maxDate: addDays(todayISO(), settings.max_days_ahead) };
 }
 
-export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "description_es" | "price_label" | "preorder_unit"> & {
+export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "description_es" | "description_en" | "price_label" | "preorder_unit"> & {
   category: string;
 };
 
@@ -64,7 +64,7 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("menu_items_public")
-    .select("id, name, description, description_es, price_label, preorder_unit, category_label")
+    .select("id, name, description, description_es, description_en, price_label, preorder_unit, category_label")
     .eq("is_preorderable", true)
     .order("sort_order");
   if (error) return [];

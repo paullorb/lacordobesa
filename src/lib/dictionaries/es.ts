@@ -36,6 +36,8 @@ export const es: Dictionary = {
     madeWithBefore: "Con mucho ",
     madeWithAfter: ", desde Frankfurt am Main.",
   },
+  legalNotice:
+    "Esta página solo está en alemán. Si tenés alguna duda, escribinos o llamanos y con gusto te ayudamos.",
   home: {
     title: "La Cordobesa · Un pedacito de Argentina en Frankfurt am Main",
     description:

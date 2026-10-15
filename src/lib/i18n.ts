@@ -1,7 +1,7 @@
 /** Locales, and the URL shape that goes with them.
  *
  *  German is the default and stays **unprefixed**: `/`, `/karte`, `/gallery`. Spanish lives under
- *  `/es/...`.
+ *  `/es/...` and English under `/en/...`.
  *
  *  Deliberately no middleware and no dynamic `[locale]` segment. Middleware would put an edge
  *  function in front of every public request, giving up the README's promise that "the public site
@@ -10,13 +10,17 @@
  *  `partialPrefetching` exists to provide, so client-side navigation to a Spanish page was
  *  measurably worse than to a German one.
  *
- *  So the locale is a literal instead: `app/(de)/page.tsx` and `app/(es)/es/page.tsx` are two thin
- *  wrappers over one shared view in `src/components/pages/`. Nothing to await, every variant
+ *  So the locale is a literal instead: `app/(de)/page.tsx`, `app/(es)/es/page.tsx` and `app/(en)/en/page.tsx` are
+ *  thin wrappers over one shared view in `src/components/pages/`. Nothing to await, every variant
  *  prerenders, navigation stays instant, an unknown path 404s because no route matches it,
  *  and the German URLs never moved. Adding a language means adding wrappers, which is cheap next to
- *  writing the dictionary. */
+ *  writing the dictionary.
+ *
+ *  English was dropped once and brought back on the owner's request (#104). Everything it needs
+ *  already existed in the schema (`menu_items.description_en`), except that `reservations.locale`
+ *  and `preorders.locale` only accepted de and es: see migration 20261015101518. */
 
-export const LOCALES = ["de", "es"] as const;
+export const LOCALES = ["de", "es", "en"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "de";
@@ -25,15 +29,16 @@ export const DEFAULT_LOCALE: Locale = "de";
 export const isLocale = (value: string): value is Locale => (LOCALES as readonly string[]).includes(value);
 
 /** BCP-47 tags for Intl and the `lang` attribute. Spanish is es-AR: this is an Argentine bakery,
- *  and the difference shows up in wording the team would recognise as their own. */
-export const INTL_LOCALE: Record<Locale, string> = { de: "de-DE", es: "es-AR" };
+ *  and the difference shows up in wording the team would recognise as their own. English is en-GB:
+ *  it is read in Frankfurt, where day-before-month and the 24-hour clock are what people expect. */
+export const INTL_LOCALE: Record<Locale, string> = { de: "de-DE", es: "es-AR", en: "en-GB" };
 
 /** What the language switcher shows. Each name is in its own language, which is the convention that
  *  works for a visitor who cannot read the current one. */
-export const LOCALE_NAME: Record<Locale, string> = { de: "Deutsch", es: "Español" };
+export const LOCALE_NAME: Record<Locale, string> = { de: "Deutsch", es: "Español", en: "English" };
 
 /** OpenGraph locale codes. */
-export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR" };
+export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR", en: "en_GB" };
 
 /**
  * A site-root-relative path for a locale.
@@ -41,6 +46,7 @@ export const OG_LOCALE: Record<Locale, string> = { de: "de_DE", es: "es_AR" };
  *   localeHref("de", "/karte")  -> "/karte"
  *   localeHref("es", "/karte")  -> "/es/karte"
  *   localeHref("es", "/")       -> "/es"
+ *   localeHref("en", "/karte")  -> "/en/karte"
  *   localeHref("es", "/#besuch") -> "/es#besuch"
  */
 export function localeHref(locale: Locale, path: string): string {

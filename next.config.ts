@@ -59,16 +59,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
-  // Retired URL spaces that still live in bookmarks, installed apps and sent mails. The staff app
-  // was /admin until it became /staff, and English pages (and the pre-order links they handed out)
-  // existed for an afternoon before the site went German and Spanish only. Paths kept their
-  // German slugs throughout, so dropping the prefix lands on the same page.
+  // A retired URL space that still lives in bookmarks, installed apps and sent mails: the staff app
+  // was /admin until it became /staff. (English used to be redirected to German here too; /en is a
+  // real language again, see src/lib/i18n.ts.)
   async redirects() {
     return [
       { source: "/admin", destination: "/staff", permanent: true },
       { source: "/admin/:path*", destination: "/staff/:path*", permanent: true },
-      { source: "/en", destination: "/", permanent: true },
-      { source: "/en/:path*", destination: "/:path*", permanent: true },
     ];
   },
   turbopack: {

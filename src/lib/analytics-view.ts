@@ -19,10 +19,12 @@ const PAGE_LABEL: Record<string, string> = {
   "/other": "Sonstige Seiten",
 };
 
-/** A readable name for a stored path; the Spanish pages carry the same name with " (ES)". */
+/** A readable name for a stored path; the Spanish and English pages carry the same name with " (ES)" or " (EN)". */
 export function pageLabel(path: string): string {
-  if (path === "/es") return "Startseite (ES)";
-  if (path.startsWith("/es/")) return `${PAGE_LABEL[path.slice(3)] ?? path} (ES)`;
+  for (const tag of ["es", "en"]) {
+    if (path === `/${tag}`) return `Startseite (${tag.toUpperCase()})`;
+    if (path.startsWith(`/${tag}/`)) return `${PAGE_LABEL[path.slice(3)] ?? path} (${tag.toUpperCase()})`;
+  }
   return PAGE_LABEL[path] ?? path;
 }
 

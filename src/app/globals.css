@@ -473,6 +473,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 /* "Datenschutzerklärung" is 538px of unbreakable word at h1 size, wider than a 390px phone.
    Hyphenation breaks it at a syllable instead, which the de-DE `lang` on <html> is what makes
    possible. Scoped here because these pages are the ones written in officialese. */
+/* "This page is only available in German", for a reader who arrived from /es or /en. Sits above the
+   text at the same width; the negative margin takes back some of .legal-copy's top padding. */
+.legal-note { width: min(720px, calc(100% - 48px)); margin: 32px auto -32px; }
 .legal-copy { max-width: 720px; padding-top: 64px; padding-bottom: 96px; hyphens: auto; }
 .legal-copy h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); }
 .legal-copy h2 { font-size: var(--fs-xl); margin: 2.2rem 0 .6rem; }

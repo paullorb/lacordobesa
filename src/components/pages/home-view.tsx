@@ -70,7 +70,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
-      <JsonLd data={restaurantJsonLd(hours)} />
+      <JsonLd data={restaurantJsonLd(hours, locale)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
 

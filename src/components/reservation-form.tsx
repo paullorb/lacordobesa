@@ -44,7 +44,7 @@ const FIRST_DAYS = 14;
 
 export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closedWeekdays, phoneHref, phoneLabel }: Props) {
   const t = getDictionary(locale).reservation;
-  // Monday first in both languages: the calendar grid is built that way, and a German or Spanish
+  // Monday first in every language: the calendar grid is built that way, and a German, Spanish or English
   // reader expects the week to start where their own calendar starts it.
   const weekdayLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", weekday: "long" });
   const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
@@ -211,7 +211,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
     },
     {
       title: t.steps[2],
-      summary: time ? `${time} ${t.at}` : null,
+      summary: time ? `${time} ${t.at}`.trim() : null,
       changeLabel: t.changeTime,
       body: (
         <div className="wizard-body">

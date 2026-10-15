@@ -38,7 +38,7 @@ describe(`${label}: every public page`, () => {
         native: true,
         body: async ({ page, response, errors }) => {
           assert.ok(response.status() < 400, `${path} answered ${response.status()}`);
-          const expected = path.startsWith("/es") ? "es-AR" : "de-DE";
+          const expected = /^\/es(\/|$)/.test(path) ? "es-AR" : /^\/en(\/|$)/.test(path) ? "en-GB" : "de-DE";
           assert.equal(await page.locator("html").getAttribute("lang"), expected);
           assert.equal(await page.locator("h1").count(), 1, `${path} should have exactly one h1`);
           const result = await horizontalOverflow(page);
@@ -82,17 +82,35 @@ describe(`${label}: the scripts run`, () => {
     });
   });
 
-  test("the language switch changes the language", { skip }, async () => {
-    await visit("/", {
+  for (const [code, lang] of [
+    ["es", "es-AR"],
+    ["en", "en-GB"],
+  ]) {
+    test(`the language switch reaches ${code}`, { skip }, async () => {
+      await visit("/", {
+        native: true,
+        body: async ({ page }) => {
+          // On a phone the switch sits inside the menu.
+          const toggle = page.locator(".menu-toggle");
+          if (await toggle.isVisible()) await (mobile ? toggle.tap() : toggle.click());
+          const link = page.locator(`.lang-switch a[hreflang="${code}"]`).first();
+          assert.ok(await link.isVisible(), `the ${code} link is not reachable`);
+          await Promise.all([page.waitForURL(new RegExp(`/${code}/?$`), { timeout: 30_000 }), mobile ? link.tap() : link.click()]);
+          assert.equal(await page.locator("html").getAttribute("lang"), lang);
+        },
+      });
+    });
+  }
+
+  test("from English the switch leads to German and Spanish, on the same page", { skip }, async () => {
+    await visit("/en/karte", {
       native: true,
       body: async ({ page }) => {
-        // On a phone the switch sits inside the menu.
         const toggle = page.locator(".menu-toggle");
         if (await toggle.isVisible()) await (mobile ? toggle.tap() : toggle.click());
-        const link = page.locator('.lang-switch a[hreflang="es"]').first();
-        assert.ok(await link.isVisible(), "the Spanish link is not reachable");
-        await Promise.all([page.waitForURL(/\/es\/?$/, { timeout: 30_000 }), mobile ? link.tap() : link.click()]);
-        assert.equal(await page.locator("html").getAttribute("lang"), "es-AR");
+        const hrefs = await page.locator(".lang-switch a").evaluateAll((els) => els.map((e) => e.getAttribute("href")));
+        assert.deepEqual(hrefs.sort(), ["/es/karte", "/karte"]);
+        assert.equal(await page.locator(".lang-switch [aria-current]").first().textContent(), "EN");
       },
     });
   });

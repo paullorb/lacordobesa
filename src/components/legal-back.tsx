@@ -29,6 +29,24 @@ export function LegalBackLink() {
   );
 }
 
+/**
+ * A short note, in the reader's own language, that the legal text below is German only.
+ *
+ * Impressum and Datenschutz are deliberately not translated (a translation would be a second legal
+ * text to keep in step with the first). A reader who arrived from /es or /en would otherwise land on
+ * a wall of German with no explanation. Renders nothing for a German reader. The note carries its own
+ * `lang`, because the page around it is `de-DE`.
+ */
+export function LegalLanguageNote() {
+  const locale = useArrivedFrom();
+  if (locale === DEFAULT_LOCALE) return null;
+  return (
+    <p className="legal-note form-note-box" lang={locale} role="note">
+      {getDictionary(locale).legalNotice}
+    </p>
+  );
+}
+
 /** The brand lockup in the legal header, which is also a way home. */
 export function LegalBrandLink({ children }: { children: React.ReactNode }) {
   const locale = useArrivedFrom();

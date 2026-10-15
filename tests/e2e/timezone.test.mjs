@@ -132,6 +132,18 @@ describe(`${PROJECTS[PROJECT].label}: the browser's language is not the site's l
     });
   }
 
+  for (const locale of ["de-DE", "es-AR", "ja-JP"]) {
+    test(`a ${locale} browser gets English at /en, with English month names`, { skip }, async () => {
+      await visit("/en", {
+        locale,
+        body: async ({ page }) => {
+          assert.equal(await page.locator("html").getAttribute("lang"), "en-GB");
+          assert.match(await page.locator(".calendar-label").first().textContent(), /(January|February|March|April|May|June|July|August|September|October|November|December)/);
+        },
+      });
+    });
+  }
+
   for (const locale of ["de-DE", "en-US", "ja-JP"]) {
     test(`a ${locale} browser gets Spanish at /es, with Spanish month names`, { skip }, async () => {
       await visit("/es", {

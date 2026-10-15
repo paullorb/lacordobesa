@@ -1,6 +1,6 @@
 /** German copy: the source of truth for the dictionary's shape.
  *
- *  `es.ts` is typed against `Dictionary`, so a missing or misspelled key is a build
+ *  `es.ts` and `en.ts` are typed against `Dictionary`, so a missing or misspelled key is a build
  *  error rather than a blank spot on the page. Interpolation is done with functions rather than
  *  `{placeholder}` strings, for the same reason: the compiler checks the arguments.
  *
@@ -38,6 +38,9 @@ export const de = {
     madeWithBefore: "Con mucho ",
     madeWithAfter: ", desde Frankfurt am Main.",
   },
+  /** Shown on top of the legal pages for a reader who arrived from another language: those two pages
+   *  are German only, on purpose. Unused in German itself, but kept so every language has the key. */
+  legalNotice: "Diese Seite gibt es nur auf Deutsch.",
   home: {
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description:

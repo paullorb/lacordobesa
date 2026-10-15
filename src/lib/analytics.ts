@@ -40,7 +40,11 @@ export const isValidDetail = (event: AnalyticsEvent, detail: string) => DETAIL[e
 /** The pages that get their own row. Anything else is counted as OTHER_PATH, so a mistyped URL or a
  *  crawler probing /wp-admin cannot mint new rows. */
 const PAGES = ["/", "/karte", "/gallery", "/vorbestellen", "/catering", "/datenschutz", "/impressum"];
-export const KNOWN_PATHS = [...PAGES, ...PAGES.map((p) => (p === "/" ? "/es" : `/es${p}`))];
+export const KNOWN_PATHS = [
+  ...PAGES,
+  ...PAGES.map((p) => (p === "/" ? "/es" : `/es${p}`)),
+  ...PAGES.map((p) => (p === "/" ? "/en" : `/en${p}`)),
+];
 export const OTHER_PATH = "/other";
 
 /** The path to record for a URL path. The token pages (/reservierung/<token> and friends) are folded
@@ -48,7 +52,7 @@ export const OTHER_PATH = "/other";
 export function normalizePath(raw: string): string {
   const path = raw.length > 1 ? raw.replace(/\/+$/, "") : raw;
   if (KNOWN_PATHS.includes(path)) return path;
-  const token = /^(\/es)?\/(reservierung|vorbestellung|abmelden)\/[^/]+$/.exec(path);
+  const token = /^(\/es|\/en)?\/(reservierung|vorbestellung|abmelden)\/[^/]+$/.exec(path);
   if (token) return `${token[1] ?? ""}/${token[2]}/*`;
   return OTHER_PATH;
 }

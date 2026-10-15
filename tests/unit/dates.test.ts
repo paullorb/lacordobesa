@@ -134,10 +134,11 @@ describe("monthRange", () => {
 });
 
 describe("fmtDate", () => {
-  test("German and Spanish shapes", () => {
+  test("German, Spanish and English shapes", () => {
     assert.equal(fmtDate("2026-10-12", "de"), "Mo., 12.10.2026");
     assert.equal(fmtDateDE("2026-10-12"), "Mo., 12.10.2026");
     assert.match(fmtDate("2026-10-12", "es"), /12\/10\/2026$/);
+    assert.match(fmtDate("2026-10-12", "en"), /^Mon,? 12 Oct 2026$/);
   });
 
   test("renders the date it was given, not the day before", () => {
