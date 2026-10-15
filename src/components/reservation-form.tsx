@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n";
 import { WaitlistForm } from "@/components/waitlist-form";
@@ -30,6 +30,11 @@ type Step = 1 | 2 | 3 | 4;
 
 const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 
+/** Today does not change while somebody fills in a form, and if they leave the page open past
+ *  midnight the RPC still has the last word. Hoisted so React is not handed a new subscribe
+ *  function on every render. */
+const NEVER_CHANGES = () => () => {};
+
 /** How many days step 1 offers before asking. Two weeks is the horizon most people book inside, and
  *  showing every day up to max_days_ahead (30 by default) opens with two months of tiles to scroll
  *  past. The rest is one tap away, so nothing is actually hidden. */
@@ -56,16 +61,24 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   const [loading, startLoading] = useTransition();
   const request = useRef(0);
 
+  // `minDate` is baked into a cached shell, so between midnight and the next revalidation it still
+  // names yesterday: the calendar then offered a day that is gone and printed "Heute" on it. The
+  // browser's clock is the one that is right. useSyncExternalStore rather than an effect, because
+  // the server and the first client render have to agree (the server has only `minDate` to go on)
+  // and React is the thing that knows when it is safe to swap in the real answer.
+  const today = useSyncExternalStore(NEVER_CHANGES, todayISO, () => minDate);
+  const firstDay = today > minDate ? today : minDate;
+
   // Preselect the first day with free seats, but stay on step 1: the guest should see the calendar first.
   useEffect(() => {
     const id = ++request.current;
     startLoading(async () => {
-      const first = await getFirstAvailableDay(minDate, maxDate);
+      const first = await getFirstAvailableDay(firstDay, maxDate);
       if (id !== request.current || !first) return;
       setDate(first.date);
       setSlots(first.slots);
     });
-  }, [minDate, maxDate]);
+  }, [firstDay, maxDate]);
 
   function loadDay(value: string, then: Step) {
     const id = ++request.current;
@@ -116,8 +129,8 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   const selectedSlot = slots.find((s) => s.time === time);
   const maxForSlot = Math.min(maxPartySize, selectedSlot?.seatsLeft ?? maxPartySize);
   const bookable = slots.filter((s) => s.seatsLeft > 0);
-  const months = calendarMonths(minDate, maxDate, monthLong, showAllDays ? undefined : FIRST_DAYS);
-  const totalDays = countDays(minDate, maxDate);
+  const months = calendarMonths(firstDay, maxDate, monthLong, showAllDays ? undefined : FIRST_DAYS);
+  const totalDays = countDays(firstDay, maxDate);
   const truncated = !showAllDays && totalDays > FIRST_DAYS;
   // Every slot exists but none has a free seat: the day is full, which is the one blocker a waitlist
   // can do something about. "Ruhetag" or "zu kurzfristig" are not helped by waiting.
@@ -158,7 +171,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
                         onClick={() => chooseDate(iso)}
                       >
                         {Number(iso.slice(8))}
-                        {iso === minDate && <small>{t.today}</small>}
+                        {iso === today && <small>{t.today}</small>}
                       </button>
                     );
                   })}

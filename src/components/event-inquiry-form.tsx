@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { requestEventInquiry } from "@/app/catering/actions";
+import { OccasionIcon } from "@/components/icons";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -63,18 +64,22 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       changeLabel: t.changeOccasion,
       body: (
         <div className="wizard-body">
-          <div className="slots" role="group" aria-label={t.occasion}>
+          {/* A grid rather than the wrapping pills the other steps use: six answers of very
+              different lengths wrapped into a ragged block that was hard to scan, and each one
+              now carries its own drawing. */}
+          <div className="slots occasions" role="group" aria-label={t.occasion}>
             {OCCASION_CODES.map((code) => (
               <button
                 key={code}
                 type="button"
-                className="slot"
+                className="slot slot-icon"
                 aria-pressed={occasion === code}
                 onClick={() => {
                   setOccasion(code);
                   setStep(2);
                 }}
               >
+                <OccasionIcon code={code} />
                 {t.occasions[code]}
               </button>
             ))}

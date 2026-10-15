@@ -63,13 +63,32 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
           {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
             const h = hours?.find((x) => x.weekday === wd);
             return (
-              <div key={wd} className="grid grid-cols-[6rem_1fr_1fr_auto] items-center gap-3 border-b border-line py-2 last:border-0">
+              // Four columns only once there is room for them. A `time` input will not render
+              // narrower than its own content, so the one-line version needs ~440px and spilled
+              // off the right of a phone; below `sm` the day name and the Ruhetag box take a row
+              // of their own and the two times share the next one.
+              <div
+                key={wd}
+                className="grid grid-cols-2 items-center gap-x-3 gap-y-2 border-b border-line py-2 last:border-0 sm:grid-cols-[6rem_1fr_1fr_auto] sm:gap-y-0"
+              >
                 <span className="text-sm font-semibold">{WEEKDAYS_DE[wd]}</span>
-                <input type="time" name={`opens_${wd}`} defaultValue={fmtTime(h?.opens ?? null)} aria-label={`${WEEKDAYS_DE[wd]} öffnet`} />
-                <input type="time" name={`closes_${wd}`} defaultValue={fmtTime(h?.closes ?? null)} aria-label={`${WEEKDAYS_DE[wd]} schließt`} />
-                <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
+                <label className="!mb-0 flex items-center justify-end gap-2 text-sm normal-case tracking-normal sm:order-last sm:justify-start">
                   <input type="checkbox" name={`closed_${wd}`} defaultChecked={h?.is_closed ?? false} /> Ruhetag
                 </label>
+                <input
+                  type="time"
+                  name={`opens_${wd}`}
+                  defaultValue={fmtTime(h?.opens ?? null)}
+                  aria-label={`${WEEKDAYS_DE[wd]} öffnet`}
+                  className="min-w-0"
+                />
+                <input
+                  type="time"
+                  name={`closes_${wd}`}
+                  defaultValue={fmtTime(h?.closes ?? null)}
+                  aria-label={`${WEEKDAYS_DE[wd]} schließt`}
+                  className="min-w-0"
+                />
               </div>
             );
           })}

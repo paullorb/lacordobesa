@@ -253,6 +253,24 @@ Confirmation mail: when staff confirm a reservation, `setReservationStatus` mail
 staff card says so and offers a retry. Set `RESEND_API_KEY` and `MAIL_FROM` to switch it on; without them nothing is
 sent and the card reports "nicht konfiguriert".
 
+## Tests
+
+```bash
+npm run check      # lint + typecheck + unit tests. The gate for a commit.
+npm run test:e2e   # browser tests; needs `npm run dev` in another terminal
+```
+
+Node's own test runner drives both suites and no test dependency was added: the unit tests use
+native TypeScript stripping with a small resolver hook for the `@/` alias, and the browser tests
+use the `playwright` package `npm run shots` already needed. `tests/unit/` covers the pure
+functions (dates in the shop's timezone, locale routing, dictionary parity, the numbers page's
+aggregations, guest links). `tests/e2e/` drives a real browser against a real server for layout,
+behaviour, accessibility and performance, signed in and signed out. See
+[`tests/README.md`](tests/README.md).
+
+`npm run lint` is `oxlint --deny-warnings`, so its findings are *warnings*: read the exit code,
+never grep the output for "error".
+
 ## Not yet done
 
 - No automatic WhatsApp notification; the WhatsApp button still pre-fills a message staff send by hand.

@@ -421,10 +421,16 @@ export async function HomeView({ locale }: { locale: Locale }) {
   );
 }
 
-/** Date-picker bounds. Baked into the static shell for up to an hour; the RPC re-validates anyway. */
+/** Date-picker bounds. Baked into the static shell, so the clock is only read when the entry is
+ *  refreshed, and the RPC re-validates the date anyway.
+ *
+ *  "minutes" rather than "hours": the "hours" profile keeps an entry usable for a *day*, so the
+ *  first visitor after midnight was handed yesterday as the earliest bookable date. The calendar
+ *  corrects that against the browser's own clock as well; this keeps the server's answer from
+ *  being a day out in the first place. */
 async function dateBounds(maxDaysAhead: number) {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
   const today = todayISO();
   return { minDate: today, maxDate: addDays(today, maxDaysAhead) };
 }
