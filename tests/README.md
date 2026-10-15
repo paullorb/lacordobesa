@@ -40,6 +40,7 @@ test that books a table takes one away from a real guest.
 | --- | --- |
 | `layout.test.mjs` | Every page at 320 / 390 / 768 / 1280 px fits the screen. Plus the WebKit check, the staff nav, tap targets and clipped text. |
 | `public.test.mjs` | The reservation calendar, the celebration wizard, language switching, the legal back-links, titles and descriptions. |
+| `install.test.mjs` | Add to Home Screen: each page links the right manifest, both manifests load without a session, every tab and home-screen icon loads. Safari itself needs a real iPhone. |
 | `staff.test.mjs` | Sign-in, every staff page, the nav's current state, the menu editor and the opening-hours editor. |
 | `a11y.test.mjs` | Headings, control names, alt text, colour contrast, keyboard reachability, landmarks. |
 | `perf.test.mjs` | Request origins, fonts, layout shift, image sizing, DOM size, duplicate requests. |

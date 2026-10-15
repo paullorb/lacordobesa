@@ -258,6 +258,16 @@ Confirmation mail: when staff confirm a reservation, `setReservationStatus` mail
 staff card says so and offers a retry. Set `RESEND_API_KEY` and `MAIL_FROM` to switch it on; without them nothing is
 sent and the card reports "nicht konfiguriert".
 
+## Logo, favicon and home-screen icons
+
+Everything that is not a page but still shows the logo (tab icon, "Add to Home Screen" tile, the two
+web app manifests, schema.org `logo`) is listed in [`src/lib/brand.ts`](src/lib/brand.ts), with where
+each file is used. To swap in the official logo: replace `public/assets/logo.svg` and
+`public/assets/favicon.svg` (the simplified mark for 16 to 32 px), then run `npm run icons`, which
+regenerates `public/favicon.ico` and everything in `public/icons/`. The Instagram and WhatsApp
+profile pictures are uploaded by hand in those apps. The public site and the staff area are two
+separate installable apps (`/manifest.webmanifest`, `/staff.webmanifest`).
+
 ## Tests
 
 ```bash
