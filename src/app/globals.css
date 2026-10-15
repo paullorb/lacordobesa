@@ -1021,6 +1021,14 @@ body::after {
    changing how any of them read. */
 .staff label:has(> input[type="checkbox"]) { min-height: 2.5rem; }
 .staff label { @apply block text-xs font-bold uppercase tracking-[0.12em] text-muted mb-1; }
+/* Required fields get a star and optional ones say nothing, the same on every staff form. Driven by
+   the `required` attribute, so a label can never claim something the field does not enforce. The
+   empty alt text keeps screen readers from reading "star" on top of the field's own "required". */
+.staff label:has(+ :is(input, select, textarea)[required])::after { content: " *"; content: " *" / ""; color: #b91c1c; }
+/* The Karte pill trades its name for the category being read; a short rise says it changed. */
+.staff-swap { animation: staff-swap .22s ease-out; }
+@keyframes staff-swap { from { opacity: 0; transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .staff-swap { animation: none; } }
 .btn-primary, .btn-ghost, .btn-danger { @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer; }
 .btn-primary { @apply bg-ink text-white hover:bg-blue-dark; }
 .btn-ghost { @apply border border-line bg-transparent text-ink hover:bg-mint; }

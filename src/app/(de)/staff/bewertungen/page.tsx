@@ -49,7 +49,7 @@ async function Reviews() {
                 <input id={`${p.id}_scale`} name={`${p.id}_scale`} inputMode="decimal" defaultValue={p.score?.scale ?? p.scale} />
               </div>
               <div>
-                <label htmlFor={`${p.id}_count`}>Anzahl Bewertungen (optional)</label>
+                <label htmlFor={`${p.id}_count`}>Anzahl Bewertungen</label>
                 <input id={`${p.id}_count`} name={`${p.id}_count`} type="number" min={1} defaultValue={p.score?.count ?? ""} />
               </div>
             </div>

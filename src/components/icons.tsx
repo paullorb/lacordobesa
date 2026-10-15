@@ -269,6 +269,104 @@ export function NavIcon({ name, size = 22, className }: IconProps & { name: stri
   );
 }
 
+// ---------------------------------------------------------------- staff area
+
+/** The staff tabs. The menu, pre-order, celebration and gallery tabs reuse the public site's drawings. */
+const STAFF_ICONS: Record<string, React.ReactNode> = {
+  // A calendar page with today marked.
+  today: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+      <path d="M4 10h16M8.5 3.5v3M15.5 3.5v3" />
+      <circle cx="12" cy="14.6" r="1.4" />
+    </>
+  ),
+  // Two people.
+  guests: (
+    <>
+      <circle cx="9" cy="8.8" r="3" />
+      <path d="M3.5 19c.5-3 2.7-4.6 5.5-4.6s5 1.6 5.5 4.6" />
+      <path d="M15.4 6.1a2.6 2.6 0 0 1 0 5.4M17 14.6c2 .5 3.2 1.9 3.5 4.4" />
+    </>
+  ),
+  // A calendar with a tick.
+  reservations: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+      <path d="M4 10h16M8.5 3.5v3M15.5 3.5v3" />
+      <path d="m9.2 14.8 2 2 3.6-3.8" />
+    </>
+  ),
+  // An hourglass.
+  waitlist: (
+    <>
+      <path d="M7 4h10M7 20h10" />
+      <path d="M8 4c0 4 4 4.6 4 8s-4 4-4 8M16 4c0 4-4 4.6-4 8s4 4 4 8" />
+    </>
+  ),
+  // Stacked sheets: the site's content.
+  content: (
+    <>
+      <path d="m12 4-8.5 4.4L12 12.8l8.5-4.4Z" />
+      <path d="m3.5 12.4 8.5 4.4 8.5-4.4M3.5 16.4 12 20.8l8.5-4.4" />
+    </>
+  ),
+  // A star: today's specials.
+  specials: <path d="m12 4 2.3 5 5.2.6-3.9 3.6 1.1 5.3L12 15.8l-4.7 2.7 1.1-5.3-3.9-3.6 5.2-.6Z" />,
+  // A clock face.
+  hours: (
+    <>
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  // A speech bubble.
+  reviews: <path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-8L6.5 20v-3.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5Z" />,
+  // A paper plane.
+  send: (
+    <>
+      <path d="M20.5 3.8 3.5 10.6l6.3 2.5 2.5 6.3Z" />
+      <path d="m9.8 13.1 10.7-9.3" />
+    </>
+  ),
+  // Bars on a baseline.
+  stats: (
+    <>
+      <path d="M3.5 19.5h17M6.5 19.5V13M11 19.5V6M15.5 19.5v-8M19 19.5V9" />
+    </>
+  ),
+  // An eye: who looked.
+  visitors: (
+    <>
+      <path d="M2.8 12S6.2 6 12 6s9.2 6 9.2 6-3.4 6-9.2 6S2.8 12 2.8 12Z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </>
+  ),
+  // Two sliders.
+  settings: (
+    <>
+      <path d="M4 7h8M18 7h2M4 17h2M12 17h8" />
+      <circle cx="15" cy="7" r="2.2" />
+      <circle cx="9" cy="17" r="2.2" />
+    </>
+  ),
+  // A door with an arrow leaving it.
+  logout: (
+    <>
+      <path d="M10 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H10" />
+      <path d="M14 8l4 4-4 4M8.5 12H18" />
+    </>
+  ),
+};
+
+export function StaffIcon({ name, size = 18, className }: IconProps & { name: string }) {
+  return (
+    <Icon size={size} className={className}>
+      {STAFF_ICONS[name] ?? NAV_ICONS[name] ?? FALLBACK}
+    </Icon>
+  );
+}
+
 // ---------------------------------------------------------------- arrows
 
 /** The arrows the copy used to set as characters.

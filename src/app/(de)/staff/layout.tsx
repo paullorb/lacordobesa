@@ -6,9 +6,9 @@ import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { createClient } from "@/lib/supabase/server";
 import { APPS, ICONS } from "@/lib/brand";
-import { signOut } from "@/app/staff/actions";
 import { StaffNav } from "@/app/staff/nav";
 import { Logo } from "@/components/logo";
+import { SignOutButton } from "@/components/staff/sign-out-button";
 
 export const metadata: Metadata = {
   // Its own manifest, name and home-screen tile, so it installs beside the public site, not over it.
@@ -58,12 +58,7 @@ async function currentUser() {
 async function UserMenu() {
   const user = await currentUser();
   if (!user) return null;
-  return (
-    <form action={signOut} className="flex items-center gap-3 text-xs text-muted">
-      <span className="hidden sm:inline">{staffDisplayName(user.email)}</span>
-      <button className="btn-ghost">Abmelden</button>
-    </form>
-  );
+  return <SignOutButton name={staffDisplayName(user.email)} />;
 }
 
 async function NavIfSignedIn() {

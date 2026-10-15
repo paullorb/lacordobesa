@@ -270,7 +270,8 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     subtitle: str(formData, "subtitle") || null,
     description: str(formData, "description") || null,
     price_label: str(formData, "price_label") || null,
-    is_available: bool(formData, "is_available"),
+    // Not here: availability is the "Ausverkauft melden" button's job (toggleMenuItemAvailable), so a
+    // save cannot undo it. A new dish takes the column default, which is available.
     // Only sent once migration 20261012102608 added the columns. Empty means "no translation yet",
     // which the public menu falls back from, so it is stored as null rather than "".
     ...(formData.has("translations_field")

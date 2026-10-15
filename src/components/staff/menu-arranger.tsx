@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { flushSync } from "react-dom";
+import { MenuIcon, StaffIcon } from "@/components/icons";
 import { arrangeCategories, arrangeMenuItems, setMenuItemFeatured, type ActionResult } from "@/app/staff/actions";
 import { FLIP_EASE, motion, preloadMotion } from "@/lib/motion";
 
@@ -27,8 +28,11 @@ export type ArrangerItem = {
 
 type Layout = { cats: string[]; items: Record<string, string[]>; featured: string[] };
 
+/** Where a dish dragged into another category would land: before the dish at `index`, or last. */
+type Drop = { cat: string; index: number };
+
 type Drag =
-  | { kind: "item"; id: string; pointerId: number }
+  | { kind: "item"; id: string; pointerId: number; from: string }
   | { kind: "cat"; id: string; pointerId: number }
   | { kind: "featured"; id: string; pointerId: number };
 
@@ -52,8 +56,11 @@ const KEY_GLIDE = 0.4;
 /**
  * The staff menu as staff see it on the site, rearranged by dragging.
  *
- * Every dish and every category has a handle. Dragging reorders the list live, across categories
- * too, and drops write the new order back. Dropping a dish on "Startseite" puts it on the home page;
+ * Every dish and every category has a handle. Dragging reorders the list live inside its own
+ * category. Into another category it does not: the dish stays where it was, dimmed, while a line
+ * and an outline show where it would land, and only letting go moves it. A rail of categories at
+ * the edge of the screen appears for the drag, so a long menu can be crossed without scrolling by
+ * hand. Dropping a dish on "Startseite" puts it on the home page and leaves it in its category;
  * dragging it out of there (or its ×) takes it off again. Pointer events rather than the HTML drag
  * API, because the staff area mostly runs on phones and Chrome on Android never fires HTML drag
  * events for touch. The handles also take ↑/↓ from the keyboard.
@@ -65,6 +72,10 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
   const [layout, setLayout] = useState(() => layoutOf(categories, items));
   const [drag, setDrag] = useState<Drag | null>(null);
   const [overFeatured, setOverFeatured] = useState(false);
+  const [drop, setDropState] = useState<Drop | null>(null);
+  // Also a ref: the drop is read by the pointerup handler, which must not depend on a render having happened.
+  const dropRef = useRef<Drop | null>(null);
+  const railCat = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const featuredZone = useRef<HTMLDivElement>(null);
@@ -124,6 +135,21 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
   const catById = new Map(categories.map((c) => [c.id, c]));
   const catOf = (l: Layout, id: string) => l.cats.find((c) => l.items[c].includes(id));
 
+  function setDrop(next: Drop | null) {
+    const prev = dropRef.current;
+    if (prev?.cat === next?.cat && prev?.index === next?.index) return;
+    dropRef.current = next;
+    setDropState(next);
+  }
+
+  /** Brings a category up under the header, once per visit to its entry in the rail. */
+  function reveal(catId: string) {
+    if (railCat.current === catId) return;
+    railCat.current = catId;
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    document.getElementById(`cat-${catById.get(catId)?.slug}`)?.scrollIntoView({ behavior, block: "start" });
+  }
+
   function save(run: () => Promise<ActionResult>) {
     setError(null);
     startTransition(async () => {
@@ -180,18 +206,25 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     // A featured dish's handle sits inside Startseite, so the drop state starts there: a tap with
     // no pointermove must not read as a drag out of the zone and take the dish off the home page.
     setOverFeatured(next.kind === "featured");
+    railCat.current = null;
     setDrag(next);
   }
 
   function move(e: PointerEvent) {
     if (!drag || e.pointerId !== drag.pointerId) return;
     pointerY.current = e.clientY;
-    const zone = featuredZone.current?.getBoundingClientRect();
-    const inFeatured = !!zone && e.clientY >= zone.top && e.clientY <= zone.bottom && e.clientX >= zone.left && e.clientX <= zone.right;
-    setOverFeatured(inFeatured);
-    if (drag.kind === "featured" || inFeatured) return;
-
     const under = document.elementFromPoint(e.clientX, e.clientY);
+    const zone = featuredZone.current?.getBoundingClientRect();
+    const inFeatured =
+      !!under?.closest("[data-rail-featured]") ||
+      (!!zone && e.clientY >= zone.top && e.clientY <= zone.bottom && e.clientX >= zone.left && e.clientX <= zone.right);
+    setOverFeatured(inFeatured);
+    if (drag.kind === "featured") return;
+    if (inFeatured) {
+      setDrop(null);
+      return;
+    }
+
     if (drag.kind === "cat") {
       const target = under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
       if (!target || target === drag.id) return;
@@ -204,25 +237,50 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       return;
     }
 
-    // A dish: over another dish, go before or after it; over a category with no dish under the
-    // pointer (its heading, an empty list), go to the end of that category.
-    const row = under?.closest<HTMLElement>("[data-arrange-item]");
+    // A dish. The rail means "the end of that category"; otherwise it is whatever is under the pointer.
+    const railTarget = under?.closest<HTMLElement>("[data-rail-cat]")?.dataset.railCat;
+    const row = railTarget ? null : under?.closest<HTMLElement>("[data-arrange-item]");
     const targetItem = row?.dataset.arrangeItem;
     if (targetItem === drag.id) return;
-    const targetCat = under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
+    if (!railTarget) railCat.current = null;
+    const targetCat = railTarget ?? under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
     if (!targetCat) return;
+    if (railTarget) reveal(railTarget);
+
+    const from = drag.from;
+    if (targetCat !== from) {
+      // Another category: nothing moves. If the drag had already shuffled the dish inside its own
+      // category, that goes back first, so what stays behind is the menu as it was.
+      const original = layoutOf(categories, items);
+      if (layout.items[from].join() !== original.items[from].join()) relayout(original, DRAG_GLIDE);
+      // Counted against the rows' midpoints rather than the row under the pointer: the gaps between
+      // rows belong to no row, and a drop line that jumped to the end of the list in every gap
+      // would be unusable.
+      const rows = document.querySelectorAll<HTMLElement>(`[data-arrange-cat="${targetCat}"] [data-arrange-item]`);
+      let index = layout.items[targetCat].length;
+      if (!railTarget) {
+        index = 0;
+        for (const r of rows) {
+          const box = r.getBoundingClientRect();
+          if (box.top + box.height / 2 < e.clientY) index += 1;
+        }
+      }
+      setDrop({ cat: targetCat, index });
+      return;
+    }
+
+    // Its own category: live, as before. Over another dish, go before or after it; over the heading
+    // or an empty stretch of the list, go to the end.
+    setDrop(null);
     relayout((l) => {
-      const from = catOf(l, drag.id);
-      if (!from) return l;
-      const items = { ...l.items, [from]: without(l.items[from], drag.id) };
-      let at = items[targetCat].length;
+      const rest = without(l.items[from], drag.id);
+      let at = rest.length;
       if (targetItem && row) {
         const rect = row.getBoundingClientRect();
-        at = items[targetCat].indexOf(targetItem) + (e.clientY > rect.top + rect.height / 2 ? 1 : 0);
+        at = rest.indexOf(targetItem) + (e.clientY > rect.top + rect.height / 2 ? 1 : 0);
       }
-      if (from === targetCat && l.items[from].indexOf(drag.id) === at) return l;
-      items[targetCat] = insertAt(items[targetCat], drag.id, at);
-      return { ...l, items };
+      if (l.items[from].indexOf(drag.id) === at) return l;
+      return { ...l, items: { ...l.items, [from]: insertAt(rest, drag.id, at) } };
     }, DRAG_GLIDE);
   }
 
@@ -230,8 +288,10 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     if (!drag || e.pointerId !== drag.pointerId) return;
     const d = drag;
     const dropFeatured = overFeatured;
+    const target = dropRef.current;
     setDrag(null);
     setOverFeatured(false);
+    setDrop(null);
 
     if (d.kind === "featured") {
       if (!dropFeatured) unfeature(d.id);
@@ -249,6 +309,17 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       else feature(d.id, original);
       return;
     }
+    if (target && target.cat !== d.from) {
+      // The one place a dish changes category by dragging: the pointer was released over another one.
+      const moved = {
+        ...layout.items,
+        [d.from]: without(layout.items[d.from], d.id),
+        [target.cat]: insertAt(layout.items[target.cat], d.id, target.index),
+      };
+      relayout({ ...layout, items: moved }, KEY_GLIDE);
+      save(() => arrangeMenuItems(target.cat, moved[target.cat]));
+      return;
+    }
     const to = catOf(layout, d.id);
     const original = layoutOf(categories, items);
     if (to && layout.items[to].join() !== original.items[to].join()) save(() => arrangeMenuItems(to, layout.items[to]));
@@ -259,6 +330,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     if (!drag || e.pointerId !== drag.pointerId) return;
     setDrag(null);
     setOverFeatured(false);
+    setDrop(null);
     relayout(layoutOf(categories, items), KEY_GLIDE);
   }
 
@@ -309,7 +381,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-handle="${id}"]`)?.focus());
   }
 
-  const handleProps = (id: string, label: string) => ({
+  const handleProps = (id: string, label: string, extra = "") => ({
     type: "button" as const,
     "data-handle": id,
     "aria-label": `${label} verschieben (Pfeiltasten hoch und runter)`,
@@ -317,8 +389,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     // touch-none: without it the browser takes a finger drag on the handle as a page scroll.
     // min-h/min-w: this is the one control on the page that has to be grabbed accurately, and it
     // was 23x32, under the 24px WCAG 2.2 floor in one direction and well under a thumb in both.
-    className:
-      "flex min-h-10 min-w-9 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded leading-none text-muted hover:bg-cream hover:text-ink active:cursor-grabbing",
+    className: `flex min-h-10 min-w-9 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded leading-none text-muted hover:bg-cream hover:text-ink active:cursor-grabbing ${extra}`,
   });
 
   return (
@@ -391,8 +462,12 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
             key={catId}
             id={`cat-${cat.slug}`}
             data-arrange-cat={catId}
+            data-cat-label={cat.label}
+            data-cat-slug={cat.slug}
             data-flip-id={`cat-${catId}`}
-            className={`grid gap-2 scroll-mt-28 ${drag?.id === catId ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
+            className={`grid gap-2 scroll-mt-28 ${drag?.id === catId ? "rounded-md opacity-60 ring-2 ring-blue" : ""} ${
+              drop?.cat === catId ? "rounded-md outline-2 outline-offset-4 outline-blue/50" : ""
+            }`}
           >
             <div className="flex items-start gap-2">
               <button {...handleProps(catId, `Kategorie ${cat.label}`)} onPointerDown={(e) => start(e, { kind: "cat", id: catId, pointerId: e.pointerId })} onKeyDown={(e) => keyCat(e, catId)}>
@@ -403,13 +478,19 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
 
             <div className="grid min-h-10 gap-1.5">
               {list.length === 0 && (
-                <p className="rounded-md border border-dashed border-line px-3 py-2 text-sm text-muted">
+                <p
+                  className={`rounded-md border border-dashed px-3 py-2 text-sm text-muted ${
+                    drop?.cat === catId ? "border-blue bg-sky-50" : "border-line"
+                  }`}
+                >
                   Noch keine Gerichte. Hierher ziehen, um eins zu verschieben.
                 </p>
               )}
-              {list.map((id) => {
+              {list.map((id, index) => {
                 const item = itemById.get(id);
                 if (!item) return null;
+                const lineBefore = drop?.cat === catId && drop.index === index;
+                const lineAfter = drop?.cat === catId && drop.index === list.length && index === list.length - 1;
                 return (
                   <div
                     key={id}
@@ -417,16 +498,20 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
                     // row to Flip and glides across, even though React has remounted it there.
                     data-arrange-item={id}
                     data-flip-id={`row-${id}`}
-                    className={`flex items-start gap-2 ${drag?.id === id && drag.kind === "item" ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
+                    // The handle sits on the card, over the start of its summary (which leaves room
+                    // for it), so the card gets the whole width instead of sharing it with a gutter.
+                    className={`relative ${drag?.id === id && drag.kind === "item" ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
                   >
+                    {lineBefore && <span aria-hidden="true" className="pointer-events-none absolute -top-1 left-0 right-0 z-[2] h-1 rounded-full bg-blue" />}
                     <button
-                      {...handleProps(id, item.name)}
-                      onPointerDown={(e) => start(e, { kind: "item", id, pointerId: e.pointerId })}
+                      {...handleProps(id, item.name, "absolute left-0 top-0 z-[1]")}
+                      onPointerDown={(e) => start(e, { kind: "item", id, pointerId: e.pointerId, from: catId })}
                       onKeyDown={(e) => keyItem(e, id)}
                     >
                       ⠿
                     </button>
-                    <div className="min-w-0 flex-1">{item.row}</div>
+                    {item.row}
+                    {lineAfter && <span aria-hidden="true" className="pointer-events-none absolute -bottom-1 left-0 right-0 z-[2] h-1 rounded-full bg-blue" />}
                   </div>
                 );
               })}
@@ -435,6 +520,37 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
           </section>
         );
       })}
+
+      {drag?.kind === "item" && (
+        // Pointer-only, so hidden from assistive tech; the handles' arrow keys do the same job.
+        <aside
+          aria-hidden="true"
+          className="fixed right-2 top-1/2 z-30 grid max-h-[70vh] w-36 -translate-y-1/2 gap-0.5 overflow-y-auto rounded-xl border border-line bg-white/95 p-1.5 shadow-lg backdrop-blur sm:right-4 sm:w-52"
+        >
+          <p className="px-2 pb-1 text-[0.65rem] font-bold uppercase tracking-wider text-muted">Ablegen in</p>
+          <div data-rail-featured className={railEntry(overFeatured)}>
+            <StaffIcon name="specials" size={16} />
+            <span className="min-w-0 flex-1 truncate">Startseite</span>
+          </div>
+          {layout.cats.map((catId) => {
+            const cat = catById.get(catId);
+            if (!cat) return null;
+            const target = drop?.cat === catId;
+            return (
+              <div key={catId} data-rail-cat={catId} className={railEntry(target)}>
+                <MenuIcon slug={cat.slug} size={16} />
+                <span className="min-w-0 flex-1 truncate">{cat.label}</span>
+                <span className={`text-xs ${target ? "text-white/80" : "text-muted"}`}>
+                  {catId === drag.from ? "hier" : layout.items[catId].length}
+                </span>
+              </div>
+            );
+          })}
+        </aside>
+      )}
     </div>
   );
 }
+
+const railEntry = (on: boolean) =>
+  `flex min-h-9 items-center gap-2 rounded-lg px-2 text-sm transition-colors ${on ? "bg-ink text-white" : "text-ink"}`;
