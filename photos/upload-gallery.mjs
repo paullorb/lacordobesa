@@ -1,10 +1,17 @@
 // Uploads the sample photos through the staff UI of whichever site BASE points at, skipping any caption
 // that already exists. Credentials come from the environment, never from the command line.
 //   staging:    BASE=http://localhost:3000 STAFF_USER=... STAFF_PASS=... node photos/upload-gallery.mjs
-//   production: set -a; . ./.env.production.local; set +a; node photos/upload-gallery.mjs
+//   production: ALLOW_PRODUCTION_DB=1 BASE=https://lacordobesa.vercel.app STAFF_USER=... STAFF_PASS=... node photos/upload-gallery.mjs
+// BASE has no default: a forgotten variable must not quietly land on the live site. Anything that is
+// not a local dev server needs ALLOW_PRODUCTION_DB=1 as well, the same switch the app's own guard uses.
 import { chromium } from "playwright";
 
-const BASE = process.env.BASE ?? "https://lacordobesa.vercel.app";
+const { BASE } = process.env;
+if (!BASE) throw new Error("BASE is required, e.g. BASE=http://localhost:3000 (staging via npm run dev)");
+const local = ["localhost", "127.0.0.1", "[::1]"].includes(new URL(BASE).hostname);
+if (!local && process.env.ALLOW_PRODUCTION_DB !== "1") {
+  throw new Error(`${BASE} is not a local dev server; set ALLOW_PRODUCTION_DB=1 to upload to a deployed site`);
+}
 const { STAFF_USER, STAFF_PASS } = process.env;
 if (!STAFF_USER || !STAFF_PASS) throw new Error("STAFF_USER and STAFF_PASS are required");
 
@@ -63,7 +70,11 @@ for (const [, caption, featured] of photos) {
   if (await box.isChecked()) continue;
   await box.check();
   await card.getByRole("button", { name: "Speichern" }).click();
-  await page.waitForTimeout(2500);
+  // ActionForm renders "Gespeichert." on success and a role=alert paragraph on failure.
+  const saved = card.getByText("Gespeichert.");
+  const failed = card.getByRole("alert");
+  await saved.or(failed).first().waitFor({ timeout: 60_000 });
+  if (await failed.count()) throw new Error(`could not feature "${caption}": ${await failed.first().innerText()}`);
   console.log("featured:", caption);
 }
 
