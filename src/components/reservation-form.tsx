@@ -5,6 +5,7 @@ import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n";
+import { ArrowIcon } from "@/components/icons";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import {
@@ -181,7 +182,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           </div>
           {truncated && (
             <button type="button" className="text-button more-dates" onClick={() => setShowAllDays(true)}>
-              {t.moreDates} <span aria-hidden="true">↓</span>
+              {t.moreDates} <ArrowIcon direction="down" size={14} />
             </button>
           )}
           {loading && <p className="form-note">{t.loading}</p>}
@@ -196,7 +197,7 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
           {!loading && bookable.length > 0 && (
             <div>
               <button type="button" className="button" onClick={() => setStep(2)}>
-                {t.continueWith(fmtDate(date, locale, { year: undefined }))} <span aria-hidden="true">→</span>
+                {t.continueWith(fmtDate(date, locale, { year: undefined }))} <ArrowIcon direction="right" />
               </button>
             </div>
           )}

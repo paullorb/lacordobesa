@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ArrowIcon } from "@/components/icons";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
 import { StaffReservationForm } from "@/components/staff/staff-reservation-form";
@@ -51,11 +52,11 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Link href={dayHref(addDays(date, -1))} className="btn-ghost" aria-label="Vorheriger Tag">
-            ←
+            <ArrowIcon direction="left" size={18} />
           </Link>
           <h2 className="font-serif text-2xl">{fmtDateDE(date, { weekday: "long" })}</h2>
           <Link href={dayHref(addDays(date, 1))} className="btn-ghost" aria-label="Nächster Tag">
-            →
+            <ArrowIcon direction="right" size={18} />
           </Link>
           {date !== today && (
             <Link href="/staff/reservierungen" className="text-xs text-muted underline">

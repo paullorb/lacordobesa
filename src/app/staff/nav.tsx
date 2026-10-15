@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowIcon } from "@/components/icons";
 
 type Item = { href: string; label: string };
 type Group = { label: string; items: Item[] };
@@ -69,9 +70,9 @@ export function StaffNav() {
           href="/"
           target="_blank"
           rel="noreferrer"
-          className={`${pill} ml-auto text-blue-dark hover:bg-mint`}
+          className={`${pill} ml-auto inline-flex items-center gap-1 text-blue-dark hover:bg-mint`}
         >
-          Website ↗
+          Website <ArrowIcon direction="up-right" size={14} />
         </a>
       </nav>
       {current && current.items.length > 1 && (

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ArrowIcon } from "@/components/icons";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { confirmBroadcastOptin } from "@/app/staff/actions";
 import { requireStaff } from "@/lib/auth";
@@ -129,7 +130,7 @@ async function Broadcast() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Senden ↗
+                    Senden <ArrowIcon direction="up-right" size={14} />
                   </a>
                 )}
               </li>

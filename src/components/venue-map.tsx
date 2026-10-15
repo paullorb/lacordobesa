@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PinIcon } from "@/components/icons";
+import { ArrowIcon, PinIcon } from "@/components/icons";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { legalHref } from "@/lib/legal-links";
@@ -42,7 +42,7 @@ export function VenueMap({ locale, query, label, openUrl }: Props) {
               {t.load}
             </button>
             <a className="button secondary" href={openUrl} target="_blank" rel="noreferrer">
-              {t.open} <span aria-hidden="true">↗</span>
+              {t.open} <ArrowIcon direction="up-right" />
             </a>
           </div>
         </div>

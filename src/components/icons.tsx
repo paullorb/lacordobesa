@@ -208,6 +208,59 @@ export function OccasionIcon({ code, size = 22, className }: IconProps & { code:
   );
 }
 
+// ---------------------------------------------------------------- arrows
+
+/** The arrows the copy used to set as characters.
+ *
+ *  ↗ was the one that gave the game away: U+2197 has an emoji presentation, so iOS drew it as a
+ *  flat blue system glyph next to a page of hand-drawn line icons. The other three are honest text
+ *  arrows, but they are the system font's arrows, at the system font's weight, which is not the
+ *  1.6px rounded stroke everything else here is drawn with. */
+const ARROWS: Record<string, React.ReactNode> = {
+  "up-right": (
+    <>
+      <path d="M7.4 16.6 16.6 7.4" />
+      <path d="M9.4 7.4h7.2v7.2" />
+    </>
+  ),
+  right: (
+    <>
+      <path d="M4.5 12h14" />
+      <path d="M12.8 6.3 18.5 12l-5.7 5.7" />
+    </>
+  ),
+  left: (
+    <>
+      <path d="M19.5 12h-14" />
+      <path d="M11.2 6.3 5.5 12l5.7 5.7" />
+    </>
+  ),
+  down: (
+    <>
+      <path d="M12 4.5v14" />
+      <path d="M6.3 11.2 12 16.9l5.7-5.7" />
+    </>
+  ),
+};
+
+export type ArrowDirection = keyof typeof ARROWS & ("up-right" | "right" | "left" | "down");
+
+/**
+ * An arrow, drawn.
+ *
+ * Decorative by default, because an arrow after "Website" or "Weiter" repeats what the words
+ * already say. Where the arrow *is* the label (the month stepper in the staff calendar) the
+ * surrounding control carries an aria-label and this stays hidden all the same.
+ *
+ * `icon-inline` sits it on the text baseline. In a flex button, which most of these are, it
+ * changes nothing.
+ */
+export const ArrowIcon = ({ direction, size = 16, className }: IconProps & { direction: ArrowDirection }) => (
+  <Icon size={size} className={className ? `icon-inline ${className}` : "icon-inline"}>
+    {ARROWS[direction]}
+  </Icon>
+);
+
 // ---------------------------------------------------------------- the rest
 
 export const HeartIcon = ({ size = 14, className }: IconProps) => (

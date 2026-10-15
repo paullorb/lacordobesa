@@ -356,6 +356,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .slots.times { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
 .slots.times .slot { padding: .6rem .3rem; text-align: center; }
 .text-button { font: inherit; font-size: var(--fs-xs); font-weight: 700; padding: 0; border: 0; background: none; color: var(--blue-dark); text-decoration: underline; cursor: pointer; justify-self: start; }
+/* A drawn icon set inline in a sentence has to sit on the text baseline; inside a flex button,
+   where most of them are, this changes nothing. */
+.icon-inline { display: inline-block; vertical-align: -.15em; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .form-note { font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin: 0; }
 /* /vorbestellen: pick quantities, name a pickup slot. */
