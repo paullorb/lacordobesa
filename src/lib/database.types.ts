@@ -787,6 +787,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_preorder_manually: {
+        Args: {
+          p_lines: Json
+          p_name: string
+          p_notes: string
+          p_phone: string
+          p_pickup_date: string
+          p_pickup_time: string
+          p_preparation: string
+        }
+        Returns: string
+      }
       request_preorder: {
         Args: {
           p_email: string

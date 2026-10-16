@@ -245,7 +245,8 @@ export async function savePreorderNotes(formData: FormData) {
  *
  *  Like createReservationManually(): straight into the table, so the public quotas and the lead
  *  time do not apply to someone answering the phone. The lines still come from the menu, so the
- *  name, unit and price are snapshotted exactly as request_preorder() does it. Pack sizes are not
+ *  name, unit and price are snapshotted exactly as request_preorder() does it, inside
+ *  create_preorder_manually(). Pack sizes are not
  *  enforced here: a regular who wants eight empanadas can have eight. */
 export async function createPreorderManually(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
@@ -275,38 +276,24 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
     return { ok: false, error: `Höchstens ${MAX_PREORDER_QUANTITY} pro Gericht.` };
   }
 
-  const { data: items } = await supabase
-    .from("menu_items")
-    .select("id, name, preorder_unit, price_label, menu_categories(slug)")
-    .in("id", [...quantities.keys()]);
-  if (!items || items.length !== quantities.size) return { ok: false, error: "Ein Gericht gibt es nicht mehr." };
-  // Only empanadas come fresh or par-baked, as in request_preorder(): for any other basket the answer is dropped.
-  const preparation = items.some((i) => i.menu_categories?.slug === "empanadas") ? chosenPreparation : null;
-
-  const { data: order, error } = await supabase
-    .from("preorders")
-    .insert({ name, phone, pickup_date: date, pickup_time: time, notes: notes || null, preparation, status: "confirmed", source: "staff" })
-    .select("id")
-    .single();
-  if (error || !order) {
+  // One database function, one transaction: the order and all its lines commit together or not at all.
+  const { error } = await supabase.rpc("create_preorder_manually", {
+    p_name: name,
+    p_phone: phone,
+    p_pickup_date: date,
+    p_pickup_time: time,
+    p_notes: notes,
+    p_preparation: chosenPreparation ?? "",
+    p_lines: [...quantities].map(([item_id, quantity]) => ({ item_id, quantity })),
+  });
+  if (error) {
     console.error("createPreorderManually", error);
-    return { ok: false, error: "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
-  }
-  const { error: linesError } = await supabase.from("preorder_lines").insert(
-    items.map((i) => ({
-      preorder_id: order.id,
-      menu_item_id: i.id,
-      label: i.name,
-      unit_label: i.preorder_unit,
-      price_label: i.price_label,
-      quantity: quantities.get(i.id)!,
-    })),
-  );
-  if (linesError) {
-    // No half orders: an order without its dishes is worse than none.
-    await supabase.from("preorders").delete().eq("id", order.id);
-    console.error("createPreorderManually lines", linesError);
-    return { ok: false, error: "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
+    return {
+      ok: false,
+      error: error.message.includes("item_unavailable")
+        ? "Ein Gericht gibt es nicht mehr."
+        : "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal.",
+    };
   }
   refresh();
   return { ok: true };
