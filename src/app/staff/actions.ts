@@ -256,7 +256,7 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
   const time = str(formData, "pickup_time");
   // Optional here: a regular on the phone may not have said, and the card simply shows no badge then.
   const preparationField = str(formData, "preparation");
-  const preparation = isPreparation(preparationField) ? preparationField : null;
+  const chosenPreparation = isPreparation(preparationField) ? preparationField : null;
 
   const quantities = new Map<string, number>();
   for (const [key, value] of formData.entries()) {
@@ -277,9 +277,11 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
 
   const { data: items } = await supabase
     .from("menu_items")
-    .select("id, name, preorder_unit, price_label")
+    .select("id, name, preorder_unit, price_label, menu_categories(slug)")
     .in("id", [...quantities.keys()]);
   if (!items || items.length !== quantities.size) return { ok: false, error: "Ein Gericht gibt es nicht mehr." };
+  // Only empanadas come fresh or par-baked, as in request_preorder(): for any other basket the answer is dropped.
+  const preparation = items.some((i) => i.menu_categories?.slug === "empanadas") ? chosenPreparation : null;
 
   const { data: order, error } = await supabase
     .from("preorders")

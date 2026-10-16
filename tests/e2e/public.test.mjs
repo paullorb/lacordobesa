@@ -155,8 +155,12 @@ describe("the celebration wizard", () => {
     await visit("/catering", {
       body: async ({ page }) => {
         await page.locator(".slots.occasions .slot").first().click();
-        await page.locator("#event_date").waitFor({ timeout: 15_000 });
+        const dates = page.locator(".slots:not(.occasions) .slot");
+        await dates.first().waitFor({ timeout: 15_000 });
         assert.ok(await page.locator(".chip").first().isVisible(), "the answer should become a chip");
+        // The last two chips are "other date" and "not sure yet"; "other date" opens the picker.
+        await dates.nth((await dates.count()) - 2).click();
+        await page.locator(".date-input").waitFor({ timeout: 5_000 });
       },
     });
   });

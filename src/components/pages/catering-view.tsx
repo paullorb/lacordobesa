@@ -48,7 +48,7 @@ export async function CateringView({ locale }: { locale: Locale }) {
                     alt={t.photos[i].alt}
                     width={photo.width}
                     height={photo.height}
-                    sizes="(max-width: 800px) 50vw, 340px"
+                    sizes="(max-width: 520px) 50vw, 230px"
                     loading={i === 0 ? "eager" : "lazy"}
                     style={{ objectPosition: photo.position }}
                   />
