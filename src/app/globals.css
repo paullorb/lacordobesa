@@ -1295,7 +1295,7 @@ html:has(.staff) { scrollbar-gutter: stable; }
 @keyframes qty-down-a { 0% { transform: none; } 40% { transform: translateY(3px) scale(.75); } 100% { transform: none; } }
 @keyframes qty-down-b { 0% { transform: none; } 40% { transform: translateY(3px) scale(.75); } 100% { transform: none; } }
 
-/* Leaving a page: everything but the header fades away before the router switches, so the scroll
+/* Leaving a page: everything but the header and the announcement bar fades away before the router switches, so the scroll
    back to the top happens while nothing is visible (components/route-transition.tsx). */
 @media (prefers-reduced-motion: no-preference) {
   /* Two phases. `route-leaving` fades the page out; `route-hold` then keeps it at 0 with no animation
@@ -1304,8 +1304,8 @@ html:has(.staff) { scrollbar-gutter: stable; }
      before it faded out and in again. Held at 0 they start hidden, and removing the classes lets
      their own entrance (`main`'s page-in, the footer's fade) bring them up. */
   .site > .site-footer { animation: fade-in .34s cubic-bezier(.22,.61,.36,1) both; }
-  html.route-leaving .site > :not(.site-header, .nav-backdrop) { animation: page-out .18s cubic-bezier(.4,0,1,1) both; pointer-events: none; }
-  html.route-hold .site > :not(.site-header, .nav-backdrop) { animation: none; opacity: 0; pointer-events: none; }
+  html.route-leaving .site > :not(.site-header, .announcement, .nav-backdrop) { animation: page-out .18s cubic-bezier(.4,0,1,1) both; pointer-events: none; }
+  html.route-hold .site > :not(.site-header, .announcement, .nav-backdrop) { animation: none; opacity: 0; pointer-events: none; }
 }
 @keyframes page-out { from { opacity: 1; } to { opacity: 0; } }
 
