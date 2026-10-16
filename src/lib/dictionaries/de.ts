@@ -341,7 +341,6 @@ export const de = {
       frozen: { title: "Vorgebacken zum Einfrieren", short: "Vorgebacken", text: "Du backst sie später zu Hause selbst fertig." },
     },
     preparationNote: "Das gilt für die Empanadas in deiner Bestellung.",
-    callInstead: "Lieber anrufen? ",
     changeCategories: "Auswahl ändern",
     changeItems: "Bestellung ändern",
     changePreparation: "Zubereitung ändern",

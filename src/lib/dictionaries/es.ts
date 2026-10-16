@@ -330,7 +330,6 @@ export const es: Dictionary = {
       frozen: { title: "Pre-horneadas para congelar", short: "Pre-horneadas", text: "Las terminás de hornear en casa más adelante." },
     },
     preparationNote: "Esto vale para las empanadas de tu encargo.",
-    callInstead: "¿Preferís llamar? ",
     changeCategories: "Cambiar la elección",
     changeItems: "Cambiar el pedido",
     changePreparation: "Cambiar la preparación",
