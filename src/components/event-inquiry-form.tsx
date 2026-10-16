@@ -1,27 +1,28 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { requestEventInquiry } from "@/app/catering/actions";
 import { ArrowIcon, OccasionIcon } from "@/components/icons";
 import { PhoneNote } from "@/components/phone-note";
 import { Wizard, type WizardStep } from "@/components/wizard";
-import { fmtDate } from "@/lib/dates";
+import { addDays, fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { BUDGET_CODES, GUEST_OPTIONS, OCCASION_CODES, type BudgetBand, type Occasion } from "@/lib/events";
 import type { Locale } from "@/lib/i18n";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 const MESSAGE_MAX = 1500;
+const QUICK_DAYS = 6;
+const NEVER_CHANGES = () => () => {};
 
 /**
  * A celebration inquiry, asked one question at a time.
  *
  * Shares the wizard with the table booking rather than re-implementing it: same progress bar, same
- * go-back chips, same step animation. The questions differ, and so does what a step is allowed to
- * leave blank. Date and headcount are usually the things the guest wants to discuss, so step 2
- * carries a continue button instead of advancing on a choice, and its chip says so rather than
- * showing an empty answer.
+ * go-back chips, same step animation. Date and headcount are usually what the guest wants to
+ * discuss, so both can be answered "not sure yet"; `null` is "not asked yet", `""` is that answer.
+ * The date offers the next few days as chips and opens the native picker for anything else.
  *
  * Every answer rides along as a hidden input, because only the current step is mounted. The contact
  * fields live in state for the same reason: going back through a chip unmounts them.
@@ -34,11 +35,24 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
 
   const [step, setStep] = useState(1);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
-  const [eventDate, setEventDate] = useState("");
-  const [guests, setGuests] = useState("");
+  const [eventDate, setEventDate] = useState<string | null>(null);
+  const [customDate, setCustomDate] = useState(false);
+  const [guests, setGuests] = useState<string | null>(null);
   const [budget, setBudget] = useState<BudgetBand | null>(null);
   const [contact, setContact] = useState({ name: "", phone: "", email: "", message: "" });
   const dateInput = useRef<HTMLInputElement>(null);
+  const today = useSyncExternalStore(NEVER_CHANGES, todayISO, () => minDate);
+  const firstDay = today > minDate ? today : minDate;
+  const quickDays = Array.from({ length: QUICK_DAYS }, (_, i) => addDays(firstDay, i + 1));
+
+  useEffect(() => {
+    if (!customDate) return;
+    try {
+      dateInput.current?.showPicker();
+    } catch {
+      // Not allowed without a recent tap, or not supported: the field is on screen and can be typed into.
+    }
+  }, [customDate]);
   const contactField = (key: keyof typeof contact) => ({
     value: contact[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
@@ -52,12 +66,6 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       </div>
     );
   }
-
-  // "12.10.2026 · ca. 25 Personen", or whichever half the guest actually gave.
-  const whenSummary =
-    [eventDate ? fmtDate(eventDate, locale) : t.dateOpen, guests ? `${t.guestsAboutBefore}${guests}${t.guestsAboutAfter}` : null]
-      .filter(Boolean)
-      .join(" · ");
 
   const steps: WizardStep[] = [
     {
@@ -91,60 +99,114 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
     },
     {
       title: t.steps[2],
-      summary: whenSummary,
-      changeLabel: t.changeWhen,
+      summary: eventDate === null ? null : eventDate ? fmtDate(eventDate, locale) : t.dateOpen,
+      changeLabel: t.changeDate,
       body: (
         <div className="wizard-body">
-          {/* Both optional on purpose: the date and the headcount are often what the guest wants to discuss. */}
-          <div>
-            <label htmlFor="event_date" className="group-label">{t.date}</label>
-            <input
-              ref={dateInput}
-              id="event_date"
-              type="date"
-              min={minDate}
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-            />
-          </div>
-          <div role="group" aria-labelledby="guests-label">
-            <span id="guests-label" className="group-label">{t.guests}</span>
-            <div className="slots">
-              {GUEST_OPTIONS.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className="slot"
-                  aria-pressed={guests === String(n)}
-                  onClick={() => setGuests(guests === String(n) ? "" : String(n))}
-                >
-                  {t.guestsOption(n)}
-                </button>
-              ))}
-              <button type="button" className="slot" aria-pressed={guests === ""} onClick={() => setGuests("")}>
-                {t.guestsUnknown}
+          <div className="slots" role="group" aria-label={t.date}>
+            {quickDays.map((iso) => (
+              <button
+                key={iso}
+                type="button"
+                className="slot"
+                aria-pressed={!customDate && eventDate === iso}
+                onClick={() => {
+                  setCustomDate(false);
+                  setEventDate(iso);
+                  setStep(3);
+                }}
+              >
+                {fmtDate(iso, locale, { year: undefined, day: "numeric" })}
               </button>
-            </div>
-            <p className="form-note">{t.guestsNote}</p>
-          </div>
-          <div>
+            ))}
             <button
               type="button"
-              className="button"
-              // Checked here, because the inputs unmount on the next step and only hidden copies of
-              // their values reach the server, where a past date or 900 guests would be a late error.
+              className="slot"
+              aria-pressed={customDate || (!!eventDate && !quickDays.includes(eventDate))}
+              onClick={() => setCustomDate(true)}
+            >
+              {t.otherDate}
+            </button>
+            <button
+              type="button"
+              className="slot"
+              aria-pressed={!customDate && eventDate === ""}
               onClick={() => {
-                if (dateInput.current?.reportValidity()) setStep(3);
+                setCustomDate(false);
+                setEventDate("");
+                setStep(3);
               }}
             >
-              {t.continueLabel} <ArrowIcon direction="right" />
+              {t.dateUnknown}
             </button>
           </div>
+          {customDate && (
+            <div className="date-pick">
+              <input
+                ref={dateInput}
+                className="date-input"
+                type="date"
+                required
+                aria-label={t.date}
+                min={firstDay}
+                value={eventDate ?? ""}
+                onChange={(e) => setEventDate(e.target.value)}
+              />
+              <button
+                type="button"
+                className="button"
+                // Checked here, because the input unmounts on the next step and only a hidden copy
+                // of its value reaches the server, where a past date would be a late error.
+                onClick={() => {
+                  if (dateInput.current?.reportValidity()) setStep(3);
+                }}
+              >
+                {t.continueLabel} <ArrowIcon direction="right" />
+              </button>
+            </div>
+          )}
         </div>
       ),
     },
     {
       title: t.steps[3],
+      summary: guests ? `${t.guestsAboutBefore}${guests}${t.guestsAboutAfter}` : null,
+      changeLabel: t.changeGuests,
+      body: (
+        <div className="wizard-body">
+          <div className="slots" role="group" aria-label={t.guests}>
+            {GUEST_OPTIONS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="slot"
+                aria-pressed={guests === String(n)}
+                onClick={() => {
+                  setGuests(String(n));
+                  setStep(4);
+                }}
+              >
+                {t.guestsOption(n)}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="slot"
+              aria-pressed={guests === ""}
+              onClick={() => {
+                setGuests("");
+                setStep(4);
+              }}
+            >
+              {t.guestsUnknown}
+            </button>
+          </div>
+          <p className="form-note">{t.guestsNote}</p>
+        </div>
+      ),
+    },
+    {
+      title: t.steps[4],
       summary: budget ? t.budgets[budget] : null,
       changeLabel: t.changeBudget,
       body: (
@@ -158,7 +220,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
                 aria-pressed={budget === code}
                 onClick={() => {
                   setBudget(code);
-                  setStep(4);
+                  setStep(5);
                 }}
               >
                 {t.budgets[code]}
@@ -170,13 +232,13 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       ),
     },
     {
-      title: t.steps[4],
+      title: t.steps[5],
       body: (
         <form className="wizard-body wizard-contact" action={formAction}>
           <input type="hidden" name="occasion" value={occasion ?? "andere"} />
           <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="event_date" value={eventDate} />
-          <input type="hidden" name="guests" value={guests} />
+          <input type="hidden" name="event_date" value={eventDate ?? ""} />
+          <input type="hidden" name="guests" value={guests ?? ""} />
           <input type="hidden" name="budget_band" value={budget ?? "unsicher"} />
 
           <div className="form-row">

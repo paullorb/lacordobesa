@@ -288,7 +288,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <p>{t.reviewsText}</p>
           </div>
           <ul className="reviews-list">
-            {reviews.map((r, i) => {
+            {reviews.map((r) => {
               const scoreText = r.score
                 ? r.score.count
                   ? t.reviewsScore(r.score.value, r.score.scale, r.score.count)
@@ -296,15 +296,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 : null;
               return (
                 <li key={r.id}>
-                  {/* `--i` staggers the pulse and the star wave, so the cards take turns instead of blinking together. */}
-                  <a
-                    className="review-card"
-                    data-spotlight=""
-                    href={r.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ "--i": i } as React.CSSProperties}
-                  >
+                  <a className="review-card" data-spotlight="" href={r.url} target="_blank" rel="noreferrer">
                     <span className="review-head">
                       <span className="review-mark">
                         <Image src={r.mark} alt="" width={36} height={36} unoptimized={r.mark.endsWith(".svg")} />

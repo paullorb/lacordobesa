@@ -83,8 +83,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
    "Besuch uns" break over two lines, which made the row 86px tall and the navigation look
    accidental at every desktop width. */
 .site-nav a:not(.nav-cta) { white-space: nowrap; font-size: var(--fs-sm); text-decoration: none; font-weight: 600; color: var(--ink); transition: color .2s; }
-.nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: var(--fs-xs); font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: transform .2s, background .2s, translate .5s cubic-bezier(.2,.7,.2,1); }
-.button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.nav-cta, .button { display: inline-flex; min-height: 46px; padding: 0 1.25rem; align-items: center; justify-content: center; gap: .5rem; border-radius: 999px; background: var(--ink); color: white; text-decoration: none; font-size: var(--fs-xs); font-weight: 700; border: 0; cursor: pointer; font-family: inherit; transition: background .2s; }
+.button:disabled { opacity: .55; cursor: not-allowed; }
 /* The hover colour is a layer that wipes up from the bottom edge rather than a swap. --button-hover
    is what a variant sets to pick its own; the quiet and disabled buttons have none. */
 .nav-cta, .button { position: relative; overflow: hidden; isolation: isolate; }
@@ -299,8 +299,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .review-card { display: flex; flex-direction: column; gap: .35rem; padding: 1.25rem 1.4rem; background: var(--paper); border: 1px solid var(--line); color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
 .review-card:hover { border-color: var(--blue); transform: translateY(-2px); }
 .review-head { display: flex; align-items: center; gap: .7rem; min-width: 0; margin-bottom: .2rem; }
-/* The platform's own mark on a quiet white tile, never recoloured. The ::after ring is the "rated
-   right now" cue, see the motion rules below. */
+/* The platform's own mark on a quiet white tile, never recoloured. */
 .review-mark { position: relative; display: grid; flex: none; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
 .review-mark img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
 .review-card strong { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; }
@@ -316,15 +315,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .stars-fill path { fill: #e0a526; }
 @media (max-width: 560px) { .reviews-list { grid-template-columns: 1fr; grid-auto-rows: auto; } }
 @media (prefers-reduced-motion: reduce) { .review-card { transition: none; } .review-card:hover { transform: none; } }
-/* The "being reviewed all the time" cue: a soft ring that breathes out from each platform's mark,
-   and a brightening that runs along the filled stars. Both are slow, loop for ever and are offset
-   per card (--i) so they never blink in step. Decorative only: no text claims anything. */
-@keyframes review-ring { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.45); } }
-@keyframes review-star { 0%, 55%, 100% { opacity: 1; transform: scale(1); } 25% { opacity: .5; transform: scale(.86); } }
-@media (prefers-reduced-motion: no-preference) {
-  .review-mark::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 2px solid var(--coral); opacity: 0; pointer-events: none; animation: review-ring 3.6s ease-out infinite; animation-delay: calc(var(--i, 0) * .9s); }
-  .stars-fill svg { animation: review-star 3.2s ease-in-out infinite; animation-delay: calc(var(--i, 0) * .9s + var(--n, 0) * .16s); transform-origin: center; }
-}
 .visit-card { padding: 2.4rem; background: var(--paper); border: 1px solid var(--line); }
 .visit-card h3 { margin: 0 0 1.5rem; font-family: var(--serif); font-size: var(--fs-2xl); font-weight: 500; }
 .contact-row { display: grid; grid-template-columns: 38px 1fr; gap: .9rem; padding: 1rem 0; border-top: 1px solid var(--line); align-items: start; }
@@ -545,7 +535,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .footer-brand img { width: 64px; }
 .footer-brand p { max-width: 220px; margin: 1.1rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; line-height: 1.5; color: rgba(255,253,248,.8); }
 /* The heart sits in a run of text, so it needs to ride the baseline rather than the line box. */
-.footer-brand svg { display: inline-block; vertical-align: -.18em; margin: 0 .1em; color: var(--coral); }
+.footer-brand p svg { display: inline-block; width: .9em; height: .9em; vertical-align: -.08em; margin: 0 -.06em; color: var(--coral); fill: currentColor; }
 .footer-col { min-width: 0; }
 .footer-col .contact-row { padding: 0 0 1.15rem; border-top: 0; }
 .footer-col .contact-row:last-child { padding-bottom: 0; }
@@ -617,7 +607,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 @media (hover: hover) {
   .photo-strip a:hover img { transform: scale(1.04); }
   .site-nav a:not(.nav-cta):hover { color: var(--blue-dark); }
-  .nav-cta:hover, .button:hover { transform: translateY(-2px); }
   .nav-cta:hover::before, .button:hover::before { translate: 0 0; }
   .button:hover .arrow-right, .nav-cta:hover .arrow-right { translate: 3px 0; }
   .button:hover .arrow-up-right, .nav-cta:hover .arrow-up-right { translate: 2px -2px; }
@@ -985,6 +974,7 @@ body::after {
 @media (prefers-reduced-motion: no-preference) {
   .site main { animation: page-in .34s cubic-bezier(.22,.61,.36,1) both; }
 }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* The way out of a legal page sits on cream, not on the hero, so .text-link's white would vanish. */
@@ -1033,10 +1023,13 @@ body::after {
    motion block, and each has a quiet fallback that is simply the page as it was. */
 
 /* How far down the page the reader is, as a coral line filling the header's bottom edge. Driven by
-   the document's own scroll position, so there is no listener and nothing to fall behind. */
+   the document's own scroll position, so there is no listener and nothing to fall behind. Only on
+   the long reads (the landing page and the menu, which carry .chapter-nav and .menu-index): on a form
+   or a short page the line is full after one flick and says nothing. The line is ::before and the
+   empanada ::after so the empanada paints on top of it. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; pointer-events: none; animation: read-progress linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav, .menu-index) .site-header::before { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; pointer-events: none; animation: read-progress linear both; animation-timeline: scroll(root); }
   }
 }
 @keyframes read-progress { to { transform: scaleX(1); } }
@@ -1195,7 +1188,7 @@ html:has(.staff) { scrollbar-gutter: stable; }
 /* Calendar days: today is a ring, not a label, and pointing at a day names it ("Morgen", "Diesen
    Freitag") in a small tag above it. The tag hugs the left or right edge in the outer columns, so
    it never runs off the calendar. */
-.day { position: relative; transition: transform .18s cubic-bezier(.2,.7,.2,1), border-color .18s, background-color .18s, box-shadow .18s; }
+.day { position: relative; transition: border-color .18s, background-color .18s, box-shadow .18s; }
 .day.is-today:not([aria-pressed="true"]) { box-shadow: inset 0 0 0 1.5px var(--blue-dark); border-color: var(--blue-dark); }
 .day::after { content: attr(data-hint); position: absolute; z-index: 5; bottom: calc(100% + 6px); left: 50%; translate: -50% 4px; padding: .3rem .6rem; border-radius: 6px; background: var(--ink); color: var(--paper); font-family: var(--sans); font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0; line-height: 1.3; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s, translate .15s; }
 .day[data-col="0"]::after, .day[data-col="1"]::after { left: 0; translate: 0 4px; }
@@ -1205,10 +1198,10 @@ html:has(.staff) { scrollbar-gutter: stable; }
 @media (hover: hover) {
   .day:hover::after { opacity: 1; translate: -50% 0; transition-delay: .12s; }
   .day[data-col="0"]:hover::after, .day[data-col="1"]:hover::after, .day[data-col="5"]:hover::after, .day[data-col="6"]:hover::after { translate: 0 0; }
-  .day:not(:disabled):not([aria-pressed="true"]):hover { transform: translateY(-2px); border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
-  .slot:not(:disabled):not([aria-pressed="true"]):hover { transform: translateY(-2px); border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
+  .day:not(:disabled):not([aria-pressed="true"]):hover { border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
+  .slot:not(:disabled):not([aria-pressed="true"]):hover { border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
 }
-.slot { transition: transform .18s cubic-bezier(.2,.7,.2,1), border-color .18s, background-color .18s, color .18s, box-shadow .18s; }
+.slot { transition: border-color .18s, background-color .18s, color .18s, box-shadow .18s; }
 .day:disabled::after { background: var(--muted); }
 
 /* A text button reads as a link before it is touched (a pale underline) and fills it in on hover. */
@@ -1305,7 +1298,14 @@ html:has(.staff) { scrollbar-gutter: stable; }
 /* Leaving a page: everything but the header fades away before the router switches, so the scroll
    back to the top happens while nothing is visible (components/route-transition.tsx). */
 @media (prefers-reduced-motion: no-preference) {
+  /* Two phases. `route-leaving` fades the page out; `route-hold` then keeps it at 0 with no animation
+     at all, because the new page's elements mount while the classes are still on <html> and a
+     keyframe animation restarts on them at opacity 1, which showed the whole new page for a frame
+     before it faded out and in again. Held at 0 they start hidden, and removing the classes lets
+     their own entrance (`main`'s page-in, the footer's fade) bring them up. */
+  .site > .site-footer { animation: fade-in .34s cubic-bezier(.22,.61,.36,1) both; }
   html.route-leaving .site > :not(.site-header, .nav-backdrop) { animation: page-out .18s cubic-bezier(.4,0,1,1) both; pointer-events: none; }
+  html.route-hold .site > :not(.site-header, .nav-backdrop) { animation: none; opacity: 0; pointer-events: none; }
 }
 @keyframes page-out { from { opacity: 1; } to { opacity: 0; } }
 
@@ -1328,7 +1328,7 @@ html:has(.staff) { scrollbar-gutter: stable; }
    like the line itself, so it needs neither JavaScript nor a listener. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    .site-header::before { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -100% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav, .menu-index) .site-header::after { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -100% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
   }
 }
 @keyframes read-empanada { 0% { left: 0; opacity: 0; } 1.5% { opacity: 1; } 100% { left: 100%; opacity: 1; } }
@@ -1358,3 +1358,9 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 .phone-note-center { justify-content: center; }
 .hero-phone { color: rgba(255,253,248,.82); margin-top: 1rem; }
 .hero-phone a { color: inherit; }
+
+/* The celebration form's "other date": the native picker in the site's own field styling, with the
+   button that moves on beside it. */
+.date-pick { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.date-input { box-sizing: border-box; min-height: 46px; padding: .6rem .85rem; font: inherit; font-size: var(--fs-base); border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); color-scheme: light; }
+.date-input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }

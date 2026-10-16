@@ -162,7 +162,6 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
             </button>
           ))}
         </div>
-        <p className="form-note">{t.categoriesNote}</p>
         <div>
           <button type="button" className="button" disabled={shown.length === 0} onClick={() => go(2)}>
             {t.continueLabel} <ArrowIcon direction="right" />

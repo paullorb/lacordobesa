@@ -4,8 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { localeOfPath } from "@/lib/i18n";
 
-const LEAVE_MS = 180;
+const LEAVE_MS = 230;
 const LEAVING = "route-leaving";
+const HOLD = "route-hold";
 
 /**
  * Changing page fades the old one out, then the new one fades in already at the top.
@@ -13,7 +14,8 @@ const LEAVING = "route-leaving";
  * Without this, following a link from halfway down a page showed the new page appear where the old
  * one was scrolled to and then slide up to its start, which looks like the site correcting itself.
  * Here the outgoing content is faded away first (`.route-leaving`, see globals.css), the router then
- * switches page and resets the scroll while nothing is visible, and the new page's own `page-in`
+ * switches page and resets the scroll while nothing is visible (held there by `.route-hold`, see
+ * globals.css, so the new page cannot flash before it fades in), and the new page's own `page-in`
  * animation brings it up. The header stays put throughout.
  *
  * The click is intercepted with `preventDefault()` only: next/link ignores a click that is already
@@ -25,7 +27,7 @@ export function RouteTransition() {
   const pathname = usePathname();
 
   useEffect(() => {
-    document.documentElement.classList.remove(LEAVING);
+    document.documentElement.classList.remove(LEAVING, HOLD);
   }, [pathname]);
 
   useEffect(() => {
@@ -50,11 +52,12 @@ export function RouteTransition() {
       root.classList.add(LEAVING);
       push = setTimeout(() => {
         push = undefined;
+        root.classList.add(HOLD);
         router.push(`${url.pathname}${url.search}${url.hash}`);
       }, LEAVE_MS);
       // A navigation that never lands must not leave the page blank.
       clearTimeout(safety);
-      safety = setTimeout(() => root.classList.remove(LEAVING), 5000);
+      safety = setTimeout(() => root.classList.remove(LEAVING, HOLD), 5000);
     };
 
     document.addEventListener("click", onClick, true);
@@ -62,7 +65,7 @@ export function RouteTransition() {
       document.removeEventListener("click", onClick, true);
       clearTimeout(push);
       clearTimeout(safety);
-      root.classList.remove(LEAVING);
+      root.classList.remove(LEAVING, HOLD);
     };
   }, [router]);
 
