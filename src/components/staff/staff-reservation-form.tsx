@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import { createReservationManually } from "@/app/staff/actions";
 import { getAvailability, type Slot } from "@/app/reservierung/actions";
 import { SubmitButton } from "@/components/staff/form-bits";
+import { DateField, TimeField } from "@/components/staff/pickers";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 /** Taking a booking over the phone or at the counter.
@@ -57,13 +58,12 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
       </div>
       <div>
         <label htmlFor="m-date">Datum</label>
-        <input
+        <DateField
           id="m-date"
           name="date"
-          type="date"
           value={date}
-          onChange={(e) => {
-            setDate(e.target.value);
+          onChange={(v) => {
+            setDate(v);
             setTime("");
             // The previous day's times must not stay clickable while the new day loads.
             setSlots(null);
@@ -73,15 +73,7 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
       </div>
       <div>
         <label htmlFor="m-time">Uhrzeit</label>
-        <input
-          id="m-time"
-          name="time"
-          type="time"
-          step={900}
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          required
-        />
+        <TimeField id="m-time" name="time" value={time} onChange={setTime} required />
       </div>
 
       <div className="sm:col-span-2">

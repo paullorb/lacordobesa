@@ -3,10 +3,13 @@
 import { useActionState, useState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { requestPreorder } from "@/app/vorbestellen/actions";
+import { ArrowIcon } from "@/components/icons";
+import { calendarMonths } from "@/components/reservation-form";
+import { Wizard, type WizardStep } from "@/components/wizard";
 import type { PreorderableItem } from "@/lib/preorders";
 import { fmtDate, leadBoundary } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
-import { localeHref, type Locale } from "@/lib/i18n";
+import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
@@ -26,37 +29,57 @@ type Props = {
   leadHours: number;
 };
 
-export function PreorderForm({
-  locale,
-  items,
-  windows,
-  closedDates,
-  minDate,
-  maxDate,
-  maxQuantity,
-  maxLines,
-  leadHours,
-}: Props) {
+const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
+const toMinutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+const toTime = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+/** Pickup times every half hour, from the first one that is both open and far enough ahead, to half
+ *  an hour before closing (nobody wants a tray of empanadas handed over while the chairs go up). */
+function pickupSlots(window: PickupWindow, earliest: string | undefined) {
+  if (!window) return [];
+  const start = Math.ceil(Math.max(toMinutes(window.opens), toMinutes(earliest ?? window.opens)) / 30) * 30;
+  const out: string[] = [];
+  for (let m = start; m <= toMinutes(window.closes) - 30; m += 30) out.push(toTime(m));
+  return out;
+}
+
+/**
+ * A pre-order, asked the way the celebration inquiry asks: what, then when, then who.
+ *
+ * Quantities move in the dish's pack size, so empanadas go 6, 12, 18 and a pizza goes one at a time;
+ * request_preorder() refuses anything else. The guest's details come last and the closing note says
+ * what happens next, because a pre-order is a request that the shop confirms with a call, not a sale.
+ *
+ * Every answer rides along as a hidden input, because only the current step is mounted.
+ */
+export function PreorderForm({ locale, items, windows, closedDates, minDate, maxDate, maxQuantity, maxLines, leadHours }: Props) {
   const [state, formAction, pending] = useActionState(requestPreorder, null);
   useTrackForm("preorder", state, pending);
-  const t = getDictionary(locale).preorderForm;
+  const dict = getDictionary(locale);
+  const t = dict.preorderForm;
+  const r = dict.reservation;
+  const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
+
+  const [step, setStep] = useState(1);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [contact, setContact] = useState({ name: "", phone: "", email: "", notes: "" });
+  const contactField = (key: keyof typeof contact) => ({
+    value: contact[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
+  });
 
   const chosen = items.filter((i) => (quantities[i.id] ?? 0) > 0);
-  // The weekday of an ISO date, read in UTC so the shop's timezone cannot shift it by a day.
-  const weekday = date ? new Date(`${date}T12:00:00Z`).getUTCDay() : null;
-  const pickupWindow = weekday === null ? null : windows[weekday];
-  const closed = date ? closedDates.includes(date) || !pickupWindow : false;
-  // On the first possible day the lead time, not the opening hour, sets the earliest pickup. Read
-  // only once a date is picked, so the clock never runs during the server render. Times compare
-  // as "HH:MM" strings.
-  const boundary = date && pickupWindow ? leadBoundary(leadHours) : null;
-  const earliest =
-    boundary && date === boundary.date && boundary.time > pickupWindow!.opens ? boundary.time : pickupWindow?.opens;
-  const tooLate = Boolean(boundary && pickupWindow && (date < boundary.date || earliest! > pickupWindow.closes));
-
   const categories = [...new Set(items.map((i) => i.category))];
+
+  const windowOf = (iso: string) => windows[at(iso).getUTCDay()];
+  const isClosed = (iso: string) => closedDates.includes(iso) || !windowOf(iso);
+  // On the first possible day the lead time, not the opening hour, sets the earliest pickup. Read
+  // only once a date is picked, so the clock never runs during the server render.
+  const boundary = date ? leadBoundary(leadHours) : null;
+  const earliest = boundary && date === boundary.date ? boundary.time : undefined;
+  const slots = date && !isClosed(date) && !(boundary && date < boundary.date) ? pickupSlots(windowOf(date), earliest) : [];
 
   if (state?.ok) {
     return (
@@ -71,131 +94,205 @@ export function PreorderForm({
     );
   }
 
-  return (
-    <form action={formAction} className="form preorder-form">
-      <input type="hidden" name="locale" value={locale} />
-      <fieldset className="preorder-items">
-        <legend className="manage-label">{t.legend}</legend>
-        {categories.map((category) => (
-          <div key={category} className="preorder-group">
-            <h3>{category}</h3>
-            <ul>
-              {items
-                .filter((i) => i.category === category)
-                .map((item) => (
-                  <li key={item.id}>
-                    <label htmlFor={`qty-${item.id}`}>
-                      <strong>{item.name}</strong>
-                      {menuDescription(item, locale) && (
-                        <small lang={isUntranslated(item, locale) ? "de" : undefined}>{menuDescription(item, locale)}</small>
-                      )}
-                      <span className="preorder-meta">
-                        {t.per(item.preorder_unit)}
-                        {item.price_label ? ` · ${item.price_label}` : ""}
-                      </span>
-                    </label>
-                    <input
-                      id={`qty-${item.id}`}
-                      name={`qty-${item.id}`}
-                      type="number"
-                      min={0}
-                      max={maxQuantity}
-                      step={1}
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={quantities[item.id] || ""}
-                      onChange={(e) => {
-                        const n = Number(e.target.value);
-                        setQuantities((q) => ({ ...q, [item.id]: Number.isFinite(n) ? n : 0 }));
-                      }}
-                      aria-label={t.quantityLabel(item.name, item.preorder_unit)}
-                    />
-                  </li>
-                ))}
-            </ul>
+  function change(item: PreorderableItem, delta: number) {
+    setQuantities((q) => {
+      const next = Math.min(Math.max((q[item.id] ?? 0) + delta * item.preorder_step, 0), maxQuantity - (maxQuantity % item.preorder_step));
+      return { ...q, [item.id]: next };
+    });
+  }
+
+  const itemsSummary = chosen.length
+    ? chosen
+        .slice(0, 2)
+        .map((i) => `${quantities[i.id]} × ${i.name}`)
+        .join(", ") + (chosen.length > 2 ? ` +${chosen.length - 2}` : "")
+    : null;
+
+  const steps: WizardStep[] = [
+    {
+      title: t.steps[1],
+      summary: itemsSummary,
+      changeLabel: t.changeItems,
+      body: (
+        <div className="wizard-body">
+          {categories.map((category) => (
+            <div key={category} className="preorder-group">
+              <h4>{category}</h4>
+              <ul>
+                {items
+                  .filter((i) => i.category === category)
+                  .map((item) => {
+                    const n = quantities[item.id] ?? 0;
+                    const description = menuDescription(item, locale);
+                    return (
+                      <li key={item.id} data-chosen={n > 0 || undefined}>
+                        <div>
+                          <strong>{item.name}</strong>
+                          {description && <small lang={isUntranslated(item, locale) ? "de" : undefined}>{description}</small>}
+                          <span className="preorder-meta">
+                            {item.price_label ? `${item.price_label} ${t.per(item.preorder_unit)}` : t.per(item.preorder_unit)}
+                            {item.preorder_step > 1 && ` · ${t.inPacks(item.preorder_step)}`}
+                          </span>
+                        </div>
+                        <div className="stepper" role="group" aria-label={t.quantityLabel(item.name, item.preorder_unit)}>
+                          <button type="button" onClick={() => change(item, -1)} disabled={n === 0} aria-label={t.less(item.name)}>
+                            −
+                          </button>
+                          <output aria-live="polite">{n}</output>
+                          <button
+                            type="button"
+                            onClick={() => change(item, 1)}
+                            disabled={n + item.preorder_step > maxQuantity || (n === 0 && chosen.length >= maxLines)}
+                            aria-label={t.more(item.name, item.preorder_step)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          ))}
+          {chosen.length >= maxLines && <p className="form-note">{t.tooManyLines(maxLines)}</p>}
+          <div>
+            <button type="button" className="button" disabled={chosen.length === 0} onClick={() => setStep(2)}>
+              {t.continueLabel} <ArrowIcon direction="right" />
+            </button>
           </div>
-        ))}
-      </fieldset>
-
-      {chosen.length > maxLines && (
-        <p className="form-error" role="alert">
-          {t.tooManyLines(maxLines)}
-        </p>
-      )}
-
-      <div className="preorder-when">
-        <div>
-          <label htmlFor="pickup_date">{t.pickupDate}</label>
-          <input
-            id="pickup_date"
-            name="pickup_date"
-            type="date"
-            min={minDate}
-            max={maxDate}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
         </div>
-        <div>
-          <label htmlFor="pickup_time">{t.pickupTime}</label>
-          <input
-            id="pickup_time"
-            name="pickup_time"
-            type="time"
-            min={earliest}
-            max={pickupWindow?.closes}
-            step={900}
-            disabled={!date || closed || tooLate}
-            required
-          />
+      ),
+    },
+    {
+      title: t.steps[2],
+      summary: date && time ? `${fmtDate(date, locale, { year: undefined })} · ${time}` : null,
+      changeLabel: t.changeWhen,
+      body: (
+        <div className="wizard-body">
+          <div className="calendar" role="group" aria-label={t.pickupDate}>
+            {calendarMonths(minDate, maxDate, monthLong).map((month) => (
+              <div className="calendar-month" key={month.key}>
+                <p className="calendar-label">{month.label}</p>
+                <div className="calendar-heads" aria-hidden="true">
+                  {r.weekdayHeads.map((w) => (
+                    <span key={w}>{w}</span>
+                  ))}
+                </div>
+                <div className="calendar-grid">
+                  {month.pad > 0 && <span style={{ gridColumn: `span ${month.pad}` }} />}
+                  {month.days.map((iso) => {
+                    const closed = isClosed(iso);
+                    return (
+                      <button
+                        key={iso}
+                        type="button"
+                        className="day"
+                        aria-pressed={date === iso}
+                        aria-label={fmtDate(iso, locale, { weekday: "long" })}
+                        disabled={closed}
+                        title={closed ? r.restDay : undefined}
+                        onClick={() => {
+                          setDate(iso);
+                          setTime("");
+                        }}
+                      >
+                        {Number(iso.slice(8))}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {date &&
+            (slots.length === 0 ? (
+              <p className="form-note" role="status">
+                {t.tooSoonThatDay}
+              </p>
+            ) : (
+              <div role="group" aria-labelledby="pickup-time-label">
+                <span id="pickup-time-label" className="group-label">
+                  {t.pickupTime}
+                </span>
+                <div className="slots times">
+                  {slots.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="slot"
+                      aria-pressed={time === s}
+                      onClick={() => {
+                        setTime(s);
+                        setStep(3);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
-      </div>
-      {date &&
-        (closed ? (
-          <p className="form-note">{t.closedThatDay}</p>
-        ) : tooLate ? (
-          <p className="form-note">{t.tooSoonThatDay}</p>
-        ) : (
-          <p className="form-note">
-            {t.openThatDay(fmtDate(date, locale), pickupWindow?.opens ?? "", pickupWindow?.closes ?? "")}
-            {earliest !== pickupWindow?.opens && ` ${t.earliestThatDay(earliest ?? "")}`}
-          </p>
-        ))}
+      ),
+    },
+    {
+      title: t.steps[3],
+      body: (
+        <form className="wizard-body wizard-contact" action={formAction}>
+          <input type="hidden" name="locale" value={locale} />
+          <input type="hidden" name="pickup_date" value={date} />
+          <input type="hidden" name="pickup_time" value={time} />
+          {chosen.map((i) => (
+            <input key={i.id} type="hidden" name={`qty-${i.id}`} value={quantities[i.id]} />
+          ))}
 
-      <div>
-        <label htmlFor="pre-name">{t.name}</label>
-        <input id="pre-name" name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" required />
-      </div>
-      <div>
-        <label htmlFor="pre-phone">{t.phone}</label>
-        <input id="pre-phone" name="phone" type="tel" maxLength={FIELD_LIMITS.phone} autoComplete="tel" required />
-      </div>
-      <div>
-        <label htmlFor="pre-email">{t.email}</label>
-        <input id="pre-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" />
-      </div>
-      <div>
-        <label htmlFor="pre-notes">{t.wishes}</label>
-        <textarea
-          id="pre-notes"
-          name="notes"
-          rows={3}
-          maxLength={FIELD_LIMITS.notes}
-          placeholder={t.wishesPlaceholder}
-        />
-      </div>
+          <ul className="preorder-summary">
+            {chosen.map((i) => (
+              <li key={i.id}>
+                {quantities[i.id]} × {i.name}
+              </li>
+            ))}
+            {date && (
+              <li>
+                <small>{t.pickupDate}</small>
+                {fmtDate(date, locale, { weekday: "long" })}, {time}
+              </li>
+            )}
+          </ul>
 
-      {state && !state.ok && (
-        <p className="form-error" role="alert">
-          {state.error}
-        </p>
-      )}
+          <div className="form-row">
+            <div className="field-float">
+              <input id="pre-name" name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" placeholder="María González" {...contactField("name")} />
+              <label htmlFor="pre-name">{t.name}</label>
+            </div>
+            <div className="field-float">
+              <input id="pre-phone" name="phone" type="tel" required minLength={6} maxLength={FIELD_LIMITS.phone} autoComplete="tel" placeholder="+49 170 1234567" {...contactField("phone")} />
+              <label htmlFor="pre-phone">{t.phone}</label>
+            </div>
+          </div>
+          <div className="field-float">
+            <input id="pre-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" placeholder="maria@example.com" {...contactField("email")} />
+            <label htmlFor="pre-email">{t.email}</label>
+          </div>
+          <div className="field-float">
+            <textarea id="pre-notes" name="notes" rows={3} maxLength={FIELD_LIMITS.notes} placeholder={t.wishesPlaceholder} {...contactField("notes")} />
+            <label htmlFor="pre-notes">{t.wishes}</label>
+          </div>
 
-      <button type="submit" className="button" disabled={pending || chosen.length === 0 || chosen.length > maxLines || closed}>
-        {pending ? t.submitting : t.submit}
-      </button>
-      <p className="form-note">{t.note(leadHours)}</p>
-    </form>
-  );
+          {state && !state.ok && (
+            <p className="form-error" role="alert">
+              {state.error}
+            </p>
+          )}
+
+          <button type="submit" className="button" disabled={pending}>
+            {pending ? t.submitting : t.submit}
+          </button>
+          <p className="form-note">{t.note(leadHours)}</p>
+        </form>
+      ),
+    },
+  ];
+
+  return <Wizard step={step} setStep={setStep} steps={steps} stepLabel={dict.wizard.stepOf} />;
 }

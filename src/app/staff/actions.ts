@@ -2,10 +2,11 @@
 
 import { refresh, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireStaff } from "@/lib/auth";
+import { requireAdmin, requireStaff } from "@/lib/auth";
+import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
-import { staffEmail } from "@/lib/staff";
+import { STAFF_EMAIL_DOMAIN, staffEmail } from "@/lib/staff";
 import { addDays, isISODate, isTime, todayISO } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
@@ -237,6 +238,72 @@ export async function savePreorderNotes(formData: FormData) {
     .update({ staff_notes: str(formData, "staff_notes") || null })
     .eq("id", str(formData, "id"));
   refresh();
+}
+
+/** A pre-order taken on the phone or at the counter.
+ *
+ *  Like createReservationManually(): straight into the table, so the public quotas and the lead
+ *  time do not apply to someone answering the phone. The lines still come from the menu, so the
+ *  name, unit and price are snapshotted exactly as request_preorder() does it. Pack sizes are not
+ *  enforced here: a regular who wants eight empanadas can have eight. */
+export async function createPreorderManually(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const name = str(formData, "name");
+  const phone = str(formData, "phone");
+  const notes = str(formData, "notes");
+  const date = str(formData, "pickup_date");
+  const time = str(formData, "pickup_time");
+
+  const quantities = new Map<string, number>();
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("qty-")) continue;
+    const n = Number(value);
+    if (Number.isInteger(n) && n > 0) quantities.set(key.slice(4), n);
+  }
+
+  if (!name || !date || !time) return { ok: false, error: "Name, Abholtag und Uhrzeit sind Pflicht." };
+  if (quantities.size === 0) return { ok: false, error: "Bitte mindestens ein Gericht mit Menge eintragen." };
+  if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || notes.length > FIELD_LIMITS.notes) {
+    return { ok: false, error: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig." };
+  }
+  if (!isISODate(date) || !isTime(time)) return { ok: false, error: "Datum oder Uhrzeit sind ungültig." };
+  if ([...quantities.values()].some((n) => n > MAX_PREORDER_QUANTITY)) {
+    return { ok: false, error: `Höchstens ${MAX_PREORDER_QUANTITY} pro Gericht.` };
+  }
+
+  const { data: items } = await supabase
+    .from("menu_items")
+    .select("id, name, preorder_unit, price_label")
+    .in("id", [...quantities.keys()]);
+  if (!items || items.length !== quantities.size) return { ok: false, error: "Ein Gericht gibt es nicht mehr." };
+
+  const { data: order, error } = await supabase
+    .from("preorders")
+    .insert({ name, phone, pickup_date: date, pickup_time: time, notes: notes || null, status: "confirmed", source: "staff" })
+    .select("id")
+    .single();
+  if (error || !order) {
+    console.error("createPreorderManually", error);
+    return { ok: false, error: "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
+  }
+  const { error: linesError } = await supabase.from("preorder_lines").insert(
+    items.map((i) => ({
+      preorder_id: order.id,
+      menu_item_id: i.id,
+      label: i.name,
+      unit_label: i.preorder_unit,
+      price_label: i.price_label,
+      quantity: quantities.get(i.id)!,
+    })),
+  );
+  if (linesError) {
+    // No half orders: an order without its dishes is worse than none.
+    await supabase.from("preorders").delete().eq("id", order.id);
+    console.error("createPreorderManually lines", linesError);
+    return { ok: false, error: "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
+  }
+  refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- event inquiries
@@ -687,5 +754,67 @@ export async function setHeroImage(formData: FormData) {
   const id = str(formData, "id");
   await supabase.from("site_settings").upsert({ key: "hero", value: id ? { gallery_item_id: id } : {} });
   updateTag(TAG.gallery);
+  refresh();
+}
+
+// ---------------------------------------------------------------- team accounts
+// Admin only. Accounts made here are always 'staff': the restaurant's logins, which see everything
+// except the visitor analytics and this list. The secret key is needed because creating an auth
+// user is not something a signed-in session may do, and the staff table only shows you your own row.
+
+const USERNAME = /^[a-z0-9][a-z0-9._-]{1,31}$/;
+const MIN_PASSWORD = 10;
+
+export async function createStaffAccount(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const username = str(formData, "username").toLowerCase();
+  const password = String(formData.get("password") ?? "");
+  if (!USERNAME.test(username)) {
+    return { ok: false, error: "Name: 2 bis 32 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt, Strich." };
+  }
+  if (password.length < MIN_PASSWORD) return { ok: false, error: `Passwort: mindestens ${MIN_PASSWORD} Zeichen.` };
+
+  const admin = createPrivilegedClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email: `${username}@${STAFF_EMAIL_DOMAIN}`,
+    password,
+    email_confirm: true,
+  });
+  if (error || !data.user) {
+    const taken = error?.message.toLowerCase().includes("already");
+    return { ok: false, error: taken ? "Diesen Namen gibt es schon." : "Der Zugang konnte nicht angelegt werden." };
+  }
+  const { error: staffError } = await admin.from("staff").insert({ user_id: data.user.id, role: "staff" });
+  if (staffError) {
+    await admin.auth.admin.deleteUser(data.user.id);
+    return { ok: false, error: "Der Zugang konnte nicht angelegt werden." };
+  }
+  refresh();
+  return { ok: true };
+}
+
+export async function resetStaffPassword(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const id = str(formData, "user_id");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < MIN_PASSWORD) return { ok: false, error: `Passwort: mindestens ${MIN_PASSWORD} Zeichen.` };
+  const admin = createPrivilegedClient();
+  // Only team accounts, never some other auth user that happens to share the project.
+  const { data: member } = await admin.from("staff").select("user_id").eq("user_id", id).maybeSingle();
+  if (!member) return { ok: false, error: "Diesen Zugang gibt es nicht." };
+  const { error } = await admin.auth.admin.updateUserById(id, { password });
+  if (error) return { ok: false, error: "Das Passwort konnte nicht geändert werden." };
+  return { ok: true };
+}
+
+export async function deleteStaffAccount(formData: FormData) {
+  const { user } = await requireAdmin();
+  const id = str(formData, "user_id");
+  if (!id || id === user.id) return;
+  const admin = createPrivilegedClient();
+  // Admin accounts are not removable from here, so nobody locks the agency out by accident.
+  const { data: member } = await admin.from("staff").select("role").eq("user_id", id).maybeSingle();
+  if (!member || member.role !== "staff") return;
+  await admin.auth.admin.deleteUser(id);
   refresh();
 }

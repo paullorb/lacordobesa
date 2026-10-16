@@ -13,7 +13,7 @@ import {
   vitalLines,
   type Row,
 } from "@/lib/analytics-view";
-import { requireStaff } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Besucher" };
@@ -29,7 +29,7 @@ export default function VisitorsPage() {
 }
 
 async function Visitors() {
-  const { supabase } = await requireStaff();
+  const { supabase } = await requireAdmin();
   const to = todayISO();
   const from = addDays(to, -(WINDOW_DAYS - 1));
 

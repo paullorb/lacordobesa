@@ -53,6 +53,8 @@ export async function getPickupRange(): Promise<{ minDate: string; maxDate: stri
 
 export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "description_es" | "description_en" | "price_label" | "preorder_unit"> & {
   category: string;
+  /** Sold in packs of this many: 6 for empanadas, 1 for everything else. */
+  preorder_step: number;
 };
 
 /** The dishes staff marked as pre-orderable, grouped under their category label.
@@ -64,13 +66,13 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("menu_items_public")
-    .select("id, name, description, description_es, description_en, price_label, preorder_unit, category_label")
+    .select("id, name, description, description_es, description_en, price_label, preorder_unit, preorder_step, category_label")
     .eq("is_preorderable", true)
     .order("sort_order");
   if (error) return [];
   return (data ?? []).map((i) => {
     const { category_label, ...item } = i;
-    return { ...item, category: category_label ?? "Weitere" } as PreorderableItem;
+    return { ...item, preorder_step: item.preorder_step ?? 1, category: category_label ?? "Weitere" } as PreorderableItem;
   });
 }
 

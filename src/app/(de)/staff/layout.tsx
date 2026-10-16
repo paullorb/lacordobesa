@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
-import { createClient } from "@/lib/supabase/server";
+import { staffSession } from "@/lib/auth";
 import { APPS, ICONS } from "@/lib/brand";
 import { StaffNav } from "@/app/staff/nav";
 import { Logo } from "@/components/logo";
@@ -45,24 +44,14 @@ export default function StaffLayout({ children }: LayoutProps<"/staff">) {
   );
 }
 
-async function currentUser() {
-  // Same reason as requireStaff(): getUser() reads the clock, which a runtime prefetch may not.
-  await connection();
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-}
-
 async function UserMenu() {
-  const user = await currentUser();
-  if (!user) return null;
+  const { user, isStaff } = await staffSession();
+  if (!user || !isStaff) return null;
   return <SignOutButton name={staffDisplayName(user.email)} />;
 }
 
 async function NavIfSignedIn() {
-  const user = await currentUser();
-  if (!user) return null;
-  return <StaffNav />;
+  const { user, isStaff, isAdmin } = await staffSession();
+  if (!user || !isStaff) return null;
+  return <StaffNav isAdmin={isAdmin} />;
 }

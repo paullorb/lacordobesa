@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { PreorderCard } from "@/components/staff/preorder-card";
+import { StaffPreorderForm } from "@/components/staff/staff-preorder-form";
 import type { PreorderWithLines } from "@/lib/preorders";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
@@ -20,12 +21,20 @@ async function Preorders() {
   const { supabase } = await requireStaff();
   const today = todayISO();
 
-  const { data, error } = await supabase
-    .from("preorders")
-    .select("*, preorder_lines(id, label, unit_label, price_label, quantity)")
-    .gte("pickup_date", today)
-    .order("pickup_date")
-    .order("pickup_time");
+  const [{ data, error }, { data: dishes }] = await Promise.all([
+    supabase
+      .from("preorders")
+      .select("*, preorder_lines(id, label, unit_label, price_label, quantity)")
+      .gte("pickup_date", today)
+      .order("pickup_date")
+      .order("pickup_time"),
+    supabase
+      .from("menu_items")
+      .select("id, name, preorder_step, preorder_unit, menu_categories(label, sort_order)")
+      .eq("is_preorderable", true)
+      .eq("is_available", true)
+      .order("sort_order"),
+  ]);
 
   // Migration 20261012094815 may not be deployed yet; PostgREST answers with 42P01 for a missing table.
   if (error) {
@@ -37,6 +46,10 @@ async function Preorders() {
   }
 
   const orders = (data ?? []) as PreorderWithLines[];
+  // In menu order: category first, then the dish's place inside it.
+  const items = (dishes ?? [])
+    .toSorted((a, b) => (a.menu_categories?.sort_order ?? 0) - (b.menu_categories?.sort_order ?? 0))
+    .map((d) => ({ id: d.id, name: d.name, step: d.preorder_step, unit: d.preorder_unit, category: d.menu_categories?.label ?? "Weitere" }));
   const openOrders = orders.filter((o) => o.status === "pending");
   const upcoming = orders.filter((o) => o.status === "confirmed" || o.status === "ready");
   const done = orders.filter((o) => o.status === "collected" || o.status === "cancelled");
@@ -50,6 +63,17 @@ async function Preorders() {
           die Bestellung ab. Bezahlt wird bei der Abholung.
         </p>
       </div>
+
+      <details className="card">
+        <summary className="cursor-pointer font-semibold">Vorbestellung eintragen (Telefon / vor Ort)</summary>
+        {items.length > 0 ? (
+          <StaffPreorderForm items={items} today={today} />
+        ) : (
+          <p className="mt-3 text-sm text-muted">
+            Noch kein Gericht ist vorbestellbar. Unter „Karte“ beim Gericht „vorbestellbar“ ankreuzen.
+          </p>
+        )}
+      </details>
 
       <Section title={`Offen (${openOrders.length})`} orders={openOrders} highlight empty="Keine offenen Vorbestellungen." />
       <Section title={`In Arbeit (${upcoming.length})`} orders={upcoming} empty="Nichts in Arbeit." />

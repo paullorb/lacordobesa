@@ -263,6 +263,7 @@ export type Database = {
           is_preorderable: boolean
           name: string
           preorder_unit: string
+          preorder_step: number
           price_label: string | null
           sort_order: number
           subtitle: string | null
@@ -280,6 +281,7 @@ export type Database = {
           is_preorderable?: boolean
           name: string
           preorder_unit?: string
+          preorder_step?: number
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -297,6 +299,7 @@ export type Database = {
           is_preorderable?: boolean
           name?: string
           preorder_unit?: string
+          preorder_step?: number
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -571,14 +574,17 @@ export type Database = {
       staff: {
         Row: {
           added_at: string
+          role: string
           user_id: string
         }
         Insert: {
           added_at?: string
+          role?: string
           user_id: string
         }
         Update: {
           added_at?: string
+          role?: string
           user_id?: string
         }
         Relationships: []
@@ -642,6 +648,7 @@ export type Database = {
           is_preorderable: boolean | null
           name: string | null
           preorder_unit: string | null
+          preorder_step: number | null
           price_label: string | null
           sort_order: number | null
           subtitle: string | null
@@ -683,6 +690,7 @@ export type Database = {
         Returns: undefined
       }
       is_staff: { Args: never; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
       join_waitlist: {
         Args: {
           p_date: string

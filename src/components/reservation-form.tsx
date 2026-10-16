@@ -382,13 +382,13 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
   );
 }
 
-type CalendarMonth = { key: string; label: string; pad: number; days: string[] };
+export type CalendarMonth = { key: string; label: string; pad: number; days: string[] };
 
 /**
  * One Monday-first calendar block per month touched by `minDate`..`maxDate`. Only bookable days get a
  * tile; `pad` is the width of the empty run before the first one, so the weekday columns line up.
  */
-function calendarMonths(
+export function calendarMonths(
   minDate: string,
   maxDate: string,
   monthLong: Intl.DateTimeFormat,
