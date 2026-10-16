@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
+import { Suspense } from "react";
 import { CONTACT } from "@/lib/contact";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { fmtTime, getOpeningHours } from "@/lib/data";
@@ -87,7 +88,11 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
         </span>
         {/* The shop's clock: what time it is in Frankfurt, wherever the reader is. */}
         <LocalTime locale={locale} />
-        <LanguageSwitch locale={locale} label={dict.nav.language} />
+        {/* Reads the URL, which a token route (`/abmelden/<token>`) only has at request time. The
+            fallback is the same row pointing at the home page, so nothing moves when it streams in. */}
+        <Suspense fallback={<LanguageSwitch locale={locale} label={dict.nav.language} path="/" />}>
+          <LanguageSwitch locale={locale} label={dict.nav.language} />
+        </Suspense>
         <span className="footer-legal">
           {/* Impressum and Datenschutzerklärung stay German in every locale: the German text is the
               legally binding one, and a translated version would be a second thing to keep correct.

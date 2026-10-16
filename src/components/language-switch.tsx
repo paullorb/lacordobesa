@@ -24,9 +24,18 @@ type Props = {
  *  give up. Plain links, so they work without JavaScript and are crawlable as hreflang targets.
  *
  *  Most visitors never change language, so the bar only carries a globe and the current code. */
-export function LanguageSwitch({ locale, label, path, variant = "inline" }: Props) {
-  const pathname = usePathname();
-  const target = path ?? stripLocale(pathname);
+export function LanguageSwitch(props: Props) {
+  return props.path === undefined ? <SwitchFromUrl {...props} /> : <Switch {...props} target={props.path} />;
+}
+
+/** Reading the URL is what keeps a build from prerendering a route whose path is a parameter
+ *  (`/abmelden/[token]`), so the hook lives here and a caller that knows its path never reaches it.
+ *  Without a `path`, the caller has to wrap this in Suspense. */
+function SwitchFromUrl(props: Props) {
+  return <Switch {...props} target={stripLocale(usePathname())} />;
+}
+
+function Switch({ locale, label, variant = "inline", target }: Omit<Props, "path"> & { target: string }) {
   const labelId = useId();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
