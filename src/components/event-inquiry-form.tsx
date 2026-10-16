@@ -170,7 +170,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
     },
     {
       title: t.steps[3],
-      summary: guests ? `${t.guestsAboutBefore}${guests}${t.guestsAboutAfter}` : null,
+      summary: guests === null ? null : guests ? `${t.guestsAboutBefore}${guests}${t.guestsAboutAfter}` : t.guestsUnknown,
       changeLabel: t.changeGuests,
       body: (
         <div className="wizard-body">

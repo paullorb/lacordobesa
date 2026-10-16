@@ -242,10 +242,17 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     const railTarget = under?.closest<HTMLElement>("[data-rail-cat]")?.dataset.railCat;
     const row = railTarget ? null : under?.closest<HTMLElement>("[data-arrange-item]");
     const targetItem = row?.dataset.arrangeItem;
-    if (targetItem === drag.id) return;
+    // Neither of these is a place to drop, so an earlier cross-category target must not survive them.
+    if (targetItem === drag.id) {
+      setDrop(null);
+      return;
+    }
     if (!railTarget) railCat.current = null;
     const targetCat = railTarget ?? under?.closest<HTMLElement>("[data-arrange-cat]")?.dataset.arrangeCat;
-    if (!targetCat) return;
+    if (!targetCat) {
+      setDrop(null);
+      return;
+    }
     if (railTarget) reveal(railTarget);
 
     const from = drag.from;

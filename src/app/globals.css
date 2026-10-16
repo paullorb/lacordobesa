@@ -51,7 +51,7 @@
 
 html { scroll-behavior: smooth; }
 /* Even a highlight is in the brand's colours. */
-::selection { background: var(--coral); color: var(--paper); }
+::selection { background: var(--coral); color: var(--ink); }
 /* German compounds are long, and a heading that does not fit widens the whole document: the page
    then scrolls sideways and Safari scales it down to fit. Not `hyphens: auto` here, which would
    also break headings that fit perfectly well ("Wann möchtest du kom-men?"); the legal pages,
@@ -647,7 +647,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   /* Two pixels over the height that would exactly meet the bottom edge: the panel starts on the
      header's border and --menu-top is rounded, and a one-pixel strip of page showing under the
      menu is exactly the kind of thing a reader notices without being able to say what it is. */
-  .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; height: calc(100dvh - var(--menu-top, 74px) + 2px); overflow-y: auto; overscroll-behavior: contain; padding: 1.4rem 24px 2rem; background: var(--cream); grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0; }
+  .site-nav { display: none; position: absolute; top: 74px; left: 0; right: 0; height: calc(100dvh - var(--menu-top, 74px) + 2px); box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; padding: 1.4rem 24px 2rem; background: var(--cream); grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0; }
   .site-nav.open { display: grid; }
   .site-nav a:not(.nav-cta) { display: flex; align-items: center; gap: 1rem; padding: .62rem 0; border-bottom: 1px solid var(--line); font-family: var(--serif); font-size: clamp(1.85rem, 5.2vw, 2.9rem); font-weight: 500; letter-spacing: -.025em; line-height: 1.1; }
   .site-nav .nav-icon { flex: none; width: 22px; height: 22px; color: var(--blue-dark); }
@@ -1071,7 +1071,7 @@ body::after {
    rather than sit glued to the pointer. Not rendered at all without a fine pointer, and the tile
    only gives up its own cursor while the label is there to replace it. */
 .gallery-cursor { display: none; }
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); line-height: 1.1; text-align: center; padding: .4rem; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
   .gallery-cursor[data-on] { opacity: 1; scale: 1; }
   body:has(> .gallery-cursor[data-on]) [data-cheer] { cursor: none; }

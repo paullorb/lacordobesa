@@ -111,13 +111,15 @@ function sweep(now: number) {
   for (const [key, v] of seen) if (now - v.start >= WINDOW_MS) seen.delete(key);
 }
 
-function scheduleSweep() {
+function scheduleSweep(delay = WINDOW_MS + 1000) {
   if (timer) return;
   timer = setTimeout(() => {
     timer = undefined;
-    sweep(Date.now());
-    if (seen.size > 0) scheduleSweep();
-  }, WINDOW_MS + 1000);
+    const now = Date.now();
+    sweep(now);
+    const oldest = seen.values().next().value;
+    if (oldest) scheduleSweep(Math.max(oldest.start + WINDOW_MS - now, 0) + 1000);
+  }, delay);
   timer.unref?.();
 }
 
