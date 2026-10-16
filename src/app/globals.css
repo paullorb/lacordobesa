@@ -494,6 +494,10 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 /* /catering: the three things we can do for a feier. */
 .idea-grid { list-style: none; margin: 0 0 3rem; padding: 0; display: grid; border-top: 1px solid var(--line); }
 .idea-grid li { display: grid; grid-template-columns: 3rem minmax(9rem, 13rem) 1fr; gap: .3rem 1.5rem; align-items: baseline; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
+.event-photos { list-style: none; margin: 0 0 3rem; padding: 0; display: grid; gap: .6rem; grid-template-columns: repeat(3, 1fr); }
+.event-photos li { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--mint); }
+.event-photos img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.event-photo-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.4rem .9rem .75rem; color: #fff; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(transparent, rgba(13,35,45,.78)); pointer-events: none; }
 .idea-num { color: var(--coral-text); font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; }
 .site .idea-grid h2 { margin: 0; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; line-height: 1.2; letter-spacing: -.01em; }
 .idea-grid p { margin: 0; color: var(--muted); font-size: var(--fs-base); line-height: 1.65; }
@@ -748,6 +752,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .visit-photo { position: relative; top: auto; height: auto; min-height: 390px; }
 }
 @media (max-width: 520px) {
+  .event-photos { grid-template-columns: repeat(2, 1fr); }
   .idea-grid li { grid-template-columns: 2.4rem 1fr; }
   .idea-grid p { grid-column: 2; }
   /* On a phone the text runs the full width, so the veil runs top to bottom instead. */
@@ -1241,6 +1246,19 @@ html:has(.staff) { scrollbar-gutter: stable; }
 .footer-bottom .lang-switch a, .footer-bottom .lang-switch span[aria-current] { padding: .25rem .65rem; border-radius: 999px; color: rgba(255,253,248,.6); transition: color .2s, background-color .2s; }
 .footer-bottom .lang-switch span[aria-current] { color: #fff; background: rgba(255,255,255,.14); }
 .footer-bottom .lang-switch a:hover { color: #9ed8f2; }
+/* With a pointer the footer shows only the current language and reveals the others when the bar is
+   pointed at or the switch is focused. Opacity, not display, so the row keeps its width and nothing
+   moves when they appear, and keyboard focus can still reach the hidden links. Touch has no hover,
+   so it keeps the full row. */
+@media (hover: hover) {
+  .footer-bottom .lang-switch ul { border-color: transparent; transition: border-color .25s; }
+  .footer-bottom .lang-switch li:not(:has([aria-current])) { opacity: 0; transition: opacity .25s; }
+  .footer-bottom:hover .lang-switch ul, .footer-bottom .lang-switch:focus-within ul { border-color: rgba(255,255,255,.18); }
+  .footer-bottom:hover .lang-switch li, .footer-bottom .lang-switch:focus-within li { opacity: 1; }
+}
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .footer-bottom .lang-switch ul, .footer-bottom .lang-switch li { transition: none; }
+}
 
 /* Pre-order wizard: small rewards for choosing, and the fresh-or-frozen cards.
    The state is the trigger, not a script. A CSS animation runs when its selector starts matching, so a

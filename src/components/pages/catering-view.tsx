@@ -1,4 +1,5 @@
 import { cacheLife } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
 import { EventInquiryForm } from "@/components/event-inquiry-form";
 import { SiteFooter } from "@/components/site-footer";
@@ -10,6 +11,16 @@ import { todayISO } from "@/lib/dates";
 import { localeHref, type Locale } from "@/lib/i18n";
 
 export const CATERING_PATH = "/catering";
+
+/** In the order of `cateringPage.photos`, which carries the caption and alt text for each. */
+const EVENT_PHOTOS = [
+  { src: "/assets/feiern/toast.jpg", width: 1600, height: 1066, position: "58% 50%" },
+  { src: "/assets/feiern/geburtstag.jpg", width: 1271, height: 1600, position: "50% 70%" },
+  { src: "/assets/feiern/buffet.jpg", width: 1600, height: 1082, position: "40% 50%" },
+  { src: "/assets/feiern/mesa-dulce.jpg", width: 1068, height: 1600, position: "50% 40%" },
+  { src: "/assets/feiern/festlich-gedeckt.jpg", width: 1199, height: 1600, position: "50% 75%" },
+  { src: "/assets/feiern/runder-tisch.jpg", width: 1600, height: 1066, position: "50% 50%" },
+];
 
 export async function CateringView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).cateringPage;
@@ -28,6 +39,25 @@ export async function CateringView({ locale }: { locale: Locale }) {
               <h1>{t.heading}</h1>
               <p>{t.intro}</p>
             </div>
+
+            <ul className="event-photos">
+              {EVENT_PHOTOS.map((photo, i) => (
+                <li key={photo.src}>
+                  <Image
+                    src={photo.src}
+                    alt={t.photos[i].alt}
+                    width={photo.width}
+                    height={photo.height}
+                    sizes="(max-width: 800px) 50vw, 340px"
+                    loading={i === 0 ? "eager" : "lazy"}
+                    style={{ objectPosition: photo.position }}
+                  />
+                  <span className="event-photo-caption" aria-hidden="true">
+                    {t.photos[i].caption}
+                  </span>
+                </li>
+              ))}
+            </ul>
 
             <ul className="idea-grid">
               {t.ideas.map((idea, i) => (

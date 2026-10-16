@@ -194,6 +194,14 @@ export const de = {
     heading: "Feiern & Catering",
     intro:
       "Geburtstag, Firmenfeier, Taufe oder einfach ein Abend mit vielen Leuten: wir kochen argentinisch für eure Feier, bei uns im Lokal oder zum Abholen. Erzähl uns, was du vorhast, und wir machen dir einen Vorschlag.",
+    photos: [
+      { caption: "Zum Wohl", alt: "Gäste heben bei einer Feier ihre Gläser zum Anstoßen" },
+      { caption: "Geburtstag", alt: "Ein Cupcake mit einer Kerze auf einer Hand" },
+      { caption: "Buffet", alt: "Ein Buffet mit Aufschnitt, Käse, Brot, Oliven und Birnen" },
+      { caption: "Mesa dulce", alt: "Eine Hochzeitstorte mit kleinen Süßigkeiten auf dem Tisch davor" },
+      { caption: "Festlich gedeckt", alt: "Ein weiß gedeckter Tisch mit Blumen, Kerzen und Gläsern" },
+      { caption: "Eine Tafel für alle", alt: "Ein runder Tisch mit Blumenstrauß, Wein und Kerzen" },
+    ],
     ideas: [
       {
         title: "Bei uns im Lokal",

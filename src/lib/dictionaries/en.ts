@@ -192,6 +192,14 @@ export const en: Dictionary = {
     heading: "Celebrations & catering",
     intro:
       "A birthday, a company party, a christening or simply an evening with lots of people: we cook Argentine for your celebration, at our place or to take away. Tell us what you have in mind and we will make you a suggestion.",
+    photos: [
+      { caption: "Cheers", alt: "Guests raising their glasses for a toast at a celebration" },
+      { caption: "Birthday", alt: "A cupcake with a single candle, held on a hand" },
+      { caption: "Buffet", alt: "A buffet with cold cuts, cheese, bread, olives and pears" },
+      { caption: "Mesa dulce", alt: "A wedding cake with small sweets on the table in front" },
+      { caption: "Set for a party", alt: "A white table laid with flowers, candles and glasses" },
+      { caption: "One table for everyone", alt: "A round table with a bouquet, wine and candles" },
+    ],
     ideas: [
       {
         title: "At our place",

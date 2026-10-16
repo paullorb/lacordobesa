@@ -186,6 +186,14 @@ export const es: Dictionary = {
     heading: "Festejos y catering",
     intro:
       "Un cumpleaños, un evento de la empresa, un bautismo o simplemente una noche con mucha gente: cocinamos argentino para tu festejo, acá en el local o para retirar. Contanos qué tenés en mente y te hacemos una propuesta.",
+    photos: [
+      { caption: "Brindis", alt: "Invitados levantando sus copas para brindar en un festejo" },
+      { caption: "Cumpleaños", alt: "Un cupcake con una vela, sobre una mano" },
+      { caption: "Buffet", alt: "Un buffet con fiambres, quesos, pan, aceitunas y peras" },
+      { caption: "Mesa dulce", alt: "Una torta de casamiento con dulces chicos en la mesa de adelante" },
+      { caption: "Todo listo para la fiesta", alt: "Una mesa con mantel blanco, flores, velas y copas" },
+      { caption: "Una mesa para todos", alt: "Una mesa redonda con un ramo de flores, vino y velas" },
+    ],
     ideas: [
       {
         title: "Acá en el local",
