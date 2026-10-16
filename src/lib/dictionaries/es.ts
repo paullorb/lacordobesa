@@ -164,11 +164,11 @@ export const es: Dictionary = {
   preorderPage: {
     title: "Encargar",
     description:
-      "Empanadas por docena, una torta para el cumpleaños o una bandeja de alfajores: encargá en La Cordobesa y pasá a buscarlo recién hecho.",
+      "Empanadas de a seis o pizzas para la noche: encargá en La Cordobesa y pasá a buscarlo recién hecho.",
     eyebrow: "Encargá con tiempo",
     heading: "Encargá y pasá a buscarlo",
     intro:
-      "Empanadas por docena, una torta para el cumpleaños, alfajores para la oficina: contanos qué necesitás y cuándo lo querés retirar. Nosotros lo hacemos fresco, vos pagás al retirarlo.",
+      "Empanadas de a seis, pizzas para la noche: contanos qué querés y cuándo lo retirás. Te llamamos para confirmarlo y pagás al retirarlo.",
     closedBefore: "Por ahora los encargos no se toman por la web. Llamanos al ",
     closedMiddle: " o escribinos por ",
     closedAfter: " y lo arreglamos al momento.",
@@ -314,6 +314,13 @@ export const es: Dictionary = {
       item_unavailable: "Uno de los productos elegidos no se puede encargar por ahora. Recargá la página, por favor.",
     },
     legend: "¿Qué querés encargar?",
+    steps: { 1: "¿Qué te preparamos?", 2: "¿Cuándo lo retirás?", 3: "¿Cómo te contactamos?" },
+    changeItems: "Cambiar el pedido",
+    changeWhen: "Cambiar el día y la hora",
+    continueLabel: "Seguir",
+    inPacks: (n: number) => `de a ${n}`,
+    less: (name: string) => `Menos ${name}`,
+    more: (name: string, n: number) => (n > 1 ? `${n} más de ${name}` : `Más ${name}`),
     per: (unit: string) => `por ${unit}`,
     quantityLabel: (name: string, unit: string) => `Cantidad de ${name} (${unit})`,
     tooManyLines: (max: number) =>
@@ -332,10 +339,10 @@ export const es: Dictionary = {
     submit: "Enviar el encargo",
     submitting: "Enviando…",
     note: (hours: number) =>
-      `Un encargo es un pedido, todavía no una confirmación. Te avisamos para confirmarlo. Se paga al retirarlo. Encargá con al menos ${hours} horas de anticipación.`,
+      `Un encargo es un pedido, todavía no una confirmación: te llamamos para confirmarlo. Se paga al retirarlo. Encargá con al menos ${hours} horas de anticipación.`,
     successTitle: "¡Gracias! Recibimos tu encargo.",
     successBefore: (date: string) =>
-      `Revisamos tu pedido y te avisamos para confirmarlo. Lo retirás el ${date}. En `,
+      `Te llamamos para confirmar tu pedido. Lo retirás el ${date}. En `,
     successLink: "este enlace",
     successAfter: " podés ver o cancelar tu encargo cuando quieras. Mejor guardalo.",
   },

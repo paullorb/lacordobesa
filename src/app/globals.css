@@ -409,12 +409,17 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .form-note { font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin: 0; }
 /* /vorbestellen: pick quantities, name a pickup slot. */
 .preorder-shell { max-width: 680px; margin: 0 auto; display: grid; gap: 1.8rem; }
-.preorder-items { border: 0; padding: 0; margin: 0; display: grid; gap: 1.2rem; }
-.preorder-group h3 { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; margin: 0 0 .5rem; }
+.preorder-group h4 { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; margin: 0 0 .5rem; }
 .preorder-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
-.preorder-group li { display: grid; grid-template-columns: 1fr 5.5rem; gap: 1rem; align-items: center; padding: .7rem .9rem; background: var(--paper); border: 1px solid var(--line); }
-.preorder-group label { margin: 0; text-transform: none; letter-spacing: normal; font-size: var(--fs-base); }
-.preorder-group label small { display: block; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin-top: .1rem; }
+.preorder-group li { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; padding: .7rem .9rem; background: var(--paper); border: 1px solid var(--line); transition: border-color .2s ease; }
+.preorder-group li[data-chosen] { border-color: var(--ink); }
+.preorder-group li small { display: block; color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin-top: .1rem; }
+/* − 12 +: the pack size is in the buttons, so a guest cannot type seven empanadas. */
+.stepper { display: inline-flex; align-items: center; gap: .25rem; }
+.stepper button { width: 2.5rem; height: 2.5rem; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); color: var(--ink); font-size: 1.2rem; line-height: 1; cursor: pointer; }
+.stepper button:hover:not(:disabled) { border-color: var(--ink); }
+.stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.stepper output { min-width: 2.2ch; text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; }
 .preorder-meta { display: block; color: var(--muted); font-size: var(--fs-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-top: .25rem; }
 /* Folds a block of form away until it has something to say: 0fr to 1fr animates the height without
    measuring it. The negative margin takes back the grid gap the folded block would otherwise leave. */
@@ -1092,6 +1097,10 @@ body::after {
 
 /* ------------------------------------------------------------------ staff (Tailwind utilities + a few helpers) */
 .staff { background: #f7f5f0; min-height: 100vh; }
+/* Short pages (Verschicken, Einstellungen) have no scrollbar and long ones (Karte) do. With a classic
+   15px scrollbar that moved the centred header by half of it on every tab change. Reserving the
+   gutter keeps the nav where it is. */
+html:has(.staff) { scrollbar-gutter: stable; }
 /* text-base, not text-sm: iOS Safari zooms into any field under 16px and never zooms back out. */
 .staff input, .staff select, .staff textarea { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-base text-ink focus:outline-2 focus:outline-blue; }
 /* Not the `w-full` of the rule above, and a touch larger than the 13px the browser draws. */
@@ -1105,6 +1114,20 @@ body::after {
    the `required` attribute, so a label can never claim something the field does not enforce. The
    empty alt text keeps screen readers from reading "star" on top of the field's own "required". */
 .staff label:has(+ :is(input, select, textarea)[required])::after { content: " *"; content: " *" / ""; color: #b91c1c; }
+.staff label:has(+ .picker [required])::after { content: " *"; content: " *" / ""; color: #b91c1c; }
+/* A closed day in the staff calendar: one hairline corner to corner, no words. */
+.calendar-closed { background-image: linear-gradient(to top right, transparent calc(50% - .75px), rgba(21,47,59,.28) calc(50% - .75px), rgba(21,47,59,.28) calc(50% + .75px), transparent calc(50% + .75px)); }
+/* Desktop date and time pickers (components/staff/pickers.tsx). Phones keep the native inputs. */
+.picker { position: relative; }
+.staff .picker-input { @apply w-full rounded-md border border-line bg-white px-3 py-2 text-left text-base text-ink focus:outline-2 focus:outline-blue; cursor: pointer; }
+.picker-carrier { position: absolute; inset: auto 0 0 0; height: 1px; opacity: 0; pointer-events: none; padding: 0 !important; border: 0 !important; }
+.picker-pop { @apply absolute left-0 top-full z-20 mt-1 rounded-lg border border-line bg-white shadow-lg; }
+.picker-times { list-style: none; margin: 0; padding: .25rem; max-height: 15rem; min-width: 100%; overflow-y: auto; }
+.picker-times li { @apply cursor-pointer rounded px-3 py-1 text-sm tabular-nums hover:bg-mint; }
+.picker-times li[aria-selected="true"] { @apply bg-ink text-white; }
+.picker-calendar { padding: .5rem; width: 16.5rem; }
+.picker-day { @apply h-8 rounded text-sm hover:bg-mint disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent; }
+.picker-day[aria-pressed="true"] { @apply bg-ink text-white; }
 /* The Karte pill trades its name for the category being read; a short rise says it changed. */
 .staff-swap { animation: staff-swap .22s ease-out; }
 @keyframes staff-swap { from { opacity: 0; transform: translateY(3px); } }

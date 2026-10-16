@@ -172,11 +172,11 @@ export const de = {
   preorderPage: {
     title: "Vorbestellen",
     description:
-      "Empanadas im Dutzend, eine Torta für den Geburtstag oder ein Blech Alfajores: bestell bei La Cordobesa vor und hol alles frisch ab.",
+      "Empanadas im Sechserpack oder Pizza für den Abend: bestell bei La Cordobesa vor und hol alles frisch ab.",
     eyebrow: "Encargá con tiempo",
     heading: "Vorbestellen und abholen",
     intro:
-      "Empanadas im Dutzend, eine Torta für den Geburtstag, Alfajores für das Büro: sag uns, was du brauchst und wann du es abholen möchtest. Wir backen frisch, du bezahlst bei der Abholung.",
+      "Empanadas im Sechserpack, Pizza für den Abend: sag uns, was du möchtest und wann du es abholst. Wir rufen dich an, um alles zu bestätigen, und bezahlt wird bei der Abholung.",
     closedBefore: "Vorbestellungen laufen gerade nicht über die Website. Ruf uns gern an unter ",
     closedMiddle: " oder schreib uns per ",
     closedAfter: ", dann klären wir alles direkt.",
@@ -325,6 +325,13 @@ export const de = {
       item_unavailable: "Eines der gewählten Gerichte ist gerade nicht vorbestellbar. Bitte lade die Seite neu.",
     },
     legend: "Was möchtest du vorbestellen?",
+    steps: { 1: "Was darf es sein?", 2: "Wann holst du es ab?", 3: "Wie erreichen wir dich?" },
+    changeItems: "Bestellung ändern",
+    changeWhen: "Abholtermin ändern",
+    continueLabel: "Weiter",
+    inPacks: (n: number) => `in ${n}er-Schritten`,
+    less: (name: string) => `Weniger ${name}`,
+    more: (name: string, n: number) => (n > 1 ? `${n} mehr ${name}` : `Mehr ${name}`),
     per: (unit: string) => `pro ${unit}`,
     quantityLabel: (name: string, unit: string) => `Menge ${name} (${unit})`,
     tooManyLines: (max: number) =>
@@ -343,10 +350,10 @@ export const de = {
     submit: "Vorbestellung senden",
     submitting: "Wird gesendet …",
     note: (hours: number) =>
-      `Eine Vorbestellung ist eine Anfrage, noch keine Zusage. Wir melden uns, um sie zu bestätigen. Bezahlt wird bei der Abholung. Bitte bestell mindestens ${hours} Stunden vorher.`,
+      `Eine Vorbestellung ist eine Anfrage, noch keine Zusage: wir rufen dich an, um sie zu bestätigen. Bezahlt wird bei der Abholung. Bitte bestell mindestens ${hours} Stunden vorher.`,
     successTitle: "¡Gracias! Vorbestellung erhalten.",
     successBefore: (date: string) =>
-      `Wir prüfen deine Bestellung und melden uns, um sie zu bestätigen. Abholung am ${date}. Unter `,
+      `Wir rufen dich an, um deine Bestellung zu bestätigen. Abholung am ${date}. Unter `,
     successLink: "diesem Link",
     successAfter: " kannst du deine Bestellung jederzeit ansehen oder absagen. Bewahr ihn am besten auf.",
   },

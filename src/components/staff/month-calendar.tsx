@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowIcon } from "@/components/icons";
+import { DayPending } from "@/components/staff/day-pending";
 import { WEEKDAYS_DE } from "@/lib/data";
 import { fmtDateDE, monthRange, shiftMonth } from "@/lib/dates";
 
@@ -66,11 +67,12 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
           const isPast = date < today;
           const isSel = date === selected;
           const isToday = date === today;
+          // Closed: a line across the day instead of the word "zu". Past: only the number fades, so
+          // a past day still has the same frame as the rest of the grid and does not look disabled.
           const cls = [
-            "flex min-h-14 flex-col items-center justify-start gap-0.5 rounded-md border px-1 py-1 text-sm transition",
+            "relative flex min-h-14 flex-col items-center justify-start gap-0.5 rounded-md border px-1 py-1 text-sm transition",
             isSel ? "border-ink bg-ink text-white" : "border-line bg-white hover:bg-mint",
-            closed && !isSel ? "bg-gray-100 text-muted" : "",
-            isPast && !isSel ? "opacity-50" : "",
+            closed && !isSel ? "calendar-closed" : "",
           ].join(" ");
           return (
             <Link
@@ -82,19 +84,23 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
               // the selected day is ink on ink, i.e. today's date is invisible once you click it.
               style={isSel ? { color: "white" } : undefined}
               title={`${fmtDateDE(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": geschlossen" : ""}`}
+              aria-label={`${fmtDateDE(date, { weekday: "long" })}${closed ? ", geschlossen" : ""}`}
             >
               {/* coral-text, not coral: white on the graphic coral is 2.75:1, and the one number
                   on this grid that has to be found at a glance is today's. */}
-              <span className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral-text px-1.5 text-white" : ""}`}>
+              <span
+                className={`font-semibold ${isToday && !isSel ? "rounded-full bg-coral-text px-1.5 text-white" : ""} ${
+                  (isPast || closed) && !isSel && !isToday ? "text-muted" : ""
+                }`}
+              >
                 {Number(date.slice(8, 10))}
               </span>
               {info.reservations ? (
-                <span className={`text-xs ${isSel ? "text-white/80" : "text-blue-dark"}`}>
+                <span className={`text-xs ${isSel ? "text-white/80" : isPast ? "text-muted" : "text-blue-dark"}`}>
                   {info.reservations} · {info.guests} P.
                 </span>
-              ) : closed ? (
-                <span className="text-xs">zu</span>
               ) : null}
+              <DayPending />
             </Link>
           );
         })}

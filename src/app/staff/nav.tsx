@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowIcon, MenuIcon, StaffIcon } from "@/components/icons";
 
-type Item = { href: string; label: string; icon: string };
+type Item = { href: string; label: string; icon: string; adminOnly?: boolean };
 type Group = { label: string; icon: string; items: Item[] };
 
 const MENU_HREF = "/staff/karte";
+/** How far the menu has to be scrolled before the Karte pill starts naming categories. */
+const SCROLL_THRESHOLD = 120;
 
 // Six tabs instead of twelve: pages that answer the same question share a tab, and the
 // active tab's pages show as a second row.
@@ -29,19 +31,27 @@ const GROUPS: Group[] = [
     icon: "content",
     items: [
       { href: MENU_HREF, label: "Karte", icon: "menu" },
-      { href: "/staff/specials", label: "Specials", icon: "specials" },
       { href: "/staff/gallery", label: "Galerie", icon: "gallery" },
       { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten", icon: "hours" },
       { href: "/staff/bewertungen", label: "Bewertungen", icon: "reviews" },
     ],
   },
-  { label: "Verschicken", icon: "send", items: [{ href: "/staff/broadcast", label: "Verschicken", icon: "send" }] },
+  // The specials themselves and sending them to the guests who asked for them: one job, one tab.
+  {
+    label: "Specials",
+    icon: "specials",
+    items: [
+      { href: "/staff/specials", label: "Angebote", icon: "specials" },
+      { href: "/staff/broadcast", label: "Verschicken", icon: "send" },
+    ],
+  },
   {
     label: "Zahlen",
     icon: "stats",
     items: [
       { href: "/staff/zahlen", label: "Zahlen", icon: "stats" },
-      { href: "/staff/besucher", label: "Besucher", icon: "visitors" },
+      // The website's own analytics are the agency's business, not the restaurant's.
+      { href: "/staff/besucher", label: "Besucher", icon: "visitors", adminOnly: true },
     ],
   },
   {
@@ -71,10 +81,19 @@ function useScrolledCategory(enabled: boolean) {
       frame = 0;
       const line = (document.querySelector(".staff header")?.getBoundingClientRect().bottom ?? 0) + 12;
       let found: HTMLElement | null = null;
-      // In document order, which is the menu's order, so the last one above the line is the one being read.
-      for (const section of document.querySelectorAll<HTMLElement>("[data-arrange-cat]")) {
-        if (section.getBoundingClientRect().top > line) break;
-        found = section;
+      // Only once the page has actually been scrolled a little. Right after the tab opens, the pill
+      // should say "Karte", not the category that happens to touch the header.
+      if (window.scrollY > SCROLL_THRESHOLD) {
+        // In document order, which is the menu's order, so the last one above the line is the one being read.
+        for (const section of document.querySelectorAll<HTMLElement>("[data-arrange-cat]")) {
+          const box = section.getBoundingClientRect();
+          // A section React is still streaming in sits in a hidden container, where every box is
+          // 0x0 at the top of the viewport. Counting those made the pill read "Cocktails", the
+          // last category, the moment Inhalte opened.
+          if (box.height === 0) continue;
+          if (box.top > line) break;
+          found = section;
+        }
       }
       const next = found ? { label: found.dataset.catLabel ?? "", slug: found.dataset.catSlug ?? "" } : null;
       setCategory((prev) => (prev?.slug === next?.slug && prev?.label === next?.label ? prev : next));
@@ -85,9 +104,14 @@ function useScrolledCategory(enabled: boolean) {
     schedule();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    // The menu streams in after this runs, and arriving content fires no scroll event.
+    const observer = new MutationObserver(schedule);
+    const main = document.getElementById("main");
+    if (main) observer.observe(main, { childList: true, subtree: true });
     return () => {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      observer.disconnect();
       cancelAnimationFrame(frame);
     };
   }, [enabled]);
@@ -101,14 +125,15 @@ const pill = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px
 // there is no scrollbar to hint at it either. Two rows of pills cost less than an unreachable tab.
 const row = "mx-auto flex max-w-5xl flex-wrap gap-1 px-2 pb-2 text-sm";
 
-export function StaffNav() {
+export function StaffNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
-  const current = GROUPS.find((g) => g.items.some((it) => isActive(pathname, it.href)));
+  const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || !it.adminOnly) }));
+  const current = groups.find((g) => g.items.some((it) => isActive(pathname, it.href)));
   const scrolled = useScrolledCategory(isActive(pathname, MENU_HREF));
   return (
     <>
       <nav aria-label="Bereiche" className={row}>
-        {GROUPS.map((g) => {
+        {groups.map((g) => {
           const active = g === current;
           return (
             <Link

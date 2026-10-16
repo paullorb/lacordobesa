@@ -170,11 +170,11 @@ export const en: Dictionary = {
   preorderPage: {
     title: "Pre-order",
     description:
-      "Empanadas by the dozen, a torta for a birthday or a tray of alfajores: pre-order from La Cordobesa and collect it fresh.",
+      "Empanadas in packs of six or pizza for the evening: pre-order from La Cordobesa and collect it fresh.",
     eyebrow: "Encargá con tiempo",
     heading: "Pre-order and collect",
     intro:
-      "Empanadas by the dozen, a torta for a birthday, alfajores for the office: tell us what you need and when you would like to collect it. We bake it fresh, you pay on collection.",
+      "Empanadas in packs of six, pizza for the evening: tell us what you would like and when you will collect it. We will call you to confirm, and you pay on collection.",
     closedBefore: "Pre-orders are not taken through the website right now. Please call us on ",
     closedMiddle: " or message us on ",
     closedAfter: ", and we will sort it out directly.",
@@ -323,6 +323,13 @@ export const en: Dictionary = {
       item_unavailable: "One of the items you chose cannot be pre-ordered right now. Please reload the page.",
     },
     legend: "What would you like to pre-order?",
+    steps: { 1: "What can we make for you?", 2: "When will you collect it?", 3: "How can we reach you?" },
+    changeItems: "Change order",
+    changeWhen: "Change pickup time",
+    continueLabel: "Continue",
+    inPacks: (n: number) => `in packs of ${n}`,
+    less: (name: string) => `Fewer ${name}`,
+    more: (name: string, n: number) => (n > 1 ? `${n} more ${name}` : `More ${name}`),
     per: (unit: string) => `per ${unit}`,
     quantityLabel: (name: string, unit: string) => `Quantity of ${name} (${unit})`,
     tooManyLines: (max: number) =>
@@ -341,10 +348,10 @@ export const en: Dictionary = {
     submit: "Send pre-order",
     submitting: "Sending …",
     note: (hours: number) =>
-      `A pre-order is a request, not yet a confirmation. We will get in touch to confirm it. You pay on collection. Please order at least ${hours} hours ahead.`,
+      `A pre-order is a request, not yet a confirmation: we will call you to confirm it. You pay on collection. Please order at least ${hours} hours ahead.`,
     successTitle: "¡Gracias! Pre-order received.",
     successBefore: (date: string) =>
-      `We are checking your order and will get in touch to confirm it. Pickup on ${date}. Use `,
+      `We will call you to confirm your order. Pickup on ${date}. Use `,
     successLink: "this link",
     successAfter: " to view or cancel your order at any time. It is best to keep it.",
   },

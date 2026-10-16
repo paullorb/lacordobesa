@@ -23,10 +23,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // getUser() validates the JWT against Supabase; getSession() would trust the cookie blindly.
-  const {
-    data: { user: sessionUser },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the JWT's signature (locally, against the project's published ES256 key) and
+  // refreshes an expired session; getSession() would trust the cookie blindly. getUser() did the
+  // same check as a round trip to the Auth server on every navigation.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const sessionUser = claimsData?.claims?.sub ? { id: claimsData.claims.sub } : null;
 
   const { pathname } = request.nextUrl;
   const isLogin = pathname === "/staff/login";

@@ -3,7 +3,8 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { supabaseUrl } from "@/lib/supabase/env";
 
-/** Client on the project's secret key, for the public form Server Actions only.
+/** Client on the project's secret key, for the public form Server Actions and the admin-only team
+ *  accounts under Einstellungen (creating an auth user needs it).
  *
  *  The form RPCs (request_reservation and its siblings) used to be callable by anyone holding the
  *  publishable key, which ships in every browser. A script could skip this site entirely and flood

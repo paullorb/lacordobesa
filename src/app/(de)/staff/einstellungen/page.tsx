@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
-import { saveSettings } from "@/app/staff/actions";
-import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
+import { createStaffAccount, deleteStaffAccount, resetStaffPassword, saveSettings } from "@/app/staff/actions";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { staffDisplayName } from "@/lib/staff";
+import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { requireStaff } from "@/lib/auth";
 import { DEFAULT_RESERVATION_SETTINGS, type ReservationSettings } from "@/lib/data";
 import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
@@ -17,7 +19,7 @@ export default function SettingsPage() {
 }
 
 async function Settings() {
-  const { supabase } = await requireStaff();
+  const { supabase, user, isAdmin } = await requireStaff();
   const { data } = await supabase.from("site_settings").select("key, value");
   const get = (k: string) => data?.find((r) => r.key === k)?.value;
   const r: ReservationSettings = { ...DEFAULT_RESERVATION_SETTINGS, ...((get("reservations") as Partial<ReservationSettings>) ?? {}) };
@@ -96,7 +98,74 @@ async function Settings() {
           <SubmitButton>Speichern</SubmitButton>
         </div>
       </ActionForm>
+      {isAdmin && <Team currentUserId={user.id} />}
     </div>
+  );
+}
+
+/** The team's logins. Admins only: everyone made here is a normal staff account. */
+async function Team({ currentUserId }: { currentUserId: string }) {
+  const admin = createPrivilegedClient();
+  const [{ data: members }, { data: users }] = await Promise.all([
+    admin.from("staff").select("user_id, role, added_at").order("added_at"),
+    admin.auth.admin.listUsers({ perPage: 200 }),
+  ]);
+  const emailOf = new Map((users?.users ?? []).map((u) => [u.id, u.email]));
+
+  return (
+    <section className="card grid gap-4">
+      <div>
+        <h2 className="font-semibold">Team-Zugänge</h2>
+        <p className="text-sm text-muted">
+          Nur für Admins sichtbar. Neue Zugänge sind normale Team-Konten: sie sehen alles außer den Besucherzahlen und
+          dieser Liste.
+        </p>
+      </div>
+      <ul className="grid gap-2">
+        {(members ?? []).map((m) => (
+          <li key={m.user_id} className="grid gap-2 rounded-md bg-cream px-3 py-2 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                <strong>{staffDisplayName(emailOf.get(m.user_id))}</strong>
+                <span className="ml-2 text-xs text-muted">{m.role === "admin" ? "Admin" : "Team"}</span>
+                {m.user_id === currentUserId && <span className="ml-2 text-xs text-muted">(du)</span>}
+              </span>
+              {m.role === "staff" && (
+                <form action={deleteStaffAccount}>
+                  <input type="hidden" name="user_id" value={m.user_id} />
+                  <ConfirmSubmit message="Diesen Zugang wirklich löschen?" className="btn-ghost text-red-700">
+                    Löschen
+                  </ConfirmSubmit>
+                </form>
+              )}
+            </div>
+            {m.role === "staff" && (
+              <details>
+                <summary className="cursor-pointer text-xs text-muted">Neues Passwort setzen</summary>
+                <ActionForm action={resetStaffPassword} className="mt-2 flex flex-wrap items-end gap-2" successText="Passwort geändert.">
+                  <input type="hidden" name="user_id" value={m.user_id} />
+                  <input name="password" type="text" minLength={10} required autoComplete="off" aria-label="Neues Passwort" className="min-w-0 flex-1" />
+                  <SubmitButton>Setzen</SubmitButton>
+                </ActionForm>
+              </details>
+            )}
+          </li>
+        ))}
+      </ul>
+      <ActionForm action={createStaffAccount} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]" successText="Zugang angelegt.">
+        <div>
+          <label htmlFor="new-username">Name zum Anmelden</label>
+          <input id="new-username" name="username" required pattern="[a-z0-9][a-z0-9._\-]{1,31}" autoComplete="off" placeholder="maria" />
+        </div>
+        <div>
+          <label htmlFor="new-password">Passwort</label>
+          <input id="new-password" name="password" type="text" minLength={10} required autoComplete="off" />
+        </div>
+        <div className="self-end">
+          <SubmitButton pendingText="Anlegen …">Anlegen</SubmitButton>
+        </div>
+      </ActionForm>
+    </section>
   );
 }
 

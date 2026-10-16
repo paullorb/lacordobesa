@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteSpecial, saveSpecial } from "@/app/staff/actions";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { DateField } from "@/components/staff/pickers";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
@@ -79,11 +80,11 @@ function SpecialForm({ today, special }: { today: string; special?: Tables<"spec
       </div>
       <div>
         <label htmlFor={`${id}-start`}>Von</label>
-        <input id={`${id}-start`} name="starts_on" type="date" defaultValue={special?.starts_on ?? today} required />
+        <DateField id={`${id}-start`} name="starts_on" defaultValue={special?.starts_on ?? today} required />
       </div>
       <div>
         <label htmlFor={`${id}-end`}>Bis (leer = bis auf Weiteres)</label>
-        <input id={`${id}-end`} name="ends_on" type="date" defaultValue={special?.ends_on ?? ""} />
+        <DateField id={`${id}-end`} name="ends_on" defaultValue={special?.ends_on ?? ""} />
       </div>
       <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
         <input type="checkbox" name="is_active" defaultChecked={special?.is_active ?? true} /> Aktiv

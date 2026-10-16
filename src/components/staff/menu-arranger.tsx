@@ -60,7 +60,7 @@ const KEY_GLIDE = 0.4;
  * category. Into another category it does not: the dish stays where it was, dimmed, while a line
  * and an outline show where it would land, and only letting go moves it. A rail of categories at
  * the edge of the screen appears for the drag, so a long menu can be crossed without scrolling by
- * hand. Dropping a dish on "Startseite" puts it on the home page and leaves it in its category;
+ * hand; a dish let go over a rail entry goes to the top of that category. Dropping a dish on "Startseite" puts it on the home page and leaves it in its category;
  * dragging it out of there (or its ×) takes it off again. Pointer events rather than the HTML drag
  * API, because the staff area mostly runs on phones and Chrome on Android never fires HTML drag
  * events for touch. The handles also take ↑/↓ from the keyboard.
@@ -237,7 +237,8 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       return;
     }
 
-    // A dish. The rail means "the end of that category"; otherwise it is whatever is under the pointer.
+    // A dish. The rail means "the top of that category", right under the heading the rail scrolls
+    // into view, where the dish can be seen landing; otherwise it is whatever is under the pointer.
     const railTarget = under?.closest<HTMLElement>("[data-rail-cat]")?.dataset.railCat;
     const row = railTarget ? null : under?.closest<HTMLElement>("[data-arrange-item]");
     const targetItem = row?.dataset.arrangeItem;
@@ -257,9 +258,8 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
       // rows belong to no row, and a drop line that jumped to the end of the list in every gap
       // would be unusable.
       const rows = document.querySelectorAll<HTMLElement>(`[data-arrange-cat="${targetCat}"] [data-arrange-item]`);
-      let index = layout.items[targetCat].length;
+      let index = 0;
       if (!railTarget) {
-        index = 0;
         for (const r of rows) {
           const box = r.getBoundingClientRect();
           if (box.top + box.height / 2 < e.clientY) index += 1;
@@ -274,7 +274,8 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
     setDrop(null);
     relayout((l) => {
       const rest = without(l.items[from], drag.id);
-      let at = rest.length;
+      // Its own entry in the rail means the top, like any other category's entry.
+      let at = railTarget ? 0 : rest.length;
       if (targetItem && row) {
         const rect = row.getBoundingClientRect();
         at = rest.indexOf(targetItem) + (e.clientY > rect.top + rect.height / 2 ? 1 : 0);

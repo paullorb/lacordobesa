@@ -3,6 +3,7 @@ import { StaffLoading } from "@/components/staff/card-bits";
 import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
+import { DateField, TimeField } from "@/components/staff/pickers";
 import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime, WEEKDAYS_DE } from "@/lib/data";
@@ -75,15 +76,13 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
                 <label className="!mb-0 flex items-center justify-end gap-2 text-sm normal-case tracking-normal sm:order-last sm:justify-start">
                   <input type="checkbox" name={`closed_${wd}`} defaultChecked={h?.is_closed ?? false} /> Ruhetag
                 </label>
-                <input
-                  type="time"
+                <TimeField
                   name={`opens_${wd}`}
                   defaultValue={fmtTime(h?.opens ?? null)}
                   aria-label={`${WEEKDAYS_DE[wd]} öffnet`}
                   className="min-w-0"
                 />
-                <input
-                  type="time"
+                <TimeField
                   name={`closes_${wd}`}
                   defaultValue={fmtTime(h?.closes ?? null)}
                   aria-label={`${WEEKDAYS_DE[wd]} schließt`}
@@ -125,11 +124,11 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
         <ActionForm action={addClosure} className="grid gap-3 sm:grid-cols-[auto_auto_1fr_auto]" successText="Eingetragen.">
           <div>
             <label htmlFor="cl-from">Von</label>
-            <input id="cl-from" name="from" type="date" min={today} required />
+            <DateField id="cl-from" name="from" min={today} required />
           </div>
           <div>
             <label htmlFor="cl-to">Bis</label>
-            <input id="cl-to" name="to" type="date" min={today} />
+            <DateField id="cl-to" name="to" min={today} />
           </div>
           <div>
             <label htmlFor="cl-reason">Grund</label>
