@@ -339,7 +339,6 @@ export const en: Dictionary = {
       frozen: { title: "Par-baked, to keep in your freezer", short: "Par-baked", text: "You finish baking them at home later." },
     },
     preparationNote: "This applies to the empanadas in your order.",
-    callInstead: "Prefer to call? ",
     changeCategories: "Change selection",
     changeItems: "Change order",
     changePreparation: "Change preparation",
