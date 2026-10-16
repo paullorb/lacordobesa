@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
+import { HeroCursor } from "@/components/hero-cursor";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { Logo } from "@/components/logo";
@@ -137,12 +138,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <OpenStatus hours={openingHours} closures={closures} locale={locale} />
             <Logo />
           </div>
-          {/* A line that keeps wiping across, beside one word: the page goes on below the fold.
-              Decorative, and it fades with the rest of the hero as the reader takes the hint. */}
-          <div className="hero-scroll" aria-hidden="true">
-            <span>{t.heroScroll}</span>
-            <span className="hero-scroll-line" />
-          </div>
+          {/* The page goes on below the fold: said by the pointer, not by a word in the corner. */}
+          <HeroCursor />
         </section>
 
         {/* Decorative: the visual track repeats the phrases six times so it is wider than any

@@ -24,13 +24,13 @@ async function Preorders() {
   const [{ data, error }, { data: dishes }] = await Promise.all([
     supabase
       .from("preorders")
-      .select("*, preorder_lines(id, label, unit_label, price_label, quantity)")
+      .select("*, preorder_lines(id, label, unit_label, price_label, quantity, menu_items(menu_categories(slug)))")
       .gte("pickup_date", today)
       .order("pickup_date")
       .order("pickup_time"),
     supabase
       .from("menu_items")
-      .select("id, name, preorder_step, preorder_unit, menu_categories(label, sort_order)")
+      .select("id, name, preorder_step, preorder_unit, menu_categories(label, slug, sort_order)")
       .eq("is_preorderable", true)
       .eq("is_available", true)
       .order("sort_order"),
@@ -49,7 +49,7 @@ async function Preorders() {
   // In menu order: category first, then the dish's place inside it.
   const items = (dishes ?? [])
     .toSorted((a, b) => (a.menu_categories?.sort_order ?? 0) - (b.menu_categories?.sort_order ?? 0))
-    .map((d) => ({ id: d.id, name: d.name, step: d.preorder_step, unit: d.preorder_unit, category: d.menu_categories?.label ?? "Weitere" }));
+    .map((d) => ({ id: d.id, name: d.name, step: d.preorder_step, unit: d.preorder_unit, category: d.menu_categories?.label ?? "Weitere", slug: d.menu_categories?.slug ?? "" }));
   const openOrders = orders.filter((o) => o.status === "pending");
   const upcoming = orders.filter((o) => o.status === "confirmed" || o.status === "ready");
   const done = orders.filter((o) => o.status === "collected" || o.status === "cancelled");

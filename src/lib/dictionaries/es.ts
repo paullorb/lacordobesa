@@ -1,3 +1,4 @@
+import { reviewCountLabel } from "@/lib/reviews";
 /** Spanish copy, in Argentine voice.
  *
  *  Voseo throughout ("reservá", "contanos", "tenés"), which is what the existing eyebrows on the
@@ -55,7 +56,6 @@ export const es: Dictionary = {
       "Empanadas, clásicos dulces y especialidades caseras, hechas a la manera argentina y servidas en Frankfurt con todo el cariño.",
     heroReserve: "Reservar mesa",
     heroMenu: "Ver la carta",
-    heroScroll: "Deslizá",
     marqueeLabel: "Especialidades caseras",
     storyEyebrow: "Nuestro mundo chiquito",
     storyTitle: "Con un sabor que te trae recuerdos.",
@@ -81,7 +81,7 @@ export const es: Dictionary = {
     reviewsTitle: "Nuestros clientes lo dicen mejor.",
     reviewsText: "Leé vos mismo lo que escriben de nosotros, en sitios donde no podemos cambiar nada.",
     reviewsScoreBare: (value: string, scale: string) => `${value} de ${scale}`,
-    reviewsScore: (value: string, scale: string, count: number) => `${value} de ${scale} · ${count} reseñas`,
+    reviewsScore: (value: string, scale: string, count: number) => `${value} de ${scale} · ${reviewCountLabel(count)} reseñas`,
     reviewsAsOf: (date: string) => `A ${date}`,
     reviewsOpen: "Leer reseñas",
     reserveEyebrow: "Reservá tu mesa",
@@ -314,7 +314,9 @@ export const es: Dictionary = {
       item_unavailable: "Uno de los productos elegidos no se puede encargar por ahora. Recargá la página, por favor.",
     },
     legend: "¿Qué querés encargar?",
-    steps: { 1: "¿Qué te preparamos?", 2: "¿Cuándo lo retirás?", 3: "¿Cómo te contactamos?" },
+    steps: { 1: "¿Qué tenés ganas de comer?", 2: "¿Qué te preparamos?", 3: "¿Cuándo lo retirás?", 4: "¿Cómo te contactamos?" },
+    categoriesNote: "Podés elegir más de una.",
+    changeCategories: "Cambiar la elección",
     changeItems: "Cambiar el pedido",
     changeWhen: "Cambiar el día y la hora",
     continueLabel: "Seguir",
@@ -548,6 +550,7 @@ export const es: Dictionary = {
     close: "Cerrar",
     previous: "Foto anterior",
     next: "Foto siguiente",
-    view: "Ver",
+    /** Riding the pointer over a photo, one per photo. Argentine on purpose, in every language. */
+    cheers: ["¡Ñam!", "Uff", "¡Ayy!", "¡Eso!", "Mmm", "¡Qué rico!", "¡Epa!", "¡Joya!"],
   },
 };

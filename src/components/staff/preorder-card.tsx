@@ -1,5 +1,6 @@
 import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
 
+import { MenuIcon } from "@/components/icons";
 import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDate, fmtDateDE } from "@/lib/dates";
@@ -104,7 +105,8 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
       <ul className="grid gap-1 rounded bg-cream px-3 py-2 text-sm">
         {lines.map((l) => (
           <li key={l.id} className="flex justify-between gap-3">
-            <span>
+            <span className="flex items-center gap-1.5">
+              <MenuIcon slug={l.menu_items?.menu_categories?.slug ?? ""} size={16} className="shrink-0 text-blue-dark" />
               <strong>{l.quantity} ×</strong> {l.label} <span className="text-xs text-muted">pro {l.unit_label}</span>
             </span>
             {l.price_label && <span className="whitespace-nowrap text-xs text-muted">{l.price_label}</span>}

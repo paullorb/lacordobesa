@@ -2,11 +2,12 @@
 
 import { useActionState, useState } from "react";
 import { createPreorderManually } from "@/app/staff/actions";
+import { MenuIcon } from "@/components/icons";
 import { SubmitButton } from "@/components/staff/form-bits";
 import { DateField, TimeField } from "@/components/staff/pickers";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
-export type StaffPreorderItem = { id: string; name: string; category: string; step: number; unit: string };
+export type StaffPreorderItem = { id: string; name: string; category: string; slug: string; step: number; unit: string };
 
 /** A pre-order taken on the phone or at the counter: dishes, pickup, who. Saved as confirmed,
  *  because whoever types it in has just confirmed it with the guest. */
@@ -20,7 +21,10 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
     <form action={formAction} className="mt-4 grid gap-4">
       {categories.map((category) => (
         <fieldset key={category} className="grid gap-1.5">
-          <legend className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-muted">{category}</legend>
+          <legend className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+            <MenuIcon slug={items.find((i) => i.category === category)?.slug ?? ""} size={16} />
+            {category}
+          </legend>
           {items
             .filter((i) => i.category === category)
             .map((i) => {

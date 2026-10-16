@@ -1,13 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal, flushSync } from "react-dom";
 import { track } from "@/components/analytics";
 import { getDictionary } from "@/lib/dictionaries";
 import { GALLERY_CATEGORIES } from "@/lib/gallery";
 import type { Locale } from "@/lib/i18n";
 import { FLIP_DURATION, FLIP_EASE, motion, preloadMotion } from "@/lib/motion";
+
+const noSubscribe = () => () => {};
+
+/** A different word from the last one, so every new photo gets its own reaction. */
+function nextCheer(words: readonly string[], last: string) {
+  const pool = words.filter((w) => w !== last);
+  return pool[Math.floor(Math.random() * pool.length)] ?? last;
+}
 
 export type GalleryPhoto = { id: string; url: string; caption: string | null; category: string };
 
@@ -23,6 +31,13 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
    *  .gallery-cursor). Moved directly, not through state: a pointer moves far more often than
    *  React should render. */
   const cursor = useRef<HTMLSpanElement>(null);
+  /** The tile the label is over, so the word changes only when the pointer reaches another photo. */
+  const hovered = useRef<Element | null>(null);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+  // The label goes straight into <body>. Inside the page it sat under a section that GSAP's reveal
+  // leaves with a `transform`, and a transformed ancestor turns `position: fixed` into "fixed to
+  // that section": the label floated about 100px away from the pointer.
+  const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   /** The tile a reader opened the lightbox from, so the photo can grow out of it. Cleared once used,
    *  because stepping to the next photo is not an opening and must not fly in from the old tile. */
   const openedFrom = useRef<DOMRect | null>(null);
@@ -113,6 +128,37 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
     });
   }
 
+  /** Moves the label to the pointer and shows it over a photo. Entering another photo picks a new
+   *  word. Written to the DOM directly: a pointer moves far more often than React should render. */
+  function follow(tile: Element | null) {
+    const label = cursor.current;
+    const at = pointer.current;
+    if (!label) return;
+    if (at) {
+      // Placed without the glide when it appears, so it does not sweep in from where it last was.
+      if (!label.hasAttribute("data-on")) label.style.transition = "none";
+      label.style.translate = `${at.x}px ${at.y}px`;
+      if (!label.hasAttribute("data-on")) {
+        void label.offsetWidth;
+        label.style.transition = "";
+      }
+    }
+    if (tile && tile !== hovered.current) label.textContent = nextCheer(t.cheers, label.textContent ?? "");
+    hovered.current = tile;
+    label.toggleAttribute("data-on", !!tile);
+  }
+
+  // Scrolling moves the photos under a pointer that stays put, so the label has to ask again what it is over.
+  useEffect(() => {
+    const onScroll = () => {
+      const at = pointer.current;
+      if (!at) return;
+      follow(document.elementFromPoint(at.x, at.y)?.closest(".gallery-grid .gallery-tile") ?? null);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  });
+
   function step(delta: number) {
     if (visible.length < 2) return;
     setOpenId(visible[(index + delta + visible.length) % visible.length].id);
@@ -134,12 +180,13 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
         className="gallery-grid"
         ref={grid}
         onPointerMove={(e) => {
-          const label = cursor.current;
-          if (!label) return;
-          label.style.translate = `${e.clientX}px ${e.clientY}px`;
-          label.toggleAttribute("data-on", !!(e.target as Element).closest(".gallery-tile"));
+          pointer.current = { x: e.clientX, y: e.clientY };
+          follow((e.target as Element).closest(".gallery-tile"));
         }}
-        onPointerLeave={() => cursor.current?.removeAttribute("data-on")}
+        onPointerLeave={() => {
+          pointer.current = null;
+          follow(null);
+        }}
       >
         {visible.map((p, i) => (
           // The photo's own id, so Flip pairs the two layouts by photograph rather than by whichever
@@ -167,9 +214,13 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
         ))}
       </ul>
       {/* Decorative: the tile is already a button whose name is the photo's caption. */}
-      <span className="gallery-cursor" ref={cursor} aria-hidden="true">
-        {t.view}
-      </span>
+      {mounted &&
+        createPortal(
+          <span className="gallery-cursor" ref={cursor} aria-hidden="true">
+            {t.cheers[0]}
+          </span>,
+          document.body,
+        )}
 
       <dialog
         ref={dialog}
