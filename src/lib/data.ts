@@ -74,6 +74,22 @@ export async function getActiveSpecials(): Promise<Tables<"specials">[]> {
   return data ?? [];
 }
 
+/** The "what we may offer" cards above the specials sign-up. Only active ones; RLS enforces that too,
+ *  so an inactive idea can never reach a public page. Invalidated with the rest of the content. */
+export async function getSpecialIdeas(): Promise<Tables<"special_ideas">[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAG.content);
+  const supabase = createPublicClient();
+  const { data } = await supabase
+    .from("special_ideas")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order")
+    .order("created_at");
+  return data ?? [];
+}
+
 export async function getAnnouncement(): Promise<string> {
   "use cache";
   cacheLife("hours");

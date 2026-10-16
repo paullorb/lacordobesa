@@ -30,7 +30,7 @@ export const viewport: Viewport = { themeColor: APPS.public.themeColor };
  */
 export function RootDocument({ locale, children }: { locale: Locale; children: ReactNode }) {
   return (
-    <html lang={INTL_LOCALE[locale]} className={`${sans.variable} ${serif.variable}`}>
+    <html lang={INTL_LOCALE[locale]} data-scroll-behavior="smooth" className={`${sans.variable} ${serif.variable}`}>
       <body>
         {children}
         <Analytics />

@@ -63,3 +63,18 @@ export function localeHref(locale: Locale, path: string): string {
 export function alternates(path: string): Record<string, string> {
   return Object.fromEntries(LOCALES.map((locale) => [INTL_LOCALE[locale], localeHref(locale, path)]));
 }
+
+/** The inverse of localeHref for a pathname: "/es/karte" -> "/karte", "/en" -> "/". */
+export function stripLocale(pathname: string): string {
+  for (const locale of LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    if (pathname === `/${locale}`) return "/";
+    if (pathname.startsWith(`/${locale}/`)) return pathname.slice(locale.length + 1);
+  }
+  return pathname;
+}
+
+/** Which language a pathname belongs to: "/es/karte" -> "es", "/karte" -> "de". */
+export function localeOfPath(pathname: string): Locale {
+  return LOCALES.find((l) => l !== DEFAULT_LOCALE && (pathname === `/${l}` || pathname.startsWith(`/${l}/`))) ?? DEFAULT_LOCALE;
+}

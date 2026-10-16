@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { joinWaitlist } from "@/app/reservierung/actions";
+import { PhoneNote } from "@/components/phone-note";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
@@ -83,6 +84,7 @@ export function WaitlistForm({
         <button type="submit" className="button" disabled={pending}>
           {pending ? t.submitting : t.submit}
         </button>
+        <PhoneNote locale={locale} />
       </form>
     </details>
   );

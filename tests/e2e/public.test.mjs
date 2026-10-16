@@ -17,17 +17,32 @@ after(closeBrowser);
 const berlinToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
 
 describe("the reservation calendar", () => {
-  test("marks today as Heute, and marks nothing else", { skip }, async () => {
+  test("rings today and prints no word on any day", { skip }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        const marked = await page.locator(".day", { has: page.locator("small") }).all();
-        assert.equal(marked.length, 1, "exactly one day should be labelled");
+        assert.equal(await page.locator(".day small").count(), 0, "no day should carry a label by default");
+        const marked = await page.locator(".day.is-today").all();
+        assert.equal(marked.length, 1, "exactly one day should be ringed");
         const label = await marked[0].textContent();
         const expected = Number(berlinToday().slice(8));
-        assert.ok(
-          label.startsWith(String(expected)),
-          `the calendar calls day ${label.replace(/\\D+$/, "")} "Heute", but today is the ${expected}.`,
-        );
+        assert.equal(Number(label), expected, `the calendar rings day ${label}, but today is the ${expected}.`);
+        assert.equal(await marked[0].getAttribute("data-hint"), "Heute");
+      },
+    });
+  });
+
+  test("pointing at a day names it the way people say it", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        const hints = await page.locator(".day:not(:disabled)").evaluateAll((els) => els.slice(0, 3).map((e) => e.getAttribute("data-hint")));
+        assert.ok(hints.every((h) => h && h.length > 0), "every open day should have a hint");
+        assert.ok(hints.includes("Heute") || hints.includes("Morgen") || hints.includes("Übermorgen"), `no relative name among ${hints}`);
+        const day = page.locator(".day:not(:disabled)").first();
+        await day.scrollIntoViewIfNeeded();
+        await day.hover();
+        await page.waitForTimeout(300);
+        const content = await day.evaluate((e) => getComputedStyle(e, "::after").content);
+        assert.notEqual(content, "none", "the hint is not drawn on hover");
       },
     });
   });
@@ -67,10 +82,10 @@ describe("the reservation calendar", () => {
       },
       body: async ({ page }) => {
         await page.waitForTimeout(500);
-        const marked = page.locator(".day", { has: page.locator("small") });
+        const marked = page.locator(".day.is-today");
         await marked.first().waitFor({ timeout: 15_000 });
         const label = (await marked.first().textContent()).replace(/\D+$/, "");
-        assert.equal(Number(label), expected, "the Heute badge ignored the browser's clock");
+        assert.equal(Number(label), expected, "the today ring ignored the browser's clock");
       },
     });
   });
@@ -80,8 +95,8 @@ describe("the reservation calendar", () => {
       body: async ({ page }) => {
         const disabled = await page.locator(".day:disabled").count();
         assert.ok(disabled > 0, "no day is closed, which would mean the opening hours never arrived");
-        const title = await page.locator(".day:disabled").first().getAttribute("title");
-        assert.ok(title && title.length > 0, "a closed day should say why");
+        const hint = await page.locator(".day:disabled").first().getAttribute("data-hint");
+        assert.ok(hint && hint.length > 0, "a closed day should say why");
       },
     });
   });
@@ -219,10 +234,8 @@ describe("language", () => {
     test(`the switch keeps you on the same page, ${from} to ${to}`, { skip }, async () => {
       await visit(from, {
         body: async ({ page }) => {
-          // Below 1321px the nav lives behind the menu button, which is where the switch is too.
-          const link = page.locator(`.lang-switch a[hreflang="${to}"]`);
-          if (!(await link.isVisible())) await page.locator(".menu-toggle").click();
-          await link.click();
+          // The footer carries the switch at every width; the bar's dropdown is tested below.
+          await page.locator(`footer .lang-switch a[hreflang="${to}"]`).click();
           await page.waitForURL((url) => url.pathname === tail, { timeout: 30_000 });
         },
       });
@@ -234,16 +247,23 @@ describe("language", () => {
       await visit("/karte", {
         width,
         body: async ({ page }) => {
-          const link = page.locator('.lang-switch a[hreflang="en"]');
-          if (!(await link.isVisible())) {
-            const toggle = page.locator(".menu-toggle");
-            assert.ok(await toggle.isVisible(), `at ${width}px the switch is hidden and so is the menu button`);
-            await toggle.click();
-          }
-          await link.waitFor({ state: "visible", timeout: 10_000 });
+          await page.locator('footer .lang-switch a[hreflang="en"]').waitFor({ state: "visible", timeout: 10_000 });
         },
       });
     }
+  });
+
+  test("the bar's language dropdown opens on hover and lists all three", { skip }, async () => {
+    await visit("/karte", {
+      width: 1440,
+      body: async ({ page }) => {
+        const list = page.locator(".lang-menu-list");
+        assert.equal(await list.isVisible(), false, "the list should stay closed until the bar is pointed at");
+        await page.locator(".lang-menu").hover();
+        await list.waitFor({ state: "visible", timeout: 5_000 });
+        assert.equal(await list.locator("a, [aria-current]").count(), 3);
+      },
+    });
   });
 
   test("every link in the phone menu carries a decorative icon", { skip }, async () => {

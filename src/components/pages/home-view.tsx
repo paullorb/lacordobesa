@@ -4,7 +4,9 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
+import { CheerCursor } from "@/components/cheer-cursor";
 import { HeroCursor } from "@/components/hero-cursor";
+import { Marquee } from "@/components/marquee";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { Logo } from "@/components/logo";
@@ -14,6 +16,7 @@ import { JsonLd } from "@/components/json-ld";
 import { ReviewStars } from "@/components/review-stars";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
+import { PhoneNote } from "@/components/phone-note";
 import { EmpanadaMark, Repulgue, repulgueTile } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
 import { SpecialsOptin } from "@/components/specials-optin";
@@ -30,6 +33,7 @@ import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
   getActiveSpecials,
+  getSpecialIdeas,
   getAnnouncement,
   getHomePhotos,
   getMenu,
@@ -53,10 +57,11 @@ const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, menu, specials, hours, closures, reservation, photos, instagram, reviewScores] = await Promise.all([
+  const [announcement, menu, specials, specialIdeas, hours, closures, reservation, photos, instagram, reviewScores] = await Promise.all([
     getAnnouncement(),
     getMenu(),
     getActiveSpecials(),
+    getSpecialIdeas(),
     getOpeningHours(),
     getUpcomingClosures(),
     getReservationSettings(),
@@ -94,6 +99,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
       {/* Wide screens only (see .chapter-nav): the page's seven chapters, with the current one marked. */}
       <ChapterNav label={t.chaptersLabel} chapters={chapters} />
+      <CheerCursor locale={locale} />
 
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
@@ -133,6 +139,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 {t.heroMenu}
               </Link>
             </div>
+            <PhoneNote locale={locale} className="hero-phone" />
           </div>
           <div className="hero-note">
             <OpenStatus hours={openingHours} closures={closures} locale={locale} />
@@ -145,7 +152,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
         {/* Decorative: the visual track repeats the phrases six times so it is wider than any
             viewport, which would mean hearing each one six times. The track is hidden from
             assistive technology and the phrases are offered once, in order, instead. */}
-        <div className="marquee">
+        <Marquee>
           <p className="sr-only">{`${t.marqueeLabel}: ${PHRASES.join(". ")}.`}</p>
           <div className="marquee-track" aria-hidden="true">
             <div className="marquee-inner">
@@ -159,7 +166,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
               ))}
             </div>
           </div>
-        </div>
+        </Marquee>
 
         <section className="section" id="geschichte">
           <div className="intro-grid">
@@ -201,7 +208,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
             <div className="menu-grid">
               {cards.map((item, i) => (
-                <article className="menu-card" key={item.id} data-spotlight="">
+                <article className="menu-card" key={item.id} data-spotlight="" data-cheer="">
                   <div>
                     <span className="dish-number">
                       {String(i + 1).padStart(2, "0")} / {item.category.label}
@@ -246,7 +253,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
               </div>
             )}
             <div id={specials.length > 0 ? undefined : "specials"}>
-              <SpecialsOptin locale={locale} />
+              <SpecialsOptin locale={locale} ideas={specialIdeas} />
             </div>
           </div>
         </section>

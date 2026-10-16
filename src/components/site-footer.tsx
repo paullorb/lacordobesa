@@ -6,6 +6,7 @@ import { fmtTime, getOpeningHours } from "@/lib/data";
 import { todayISO } from "@/lib/dates";
 import { HeartIcon } from "@/components/icons";
 import { InstagramIcon } from "@/components/instagram-icon";
+import { LanguageSwitch } from "@/components/language-switch";
 import { LocalTime } from "@/components/local-time";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { Logo } from "@/components/logo";
@@ -86,6 +87,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
         </span>
         {/* The shop's clock: what time it is in Frankfurt, wherever the reader is. */}
         <LocalTime locale={locale} />
+        <LanguageSwitch locale={locale} label={dict.nav.language} />
         <span className="footer-legal">
           {/* Impressum and Datenschutzerklärung stay German in every locale: the German text is the
               legally binding one, and a translated version would be a second thing to keep correct.

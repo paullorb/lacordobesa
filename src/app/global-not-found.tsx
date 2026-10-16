@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { RootDocument, rootMetadata } from "@/app/root-document";
+import { PhoneNote } from "@/components/phone-note";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { whatsappHref } from "@/lib/contact";
@@ -55,6 +56,7 @@ export default function GlobalNotFound() {
                   {t.reserve}
                 </Link>
               </div>
+              <PhoneNote locale={DEFAULT_LOCALE} />
             </div>
           </section>
         </main>

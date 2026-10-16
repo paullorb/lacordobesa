@@ -24,6 +24,8 @@ type Props = {
   stepLabel: (step: number, total: number) => string;
   /** Shown under the current step, for notes that belong to the form rather than to one question. */
   footer?: ReactNode;
+  /** The step heading's level: 3 under a section's h2, 2 when the form follows the page's h1 directly. */
+  headingLevel?: 2 | 3;
 };
 
 /**
@@ -35,7 +37,8 @@ type Props = {
  * chips, heading, the animation between steps) and nothing about what is being asked, so neither
  * form's own state machine has to move in here.
  */
-export function Wizard({ step, setStep, steps, stepLabel, footer }: Props) {
+export function Wizard({ step, setStep, steps, stepLabel, footer, headingLevel = 3 }: Props) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const total = steps.length;
   const current = steps[step - 1];
   if (!current) return null;
@@ -62,7 +65,7 @@ export function Wizard({ step, setStep, steps, stepLabel, footer }: Props) {
         </div>
       )}
 
-      <h3 className="wizard-title">{current.title}</h3>
+      <Heading className="wizard-title">{current.title}</Heading>
 
       {/* Keyed on the step so React remounts rather than reusing the node, which is what makes the
           wizard-step-in animation replay instead of firing once on first render. */}

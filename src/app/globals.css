@@ -824,10 +824,11 @@ body::after {
    without them simply shows the finished state rather than hiding content it cannot reveal. */
 
 @media (prefers-reduced-motion: no-preference) {
-  .marquee-track { animation: marquee-scroll 42s linear infinite; }
-  /* Pausing on hover and on keyboard focus lets anyone who wants to actually read it. */
-  .marquee:hover .marquee-track,
-  .marquee:focus-within .marquee-track { animation-play-state: paused; }
+  /* The ribbon is moved by components/marquee.tsx, which also slows it and turns it round when
+     pointed at. Pointed at, the outlined words fill in as well, as a nod to being noticed. */
+  .marquee-track { will-change: transform; }
+  .marquee-inner span:nth-child(even) { transition: color .5s ease; }
+  @media (hover: hover) { .marquee:hover .marquee-inner span:nth-child(even) { color: var(--blue-dark); } }
 
   /* The hero settles rather than arrives: a slow drift out of a slight over-scale. Runs once, so
      it reads as the page composing itself, not as an effect. */
@@ -860,10 +861,11 @@ body::after {
   /* The headline rises in line by line, then the copy under it follows. */
   /* The headline rises word by word, each out of its own box, then the copy under it follows. */
   .hero-word > span { animation: word-rise 1.1s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(.06s + var(--w, 0) * .07s); }
-  .hero .eyebrow, .hero-text, .hero-actions { animation: page-in .8s cubic-bezier(.2,.7,.2,1) both; }
+  .hero .eyebrow, .hero-text, .hero-actions, .hero-phone { animation: page-in .8s cubic-bezier(.2,.7,.2,1) both; }
   .hero .eyebrow { animation-delay: .05s; }
   .hero-text { animation-delay: .5s; }
   .hero-actions { animation-delay: .62s; }
+  .hero-phone { animation-delay: .72s; }
   .hero-cursor svg { animation: cursor-nudge 1.6s cubic-bezier(.65,0,.35,1) infinite; }
 
   @supports (animation-timeline: view()) {
@@ -926,7 +928,6 @@ body::after {
 @keyframes heading-reveal { from { opacity: 0; transform: translateY(.3em); clip-path: inset(0 0 60% 0); } to { opacity: 1; transform: none; clip-path: inset(-20% -5% -30% -5%); } }
 @keyframes edge-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 @keyframes repulgue-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-@keyframes marquee-scroll { to { transform: translateX(-50%); } }
 @keyframes hero-settle { from { transform: scale(1.055); } to { transform: scale(1); } }
 @keyframes section-reveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
@@ -1075,7 +1076,7 @@ body::after {
 @media (hover: hover) and (pointer: fine) {
   .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); line-height: 1.1; text-align: center; padding: .4rem; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
   .gallery-cursor[data-on] { opacity: 1; scale: 1; }
-  body:has(> .gallery-cursor[data-on]) .gallery-tile { cursor: none; }
+  body:has(> .gallery-cursor[data-on]) [data-cheer] { cursor: none; }
 }
 
 /* Today's row in the opening hours, marked by components/opening-hours.tsx once the browser knows
@@ -1162,3 +1163,180 @@ html:has(.staff) { scrollbar-gutter: stable; }
 /* menu icons — the glyph sits in a gutter at the start of the line, pinned to the first text line
    rather than the baseline, so a two-line description does not drag it down the row. */
 .menu-icon { flex: none; align-self: flex-start; margin-top: .1rem; color: var(--blue-dark); opacity: .8; }
+
+/* Specials sign-up, in two steps: the showcase of ideas and a yes/no question first, the fields only
+   after a yes. The steps fold with the same grid-rows trick as .reveal, and `inert` (set in
+   specials-optin.tsx) keeps a folded step out of the tab order and away from screen readers. */
+.special-ideas { max-width: 720px; margin: 3.4rem auto 0; }
+.special-ideas-grid { list-style: none; margin: .9rem 0 0; padding: 0; display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.special-ideas h3 { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; margin: .2rem 0 0; }
+.special-ideas-grid li { display: grid; align-content: start; gap: .25rem; padding: 1rem 1.2rem; background: var(--paper); border: 1px dashed var(--line); border-left: 3px solid var(--blue-dark); }
+.special-ideas-grid .tag { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-dark); }
+.special-ideas-grid strong { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
+.special-ideas-grid p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; }
+.special-ideas-note { margin: 1rem 0 0; color: var(--muted); font-size: var(--fs-xs); line-height: 1.6; }
+.optin.optin-after-ideas { margin-top: 2.4rem; }
+.optin-steps { display: grid; min-width: 0; }
+.optin-step { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .35s cubic-bezier(.22,.61,.36,1), opacity .25s ease; }
+.optin-step[data-open="true"] { grid-template-rows: 1fr; opacity: 1; }
+.optin-step-inner { min-height: 0; overflow: hidden; padding: 3px; margin: -3px; }
+.optin-ask { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+.optin-declined { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: baseline; color: var(--muted); font-size: var(--fs-sm); }
+.optin-reopen { font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--line); padding: .4rem 0; cursor: pointer; }
+.optin-reopen:hover { border-bottom-color: var(--ink); }
+.optin-reopen:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .optin-step { transition: none; } }
+
+/* Calendar days: today is a ring, not a label, and pointing at a day names it ("Morgen", "Diesen
+   Freitag") in a small tag above it. The tag hugs the left or right edge in the outer columns, so
+   it never runs off the calendar. */
+.day { position: relative; transition: transform .18s cubic-bezier(.2,.7,.2,1), border-color .18s, background-color .18s, box-shadow .18s; }
+.day.is-today:not([aria-pressed="true"]) { box-shadow: inset 0 0 0 1.5px var(--blue-dark); border-color: var(--blue-dark); }
+.day::after { content: attr(data-hint); position: absolute; z-index: 5; bottom: calc(100% + 6px); left: 50%; translate: -50% 4px; padding: .3rem .6rem; border-radius: 6px; background: var(--ink); color: var(--paper); font-family: var(--sans); font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0; line-height: 1.3; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s, translate .15s; }
+.day[data-col="0"]::after, .day[data-col="1"]::after { left: 0; translate: 0 4px; }
+.day[data-col="5"]::after, .day[data-col="6"]::after { left: auto; right: 0; translate: 0 4px; }
+.day:focus-visible::after { opacity: 1; translate: -50% 0; }
+.day[data-col="0"]:focus-visible::after, .day[data-col="1"]:focus-visible::after, .day[data-col="5"]:focus-visible::after, .day[data-col="6"]:focus-visible::after { translate: 0 0; }
+@media (hover: hover) {
+  .day:hover::after { opacity: 1; translate: -50% 0; transition-delay: .12s; }
+  .day[data-col="0"]:hover::after, .day[data-col="1"]:hover::after, .day[data-col="5"]:hover::after, .day[data-col="6"]:hover::after { translate: 0 0; }
+  .day:not(:disabled):not([aria-pressed="true"]):hover { transform: translateY(-2px); border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
+  .slot:not(:disabled):not([aria-pressed="true"]):hover { transform: translateY(-2px); border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(31,83,99,.12); }
+}
+.slot { transition: transform .18s cubic-bezier(.2,.7,.2,1), border-color .18s, background-color .18s, color .18s, box-shadow .18s; }
+.day:disabled::after { background: var(--muted); }
+
+/* A text button reads as a link before it is touched (a pale underline) and fills it in on hover. */
+.text-button { text-decoration: underline; text-decoration-color: rgba(31,83,99,.35); text-underline-offset: 4px; background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat; transition: background-size .35s cubic-bezier(.2,.7,.2,1), color .2s; }
+.text-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+@media (hover: hover) {
+  .text-button:hover { background-size: 100% 2px; }
+  .more-dates:hover .arrow-down { translate: 0 3px; }
+}
+.more-dates .arrow-down { transition: translate .25s cubic-bezier(.2,.7,.2,1); }
+@media (prefers-reduced-motion: reduce) { .day, .slot { transition: none; } .day::after { transition: none; } }
+
+/* Language switch. The desktop bar only carries a globe and the current code; the list opens when
+   the globe is pointed at, focused with the keyboard or tapped. The open phone menu keeps its row of
+   codes, and the footer has its own quiet one, so a visitor who wants another language always finds it. */
+.lang-menu { position: relative; display: none; }
+.lang-menu-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 36px; padding: 0 .65rem; border: 1px solid transparent; border-radius: 999px; background: none; color: var(--muted); font: inherit; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; cursor: pointer; transition: color .2s, background-color .2s, border-color .2s; }
+.lang-menu-list { position: absolute; z-index: 20; top: 100%; right: 0; padding-top: .5rem; visibility: hidden; opacity: 0; translate: 0 -4px; transition: opacity .18s, translate .18s, visibility 0s .18s; }
+.lang-menu-list ul { list-style: none; margin: 0; padding: .35rem; display: grid; gap: .1rem; min-width: 9.5rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 30px rgba(31,83,99,.14); }
+.lang-menu-list a, .lang-menu-list span[aria-current] { display: block; padding: .5rem .8rem; border-radius: 8px; font-size: var(--fs-sm); font-weight: 600; text-decoration: none; color: var(--ink); }
+.lang-menu-list span[aria-current] { background: var(--mint); color: var(--blue-dark); }
+.lang-menu[data-open] .lang-menu-list, .lang-menu:has(:focus-visible) .lang-menu-list { visibility: visible; opacity: 1; translate: 0 0; transition-delay: 0s; }
+.lang-menu[data-open] .lang-menu-button, .lang-menu-button:focus-visible { color: var(--ink); border-color: var(--line); }
+@media (hover: hover) {
+  .lang-menu:hover .lang-menu-list { visibility: visible; opacity: 1; translate: 0 0; transition-delay: 0s; }
+  .lang-menu:hover .lang-menu-button { color: var(--ink); border-color: var(--line); background: var(--paper); }
+  .lang-menu-list a:hover { background: var(--mint); }
+}
+@media (min-width: 1321px) {
+  .lang-menu { display: block; margin-right: .3rem; }
+  .site-nav .lang-switch { display: none; }
+}
+.site-nav .lang-switch ul { padding: .2rem; border: 1px solid var(--line); border-radius: 999px; }
+.footer-bottom .lang-switch ul { gap: .1rem; padding: .15rem; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; }
+.footer-bottom .lang-switch a, .footer-bottom .lang-switch span[aria-current] { padding: .25rem .65rem; border-radius: 999px; color: rgba(255,253,248,.6); transition: color .2s, background-color .2s; }
+.footer-bottom .lang-switch span[aria-current] { color: #fff; background: rgba(255,255,255,.14); }
+.footer-bottom .lang-switch a:hover { color: #9ed8f2; }
+
+/* Pre-order wizard: small rewards for choosing, and the fresh-or-frozen cards.
+   The state is the trigger, not a script. A CSS animation runs when its selector starts matching, so a
+   category chip pops when it turns aria-pressed="true", a dish row flashes when it gains data-chosen
+   (0 to 1), and the quantity number swaps between two identical keyframes (data-bump "up-0" / "up-1")
+   because a new animation-name is what restarts it while the node, and its aria-live announcement, stays.
+   All motion sits behind prefers-reduced-motion: no-preference; the check badge itself is state, so it
+   stays when motion is off. */
+.slots.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .55rem; }
+.slot.choice { position: relative; display: grid; gap: .2rem; align-content: start; padding: .85rem 2.6rem .85rem 1.1rem; border-radius: 14px; text-align: left; line-height: 1.35; }
+.slot.choice strong { font-size: var(--fs-base); font-weight: 700; }
+.slot.choice small { font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; opacity: .8; }
+.slot.choice::after, .preorder-group li[data-chosen]::after { content: "✓"; content: "✓" / ""; display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--blue-dark); color: white; font-size: .8rem; font-weight: 700; line-height: 1; }
+.slot.choice::after { position: absolute; top: .85rem; right: .9rem; opacity: 0; scale: .4; transition: opacity .15s; }
+.slot.choice[aria-pressed="true"]::after { opacity: 1; scale: 1; background: white; color: var(--ink); }
+.preorder-group li { position: relative; }
+.preorder-group li[data-chosen]::after { position: absolute; top: -.6rem; left: .8rem; box-shadow: 0 0 0 2px var(--cream); }
+.stepper output { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .slot-icon[aria-pressed="true"], .slot.choice[aria-pressed="true"] { animation: pick-pop .45s cubic-bezier(.34,1.56,.64,1), pick-ring .65s ease-out; }
+  .slot-icon[aria-pressed="true"] svg { animation: pick-wiggle .7s .05s ease-in-out; }
+  .slot.choice::after { transition: opacity .15s, scale .35s cubic-bezier(.34,1.56,.64,1); }
+  .preorder-group li[data-chosen] { animation: row-flash 1.1s ease-out; }
+  .preorder-group li[data-chosen]::after { animation: pick-badge .4s cubic-bezier(.34,1.56,.64,1); }
+
+  .stepper button { transition: transform .14s cubic-bezier(.34,1.56,.64,1), border-color .2s, background-color .2s; }
+  .stepper button:active:not(:disabled) { transform: scale(.86); background: var(--mint); }
+  .stepper output[data-bump="up-0"] { animation: qty-up-a .34s cubic-bezier(.34,1.56,.64,1); }
+  .stepper output[data-bump="up-1"] { animation: qty-up-b .34s cubic-bezier(.34,1.56,.64,1); }
+  .stepper output[data-bump="down-0"] { animation: qty-down-a .26s ease-out; }
+  .stepper output[data-bump="down-1"] { animation: qty-down-b .26s ease-out; }
+}
+@keyframes pick-pop { 0% { transform: scale(.94); } 55% { transform: scale(1.05); } 100% { transform: none; } }
+@keyframes pick-ring { from { box-shadow: 0 0 0 0 rgba(31,83,99,.35); } to { box-shadow: 0 0 0 12px rgba(31,83,99,0); } }
+@keyframes pick-wiggle { 0% { transform: none; } 25% { transform: rotate(-14deg) scale(1.25); } 50% { transform: rotate(11deg) scale(1.25); } 75% { transform: rotate(-5deg) scale(1.1); } 100% { transform: none; } }
+@keyframes pick-badge { from { transform: scale(0) rotate(-40deg); } to { transform: none; } }
+@keyframes row-flash { from { background-color: var(--mint); } }
+@keyframes qty-up-a { 0% { transform: none; } 45% { transform: translateY(-4px) scale(1.5); } 100% { transform: none; } }
+@keyframes qty-up-b { 0% { transform: none; } 45% { transform: translateY(-4px) scale(1.5); } 100% { transform: none; } }
+@keyframes qty-down-a { 0% { transform: none; } 40% { transform: translateY(3px) scale(.75); } 100% { transform: none; } }
+@keyframes qty-down-b { 0% { transform: none; } 40% { transform: translateY(3px) scale(.75); } 100% { transform: none; } }
+
+/* Leaving a page: everything but the header fades away before the router switches, so the scroll
+   back to the top happens while nothing is visible (components/route-transition.tsx). */
+@media (prefers-reduced-motion: no-preference) {
+  html.route-leaving .site > :not(.site-header, .nav-backdrop) { animation: page-out .18s cubic-bezier(.4,0,1,1) both; pointer-events: none; }
+}
+@keyframes page-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* Catering ideas: pointed at, a row slides in, its number leans forward and a coral line draws along
+   its foot, the way the menu list and the footer links already respond. */
+.idea-grid li { position: relative; transition: translate .3s cubic-bezier(.2,.7,.2,1); }
+.idea-grid li::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.idea-num { display: inline-block; transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+.site .idea-grid h2 { transition: color .25s; }
+@media (hover: hover) {
+  .idea-grid li:hover { translate: 6px 0; }
+  .idea-grid li:hover::after { transform: scaleX(1); }
+  .idea-grid li:hover .idea-num { transform: scale(1.2) rotate(-6deg); }
+  .idea-grid li:hover h2 { color: var(--blue-dark); }
+}
+@media (prefers-reduced-motion: reduce) { .idea-grid li, .idea-grid li::after, .idea-num { transition: none; } }
+
+/* The empanada at the end of the progress line (the same drawing as the menu button). It sits on the
+   line, hangs a little over the page, and only appears once the reader has left the top: scroll-driven
+   like the line itself, so it needs neither JavaScript nor a listener. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .site-header::before { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -100% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
+  }
+}
+@keyframes read-empanada { 0% { left: 0; opacity: 0; } 1.5% { opacity: 1; } 100% { left: 100%; opacity: 1; } }
+
+/* Phone and e-mail links read as links everywhere: a quiet underline at rest, a heavier one on hover.
+   The numbers used to differ from block to block (some bare, some only coloured), and a guest who
+   does not expect a number to be tappable then has nothing that says so. Buttons and the pill-shaped
+   call link style themselves. */
+a[href^="tel:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a),
+a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 50%, transparent); text-underline-offset: .22em; transition: text-decoration-color .2s, text-decoration-thickness .2s, color .2s; }
+@media (hover: hover) {
+  a[href^="tel:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a):hover,
+  a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a):hover { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+}
+.nav-aside a[href^="tel:"] span, .nav-aside a[href^="mailto:"] span { text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 50%, transparent); text-underline-offset: .22em; }
+
+/* The call pill sits on the cream reserve section, where the old white border and hover vanished.
+   A visible border, a tinted fill and an underlined number make it read as the link it is. */
+.reserve-call { border-color: var(--blue-dark); background: var(--mint); color: var(--ink); }
+.reserve-call strong { color: var(--blue-dark); text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 50%, transparent); text-underline-offset: .22em; transition: text-decoration-color .2s; }
+@media (hover: hover) { .reserve-call:hover { background: var(--blue-dark); border-color: var(--blue-dark); color: white; } .reserve-call:hover strong { color: white; text-decoration-color: currentColor; text-decoration-thickness: 2px; } }
+
+/* "Lieber anrufen? +49 ..." under a form or a reserve button: small, quiet, but a visible link. */
+.phone-note { display: flex; align-items: center; gap: .5rem; margin: .9rem 0 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.phone-note svg { flex: 0 0 auto; }
+.phone-note a { color: var(--blue-dark); font-weight: 700; white-space: nowrap; }
+.phone-note-center { justify-content: center; }
+.hero-phone { color: rgba(255,253,248,.82); margin-top: 1rem; }
+.hero-phone a { color: inherit; }

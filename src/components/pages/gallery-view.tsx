@@ -31,7 +31,7 @@ export async function GalleryView({ locale }: { locale: Locale }) {
             {items.length > 0 ? (
               <GalleryGrid
                 locale={locale}
-                photos={items.map((i) => ({ id: i.id, url: i.image_url, caption: i.caption, category: i.category }))}
+                photos={items.map((i) => ({ id: i.id, url: i.image_url, caption: i.caption, category: i.category, cheer: i.cursor_cheer ?? i.category === "food" }))}
               />
             ) : (
               <p className="form-note">{t.empty}</p>

@@ -6,6 +6,7 @@ import { fmtTime } from "@/lib/data";
 import { fmtDate, fmtDateDE } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { preorderUrl } from "@/lib/site";
+import { isPreparation, PREPARATION_STAFF_LABEL } from "@/lib/preorder-preparation";
 import { type PreorderWithLines } from "@/lib/preorders";
 import { PREORDER_STATUS_LABEL } from "@/lib/statuses";
 
@@ -14,11 +15,19 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
   // The guest's own language, for the link and the WhatsApp text they get back.
   const locale = isLocale(o.locale) ? o.locale : DEFAULT_LOCALE;
   const guestLink = preorderUrl(o.manage_token, locale);
+  // Null on orders placed before the choice existed, on orders without empanadas and on those staff typed in.
+  const preparation = isPreparation(o.preparation) ? o.preparation : null;
+  const preparationText = {
+    de: { fresh: "Empanadas: frisch gebacken zum Mitnehmen", frozen: "Empanadas: vorgebacken zum Einfrieren" },
+    en: { fresh: "Empanadas: freshly baked to take away", frozen: "Empanadas: par-baked, to keep in your freezer" },
+    es: { fresh: "Empanadas: recién horneadas para llevar", frozen: "Empanadas: pre-horneadas para congelar" },
+  }[locale];
   const confirmText = (
     locale === "en"
       ? [
           `¡Hola ${o.name}! Your order at La Cordobesa is confirmed:`,
           ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          ...(preparation ? [preparationText[preparation]] : []),
           "",
           `Pickup on ${fmtDate(o.pickup_date, "en", { weekday: undefined })} at ${fmtTime(o.pickup_time)}. You pay on collection.`,
           "",
@@ -30,6 +39,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
       ? [
           `¡Hola ${o.name}! Tu pedido en La Cordobesa está confirmado:`,
           ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          ...(preparation ? [preparationText[preparation]] : []),
           "",
           `Retiro el ${fmtDate(o.pickup_date, "es", { weekday: undefined })} a las ${fmtTime(o.pickup_time)}. Se paga al retirar.`,
           "",
@@ -40,6 +50,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
       : [
           `Hola ${o.name}! Deine Vorbestellung bei La Cordobesa ist bestätigt:`,
           ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
+          ...(preparation ? [preparationText[preparation]] : []),
           "",
           `Abholung am ${fmtDateDE(o.pickup_date, { weekday: undefined })} um ${fmtTime(o.pickup_time)} Uhr. Bezahlt wird bei der Abholung.`,
           "",
@@ -56,6 +67,11 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
           <div className="flex items-center gap-2">
             <strong className="font-serif text-xl">{fmtTime(o.pickup_time)}</strong>
             <span className={`status status-${o.status}`}>{PREORDER_STATUS_LABEL[o.status]}</span>
+            {preparation && (
+              <span className={`status ${preparation === "frozen" ? "bg-sky-100 text-sky-800" : "bg-amber-50 text-amber-800"}`} title="Zubereitung der Empanadas">
+                {PREPARATION_STAFF_LABEL[preparation]}
+              </span>
+            )}
             {o.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
             {locale !== DEFAULT_LOCALE && (
               <span

@@ -108,8 +108,8 @@ describe("the open menu is a page of its own", () => {
           assert.ok(box.y + box.height >= height - 1, `the panel ends at ${box.y + box.height}px on a ${height}px screen`);
           // The shop's details are in it, each a link with a drawn icon.
           const aside = nav.locator(".nav-aside a");
-          assert.equal(await aside.count(), 3);
-          for (let i = 0; i < 3; i++) assert.ok(await aside.nth(i).isVisible(), `contact link ${i} is hidden`);
+          assert.equal(await aside.count(), 4);
+          for (let i = 0; i < 4; i++) assert.ok(await aside.nth(i).isVisible(), `contact link ${i} is hidden`);
         },
       });
     });

@@ -13,6 +13,7 @@ import {
   isMonth,
   isTime,
   leadBoundary,
+  relativeDay,
   monthRange,
   shiftMonth,
   startOfMonth,
@@ -296,3 +297,29 @@ describe("leadBoundary", () => {
   });
 });
 
+
+describe("relativeDay", () => {
+  // 2026-10-14 is a Wednesday.
+  const today = "2026-10-14";
+
+  test("names today, tomorrow and the day after", () => {
+    assert.deepEqual(relativeDay("2026-10-14", today), { kind: "today" });
+    assert.deepEqual(relativeDay("2026-10-15", today), { kind: "tomorrow" });
+    assert.deepEqual(relativeDay("2026-10-16", today), { kind: "dayAfter" });
+  });
+
+  test("later days in the same Monday-to-Sunday week are 'this'", () => {
+    assert.deepEqual(relativeDay("2026-10-17", today), { kind: "thisWeek", weekday: 6 });
+    assert.deepEqual(relativeDay("2026-10-18", today), { kind: "thisWeek", weekday: 0 });
+  });
+
+  test("the following week is 'next', and then nothing", () => {
+    assert.deepEqual(relativeDay("2026-10-19", today), { kind: "nextWeek", weekday: 1 });
+    assert.deepEqual(relativeDay("2026-10-25", today), { kind: "nextWeek", weekday: 0 });
+    assert.deepEqual(relativeDay("2026-10-26", today), { kind: "later" });
+  });
+
+  test("days before today are past", () => {
+    assert.deepEqual(relativeDay("2026-10-13", today), { kind: "past" });
+  });
+});

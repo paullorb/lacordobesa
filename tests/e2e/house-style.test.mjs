@@ -78,7 +78,8 @@ describe("the drawn arrows render", () => {
   test("they take the colour of the text they sit in", { skip }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        const mismatched = await page.locator(".icon-inline").evaluateAll((els) =>
+        // The menu panel's icons are blue on purpose (.nav-icon), the text beside them is ink.
+        const mismatched = await page.locator(".icon-inline:not(.nav-icon)").evaluateAll((els) =>
           els
             .filter((el) => getComputedStyle(el).stroke !== getComputedStyle(el.parentElement).color)
             .map((el) => el.parentElement.textContent.trim().slice(0, 30)),

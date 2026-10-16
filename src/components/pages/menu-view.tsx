@@ -3,6 +3,7 @@ import { MenuIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { MenuIndex } from "@/components/menu-index";
 import { MenuItemIcon } from "@/components/menu-icons";
+import { PhoneNote } from "@/components/phone-note";
 import { Repulgue } from "@/components/repulgue";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -105,6 +106,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
               {t.cta}
             </Link>
           </p>
+          <PhoneNote locale={locale} className="phone-note-center" />
         </section>
       </main>
 
