@@ -16,6 +16,10 @@
  * than fail: `npm run check` has to stay runnable on a laptop with nothing else going on.
  */
 import { chromium, firefox, webkit, devices } from "playwright";
+import { createHash } from "node:crypto";
+import { readFileSync, statSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 export const BASE = process.env.E2E_BASE ?? process.env.SHOTS_BASE ?? "http://localhost:3000";
 
@@ -178,28 +182,76 @@ export const haveStaffCredentials = () => Boolean(staffCredentials().user && sta
 
 let staffState = null;
 
-/** Signs in once per run and hands back the cookies, so each staff page does not log in again. */
+/**
+ * Where the signed-in cookies are kept between test *files*.
+ *
+ * `node --test` runs every file in its own process, so a module-level cache only ever saved one
+ * sign-in per file: a full run signed in about thirteen times, and two runs inside an hour added up
+ * to enough for Supabase Auth to start refusing with a rate limit. That surfaced as three tests
+ * failing with "staff sign-in failed" and an empty reason, which looks like a broken login form
+ * rather than like a quota. Keeping the state on disk means one sign-in for the whole run.
+ *
+ * Keyed on the origin, so a run against staging and a run against another environment never share a
+ * session, and short-lived: a stale session would fail as a redirect to /login, which is a confusing
+ * way to find out. Ten minutes is longer than a full run and far inside the token's own lifetime.
+ */
+const STAFF_STATE_FILE = path.join(os.tmpdir(), `lacordobesa-staff-${createHash("sha256").update(BASE).digest("hex").slice(0, 12)}.json`);
+const STAFF_STATE_TTL_MS = 10 * 60_000;
+
+const freshStateOnDisk = () => {
+  try {
+    if (Date.now() - statSync(STAFF_STATE_FILE).mtimeMs > STAFF_STATE_TTL_MS) return null;
+    const state = JSON.parse(readFileSync(STAFF_STATE_FILE, "utf8"));
+    return state?.cookies?.length > 0 ? state : null;
+  } catch {
+    return null;
+  }
+};
+
+/** One sign-in, then the cookies, so no staff page logs in again. */
 export async function staffStorageState() {
   if (staffState) return staffState;
   const { user, pass } = staffCredentials();
   if (!user || !pass) throw new Error("staff tests need STAFF_USER and STAFF_PASS");
 
-  const context = await (await browser()).newContext();
-  const page = await context.newPage();
-  await page.goto(`${BASE}/staff/login`, { waitUntil: "domcontentloaded", timeout: 90_000 });
-  await page.fill("#username", user);
-  await page.fill("#password", pass);
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 90_000 }).catch(() => {}),
-    page.click(".btn-primary"),
-  ]);
-  if (page.url().includes("/login")) {
-    const alert = await page.textContent("[role=alert]").catch(() => null);
-    throw new Error(`staff sign-in failed: ${alert ?? "no reason given"}`);
+  staffState = freshStateOnDisk();
+  if (staffState) return staffState;
+
+  // Auth is the one thing here with a rate limit, so a refusal is worth one patient retry rather
+  // than failing the file that happened to go first.
+  let lastReason = "no reason given";
+  for (const waitBefore of [0, 4000, 12_000]) {
+    if (waitBefore > 0) await new Promise((resolve) => setTimeout(resolve, waitBefore));
+
+    const context = await (await browser()).newContext();
+    const page = await context.newPage();
+    try {
+      await page.goto(`${BASE}/staff/login`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+      await page.fill("#username", user);
+      await page.fill("#password", pass);
+      await Promise.all([
+        page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 90_000 }).catch(() => {}),
+        page.click(".btn-primary"),
+      ]);
+      if (!page.url().includes("/login")) {
+        staffState = await context.storageState();
+        // Another file may be signing in at the same moment; last write wins and either is valid.
+        try {
+          writeFileSync(STAFF_STATE_FILE, JSON.stringify(staffState), { mode: 0o600 });
+        } catch {
+          /* a read-only tmp is not a reason to fail the suite */
+        }
+        return staffState;
+      }
+      lastReason = (await page.textContent("[role=alert]").catch(() => null)) || "no reason given";
+    } finally {
+      await context.close();
+    }
   }
-  staffState = await context.storageState();
-  await context.close();
-  return staffState;
+  throw new Error(
+    `staff sign-in failed after three attempts: ${lastReason}. An empty reason here is usually ` +
+      "Supabase Auth rate limiting the sign-in endpoint, not a broken form.",
+  );
 }
 
 /**
