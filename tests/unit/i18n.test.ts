@@ -3,7 +3,7 @@
  *  before. */
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { alternates, DEFAULT_LOCALE, INTL_LOCALE, isLocale, LOCALE_NAME, LOCALES, localeHref, OG_LOCALE } from "@/lib/i18n";
+import { alternates, DEFAULT_LOCALE, INTL_LOCALE, isLocale, LOCALE_NAME, LOCALES, localeHref, localeOfPath, OG_LOCALE, stripLocale } from "@/lib/i18n";
 import { getDictionary } from "@/lib/dictionaries";
 import { legalHref, LEGAL_FROM } from "@/lib/legal-links";
 
@@ -219,5 +219,78 @@ describe("copy has no dashes", () => {
   test("no em or en dash in any dictionary", () => {
     for (const locale of LOCALES) walk(getDictionary(locale), locale);
     assert.deepEqual(offenders, []);
+  });
+});
+
+/**
+ * The two inverses of localeHref. The footer language switch and the route transition both read the
+ * current pathname and have to answer "which language is this, and what is this page without the
+ * language", and getting either wrong is how #134 broke the production build: the switch read the
+ * URL on a token route and sent a guest to a page that does not exist in their language.
+ */
+describe("stripLocale", () => {
+  test("takes the prefix off a Spanish or English page", () => {
+    assert.equal(stripLocale("/es/karte"), "/karte");
+    assert.equal(stripLocale("/en/karte"), "/karte");
+    assert.equal(stripLocale("/es/vorbestellen"), "/vorbestellen");
+  });
+
+  test("turns a prefixed home page into /", () => {
+    assert.equal(stripLocale("/es"), "/");
+    assert.equal(stripLocale("/en"), "/");
+  });
+
+  test("leaves a German page alone, since German carries no prefix", () => {
+    for (const path of ["/", "/karte", "/vorbestellen", "/impressum"]) {
+      assert.equal(stripLocale(path), path);
+    }
+  });
+
+  test("keeps a token route's token, which is the credential", () => {
+    assert.equal(stripLocale("/es/reservierung/tok_abc123"), "/reservierung/tok_abc123");
+    assert.equal(stripLocale("/en/vorbestellung/tok_abc123"), "/vorbestellung/tok_abc123");
+    assert.equal(stripLocale("/abmelden/tok_abc123"), "/abmelden/tok_abc123");
+  });
+
+  test("does not strip a path that merely starts with those letters", () => {
+    // "/essen" begins with "es" and is not Spanish; the check is on the whole segment.
+    for (const path of ["/essen", "/english", "/entremeses", "/especiales"]) {
+      assert.equal(stripLocale(path), path, `${path} should not be treated as a locale prefix`);
+    }
+  });
+
+  test("strips only the first prefix, so a locale further down the path survives", () => {
+    assert.equal(stripLocale("/es/en"), "/en");
+  });
+});
+
+describe("localeOfPath", () => {
+  test("reads the language off the prefix", () => {
+    assert.equal(localeOfPath("/es"), "es");
+    assert.equal(localeOfPath("/es/karte"), "es");
+    assert.equal(localeOfPath("/en"), "en");
+    assert.equal(localeOfPath("/en/karte"), "en");
+  });
+
+  test("an unprefixed path is German, which is the default", () => {
+    for (const path of ["/", "/karte", "/impressum", "/staff", "/staff/zahlen"]) {
+      assert.equal(localeOfPath(path), DEFAULT_LOCALE, path);
+    }
+  });
+
+  test("does not read a language out of a word that starts the same way", () => {
+    for (const path of ["/essen", "/english", "/especiales"]) {
+      assert.equal(localeOfPath(path), DEFAULT_LOCALE, path);
+    }
+  });
+
+  test("is the inverse of localeHref for every locale and page", () => {
+    for (const locale of LOCALES) {
+      for (const path of ["/", "/karte", "/vorbestellen", "/catering", "/gallery"]) {
+        const href = localeHref(locale, path);
+        assert.equal(localeOfPath(href), locale, `${href} should be ${locale}`);
+        assert.equal(stripLocale(href), path, `${href} should strip back to ${path}`);
+      }
+    }
   });
 });

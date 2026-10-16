@@ -84,9 +84,17 @@ describe("every control has a name a screen reader can read out", () => {
               if ((el.getAttribute("title") ?? "").trim()) return true;
               return el.type === "hidden";
             };
+            // A control a screen reader cannot reach and a keyboard cannot focus has no name to
+            // read out. That is the `.picker-carrier` pattern (src/components/staff/pickers.tsx):
+            // the real control is the button beside it, and this field only exists to carry the
+            // value into the form, so it is aria-hidden and out of the tab order. Both halves are
+            // required here on purpose: aria-hidden on something still tabbable *is* the bug this
+            // test is for, so it stays reported.
+            const inertToAT = (el) => el.closest('[aria-hidden="true"]') !== null && el.tabIndex < 0;
             return [...document.querySelectorAll("button, a[href], input, select, textarea")]
               .filter((el) => el.type !== "hidden")
               .filter((el) => el.checkVisibility({ contentVisibilityAuto: true }))
+              .filter((el) => !inertToAT(el))
               .filter((el) => !named(el))
               .map((el) => el.outerHTML.slice(0, 90));
           });

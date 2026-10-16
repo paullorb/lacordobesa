@@ -40,6 +40,21 @@ const MOMENTS = [
 // The machine is somewhere else: a day behind, a day ahead, and at both extremes of the map.
 const ZONES = ["Europe/Berlin", "America/Los_Angeles", "Asia/Tokyo", "Pacific/Pago_Pago", "Pacific/Kiritimati"];
 
+/** Everything that identifies *which* calendar day the first match of `selector` is: the number in
+ *  the cell, the month it sits under, and the relative name the cell shows on hover. Compared
+ *  between timezones, so it has to be the day's identity and not its styling. */
+async function dayFingerprint(page, selector) {
+  return await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    return {
+      day: (el.textContent ?? "").trim(),
+      month: (el.closest(".calendar-month")?.querySelector(".calendar-label")?.textContent ?? "").trim(),
+      hint: el.getAttribute("data-hint"),
+    };
+  }, selector);
+}
+
 /** What a visitor would read off the home page at `at`, in `timezoneId`. */
 async function snapshot(timezoneId, at) {
   let seen;
@@ -50,12 +65,15 @@ async function snapshot(timezoneId, at) {
       await page.waitForFunction(() => document.querySelector(".open-status")?.dataset.state !== "pending", null, {
         timeout: 15_000,
       });
-      const marked = page.locator(".day", { has: page.locator("small") });
-      await marked.first().waitFor({ timeout: 15_000 });
+      // Today is marked by a ring (`.is-today`), not by a word: a7c9228 took the "Heute" label off
+      // the cell, so there is no `<small>` here to wait for any more. public.test.mjs pins the same
+      // markup from the other side ("rings today and prints no word on any day").
+      await page.locator(".day.is-today").waitFor({ timeout: 15_000 });
       seen = {
-        // Which day is labelled "Heute", and which day the calendar starts on.
-        heute: (await marked.first().getAttribute("aria-label")) ?? "",
-        firstBookable: (await page.locator(".day:not(:disabled)").first().getAttribute("aria-label")) ?? "",
+        // Which day carries the ring, and which day the calendar starts on. The day number plus the
+        // month heading is the fingerprint: a day out in either direction changes one of the two.
+        heute: await dayFingerprint(page, ".day.is-today"),
+        firstBookable: await dayFingerprint(page, ".day:not(:disabled)"),
         state: await page.locator(".open-status").first().getAttribute("data-state"),
         status: ((await page.locator(".open-status").first().textContent()) ?? "").trim(),
         // The machine really was somewhere else.
@@ -75,12 +93,13 @@ describe(`${PROJECTS[PROJECT].label}: the visitor's timezone does not change the
 
       test("Frankfurt itself", { skip }, async () => {
         baseline = await snapshot("Europe/Berlin", at);
-        assert.match(
-          baseline.heute,
-          new RegExp(`${dd}\\.${expected.slice(5, 7)}\\.${expected.slice(0, 4)}`),
-          `"Heute" is ${baseline.heute}, Frankfurt's date is ${expected}`,
+        assert.equal(
+          Number(baseline.heute?.day),
+          Number(dd),
+          `the ring is on day ${baseline.heute?.day} of "${baseline.heute?.month}", Frankfurt's date is ${expected}`,
         );
-        assert.ok(baseline.firstBookable !== "", "nothing is bookable");
+        assert.equal(baseline.heute?.hint, "Heute", "the ringed day should name itself Heute");
+        assert.ok(baseline.firstBookable, "nothing is bookable");
       });
 
       for (const zone of ZONES.filter((z) => z !== "Europe/Berlin")) {
