@@ -131,7 +131,14 @@ describe(`${label}: once installed (display-mode: standalone)`, () => {
           const result = await horizontalOverflow(page);
           assert.equal(result.overflow, 0, `${path} overflows sideways: ${describeOverflow(result)}`);
           await page.waitForTimeout(300);
-          assert.deepEqual(errors, []);
+          // Against a production build on plain-http localhost (E2E_PRODUCTION=1 with `next start`),
+          // the service worker registers and re-fetches every navigation (public/sw.js). Chromium
+          // upgrades that re-fetch to https for an installed app, and there is no TLS on
+          // http://localhost:3000, so it fails. On the real origin, which is https, the upgraded URL
+          // is the correct one and the re-fetch succeeds, so this cannot happen in production. Only
+          // that one error is tolerated; anything else still fails the test.
+          const unexpected = errors.filter((e) => !/ERR_SSL_PROTOCOL_ERROR/.test(e));
+          assert.deepEqual(unexpected, []);
         },
       });
     });
@@ -143,8 +150,24 @@ describe(`${label}: once installed (display-mode: standalone)`, () => {
       standalone: true,
       body: async ({ page }) => {
         const box = await page.locator(".staff > header").boundingBox();
-        const viewport = page.viewportSize().width;
-        assert.ok(box && Math.round(box.x) === 0 && Math.abs(box.width - viewport) <= 1, "the header does not span the window");
+        // The page box, not the window. A staff page always reserves room for the scrollbar
+        // (globals.css: `html:has(.staff) { scrollbar-gutter: stable }`, so the centred header does
+        // not jump 15px between a short tab and a long one), which makes the page box narrower than
+        // the window whether a scrollbar is showing or not. `viewportSize()` and `innerWidth` both
+        // count that gutter in, and so does `clientWidth`, so all three read a correct header as
+        // 15px short. The gutter is still held to one scrollbar's worth, so a page that is genuinely
+        // too narrow fails.
+        const { pageWidth, windowWidth, overflow } = await page.evaluate(() => {
+          const html = document.documentElement;
+          const width = html.getBoundingClientRect().width;
+          return { pageWidth: Math.round(width), windowWidth: window.innerWidth, overflow: Math.round(html.scrollWidth - width) };
+        });
+        assert.ok(overflow <= 1, `the page is ${overflow}px wider than its own box`);
+        assert.ok(windowWidth - pageWidth <= 16, `the page box is ${pageWidth}px in a ${windowWidth}px window, more than a scrollbar short`);
+        assert.ok(
+          box && Math.round(box.x) === 0 && Math.abs(box.width - pageWidth) <= 1,
+          `the header does not span the window: x=${Math.round(box?.x)} width=${Math.round(box?.width)} of ${pageWidth}`,
+        );
       },
     });
   });

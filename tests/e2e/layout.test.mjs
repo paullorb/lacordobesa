@@ -247,7 +247,11 @@ describe("the staff navigation is reachable on a phone", () => {
       body: async ({ page }) => {
         const viewport = page.viewportSize().width;
         const links = await page.locator('nav[aria-label="Inhalte"] a').all();
-        assert.equal(links.length, 5, "Karte, Specials, Galerie, Öffnungszeiten, Bewertungen");
+        // The labels rather than a count, so that moving a tab between groups (Specials became a
+        // group of its own) names what changed instead of failing as "4 !== 5". Keep in step with
+        // the "Inhalte" group in src/app/staff/nav.tsx.
+        const labels = await page.locator('nav[aria-label="Inhalte"] a').evaluateAll((els) => els.map((e) => e.textContent.trim()));
+        assert.deepEqual(labels, ["Karte", "Galerie", "Öffnungszeiten", "Bewertungen"], "the Inhalte sub-navigation");
         for (const link of links) {
           const box = await link.boundingBox();
           assert.ok(box.x + box.width <= viewport + 1, `"${(await link.textContent()).trim()}" runs off the screen`);

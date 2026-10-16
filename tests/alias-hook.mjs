@@ -36,10 +36,15 @@ function resolveAlias(specifier) {
 }
 
 const EMPTY = pathToFileURL(fileURLToPath(new URL("./empty-module.mjs", import.meta.url))).href;
+const NEXT_CACHE = pathToFileURL(fileURLToPath(new URL("./next-cache-stub.mjs", import.meta.url))).href;
 
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier === "server-only") return next(EMPTY, context);
+    // `cacheLife`/`cacheTag` annotate a "use cache" function and return nothing, so no-ops let the
+    // body of a cached data function be tested without a Next render around it. See
+    // tests/next-cache-stub.mjs for why updateTag is recorded rather than dropped.
+    if (specifier === "next/cache") return next(NEXT_CACHE, context);
     if (specifier.startsWith("@/")) return next(resolveAlias(specifier), context);
     return next(specifier, context);
   },

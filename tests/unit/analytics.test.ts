@@ -3,7 +3,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { deviceFromWidth, isEvent, isStaffPath, isValidDetail, normalizePath, OTHER_PATH } from "@/lib/analytics";
-import { dailyBars, toBars, vitalLines } from "@/lib/analytics-view";
+import { dailyBars, pageLabel, toBars, vitalLines } from "@/lib/analytics-view";
 
 describe("normalizePath", () => {
   test("keeps known pages, with or without a trailing slash", () => {
@@ -94,5 +94,60 @@ describe("staff view", () => {
     assert.equal(lines[0].goodPercent, 75);
     assert.equal(lines[0].total, 4);
     assert.equal(lines[1].goodPercent, null);
+  });
+});
+
+/**
+ * The names the numbers page prints for a stored path. The storage format is deliberately coarse
+ * (normalizePath collapses a token route to "/reservierung/*"), so these labels are the only place
+ * a staff member learns what a bucket means, and an unlabelled path has to come out as the path
+ * rather than as "undefined".
+ */
+describe("pageLabel", () => {
+  test("names the German pages", () => {
+    assert.equal(pageLabel("/"), "Startseite");
+    assert.equal(pageLabel("/karte"), "Karte");
+    assert.equal(pageLabel("/gallery"), "Galerie");
+    assert.equal(pageLabel("/catering"), "Feiern und Catering");
+  });
+
+  test("tags the Spanish and English pages instead of repeating the name", () => {
+    assert.equal(pageLabel("/es/karte"), "Karte (ES)");
+    assert.equal(pageLabel("/en/karte"), "Karte (EN)");
+    assert.equal(pageLabel("/es/gallery"), "Galerie (ES)");
+  });
+
+  test("names a prefixed home page as a home page", () => {
+    assert.equal(pageLabel("/es"), "Startseite (ES)");
+    assert.equal(pageLabel("/en"), "Startseite (EN)");
+  });
+
+  test("names the collapsed token buckets, which is where most guests land from a mail", () => {
+    assert.equal(pageLabel("/reservierung/*"), "Reservierung verwalten");
+    assert.equal(pageLabel("/vorbestellung/*"), "Vorbestellung verwalten");
+    assert.equal(pageLabel("/abmelden/*"), "Specials abmelden");
+    assert.equal(pageLabel("/es/reservierung/*"), "Reservierung verwalten (ES)");
+  });
+
+  test("names the catch-all bucket", () => {
+    assert.equal(pageLabel(OTHER_PATH), "Sonstige Seiten");
+  });
+
+  test("falls back to the path itself, never to undefined", () => {
+    assert.equal(pageLabel("/a-page-added-later"), "/a-page-added-later");
+    // The fallback keeps the whole path, prefix included, so an unlabelled Spanish page reads
+    // "/es/… (ES)". Mildly redundant and still legible, which is what matters for a fallback.
+    assert.equal(pageLabel("/es/a-page-added-later"), "/es/a-page-added-later (ES)");
+    assert.equal(pageLabel(""), "");
+  });
+
+  test("labels every path normalizePath can produce", () => {
+    // The two have to stay in step: a bucket the writer can store and the reader cannot name shows
+    // up on the staff page as a bare path.
+    for (const path of ["/", "/karte", "/gallery", "/vorbestellen", "/catering", "/impressum", "/datenschutz", OTHER_PATH]) {
+      const stored = normalizePath(path);
+      assert.notEqual(pageLabel(stored), undefined, `${stored} has no label`);
+      assert.ok(pageLabel(stored).length > 0, `${stored} has an empty label`);
+    }
   });
 });

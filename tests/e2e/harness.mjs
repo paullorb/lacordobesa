@@ -110,6 +110,11 @@ export const STAFF_PAGES = [
   ["preorders", "/staff/vorbestellungen"],
   ["inquiries", "/staff/anfragen"],
   ["numbers", "/staff/zahlen"],
+  // Admin only (nav.tsx marks it adminOnly, the page calls requireAdmin). It was the one staff page
+  // in the app that no test ever opened, because it is absent from this list rather than because it
+  // is hard to reach: the staff account the suite signs in with is an admin. A non-admin session is
+  // redirected away, so on such an account these assertions describe whichever page it lands on.
+  ["visitors", "/staff/besucher"],
   ["menu", "/staff/karte"],
   ["specials", "/staff/specials"],
   ["broadcast", "/staff/broadcast"],

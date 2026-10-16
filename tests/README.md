@@ -4,11 +4,19 @@ Two suites, one runner, no new dependencies. Node's own test runner drives both;
 use the `playwright` package that `npm run shots` already needed.
 
 ```bash
-npm run check      # lint + typecheck + unit tests. The gate for a commit.
-npm run test:unit  # just the unit tests (fast, hermetic, no server)
-npm run test:e2e   # the browser tests; needs `npm run dev` in another terminal
-npm test           # both
+npm run check             # lint + typecheck + unit tests. The gate for a commit.
+npm run check:full        # the above plus the database and browser suites. Before a release.
+npm run test:unit         # just the unit tests (fast, hermetic, no server)
+npm run test:unit:coverage # the same, with Node's line/branch report
+npm run test:integration  # the database tests; needs .env.staging.local, no server
+npm run test:e2e          # the browser tests; needs `npm run dev` in another terminal
+npm test                  # all three
 ```
+
+`check` stays fast and hermetic on purpose, so it is runnable on a laptop with nothing else going
+on. That is also how the browser suite came to rot: for three commits in a row nobody ran it, and
+twelve of its tests had been failing against a selector that a UI change had removed. **`check` is
+the commit gate; `check:full` is the one to run before a release, and the one CI should run.**
 
 Browsers are not installed by `npm install`. Once per machine:
 
@@ -27,14 +35,68 @@ runtime is out of scope here and is covered by the browser tests instead.
 
 What is pinned: calendar arithmetic in the shop's timezone, the locale routing rules, the two
 dictionaries having the same keys in the same shapes, the numbers page's aggregations, the guest
-link and token shapes, the WhatsApp number normalisation, and the schema.org output.
+link and token shapes, the WhatsApp number normalisation, the schema.org output, the production-database
+guard, the confirmation mail's escaping, and the bot and browser detection behind the numbers page.
+
+### coverage.test.ts, and why a percentage is not enough
+
+Node's coverage report only lists files it actually **loaded**. A module no test imports is absent
+from the report rather than counted as zero, so the number goes *up* when a module stops being
+covered. `npm run test:unit` once reported 96.99% while fourteen modules had no test at all,
+including `supabase/env.ts`, the guard that keeps writes off the production database.
+
+`coverage.test.ts` therefore works from the file system. Every module under `src/lib` has to be
+reachable from some test, directly or through a module a test imports, or be listed in
+`LIB_WITHOUT_TESTS` with a reason naming what covers it instead. Every page under `src/app` has to
+be opened by the browser suite or listed in `PAGES_NOT_IN_A_LIST`. Both lists are checked for stale
+entries, so an excuse cannot outlive the thing it excused. Adding a module and forgetting the test
+is a failing test with the module's name in it.
+
+The four modules that are excused are the ones that cannot be imported outside a request at all
+(`next/headers`, `next/navigation`, `NextResponse`); each entry says which browser test covers it.
+
+## integration/ — the database, through the client the app uses
+
+`npm run test:integration`. No browser and no server: these talk to **staging**
+(`lacordobesa-staging`) with `@supabase/supabase-js`, which is the same path the app takes, so the
+grants and the row level security policies are part of what is exercised rather than mocked away.
+
+There are twenty-six RPCs and seventeen tables with RLS on all of them, and before these files none
+of it had a test. What is pinned:
+
+| file | what it is for |
+| --- | --- |
+| `grants.test.mjs` | Who may call what and read what. The form RPCs are service_role only (20261014072715); `menu_items` is staff-read-only and the public pages read the `menu_items_public` view. Every table is checked for an anonymous read and an anonymous write. |
+| `schema.test.mjs` | Schema invariants through `psql`: RLS enabled on every table, every SECURITY DEFINER function pinning its `search_path`, the full grant matrix as a snapshot, and that every migration on disk is applied. |
+| `reservations.test.mjs` | `request_reservation`'s twelve refusal codes, the per-contact and site-wide limits, `phone_key` normalisation, and the guest's own link (view, cancel, move). |
+| `preorders.test.mjs` | `request_preorder`: the basket's shape, pack sizes, opening hours on the chosen day, the fresh-or-par-baked rule, and the guest's order link. |
+| `staff.test.mjs` | What a signed-in staff member can do: `create_preorder_manually` (and that a refused basket leaves no row), the atomic menu reorder, `analytics_breakdown`. |
+| `content.test.mjs` | The `use cache` getters in `lib/data.ts` and `lib/preorders.ts` against real rows, including that `getMenu` blanks a hidden price and that the form's settings agree with the ones the RPC validates against. |
+
+**These tests write, and they clean up after themselves.** That is the point of the staging project.
+Two things follow:
+
+- `request_reservation` has a site-wide brake of 15 an hour counted off `reservations.created_at`.
+  Rows left behind would spend that allowance for the browser suite and for anyone testing a form by
+  hand, and the `too_many_requests` that followed would look like a bug in the booking form. Every
+  file clears up in `afterEach`, so at most two test rows exist at a time, and `cleanup()` also
+  sweeps anything an earlier crashed run left under the name `ZZ Test Harness`.
+- `tests/integration/harness.mjs` **refuses to run against production**, with the project ref
+  hardcoded and no escape hatch. `src/lib/supabase/env.ts` guards the app; it cannot guard these
+  files, because they are not the app.
+
+Without `.env.staging.local` the whole suite skips rather than fails.
 
 ## e2e/ — a real browser against a real server
 
-They point at whatever `.env.local` points at, which is **staging**. Nothing writes: the staff
-pages are only read and the public forms are walked up to the point of sending and left there. A
-submitted reservation spends the site-wide quota (15 an hour, 80 a day) and holds a seat, so a
-test that books a table takes one away from a real guest.
+They point at whatever `.env.local` points at, which is **staging**. Nothing writes, with one
+named exception: the staff pages are only read and the public forms are walked up to the point of
+sending and left there. A submitted reservation spends the site-wide quota (15 an hour, 80 a day)
+and holds a seat, so a test that books a table takes one away from whoever tests next.
+
+The exception is `token-routes.test.mjs`, which has to have a booking in order to open a booking's
+page. It creates its fixtures with the service key and deletes them in `after`, which gives the
+quota allowance back.
 
 | file | what it is for |
 | --- | --- |
@@ -47,6 +109,7 @@ test that books a table takes one away from a real guest.
 | `timezone.test.mjs` | The browser's timezone and clock set to Los Angeles, Tokyo, Samoa and Kiribati around Frankfurt's midnight: "Heute", the first bookable day and "open now" must not move. Also pins that the browser's language does not pick the site's. |
 | `pwa.test.mjs` | The staff app's manifest, icons and scope, and the pages under emulated `display-mode: standalone` / `navigator.standalone`. |
 | `perf.test.mjs` | Request origins, fonts, layout shift, image sizing, DOM size, duplicate requests. |
+| `token-routes.test.mjs` | The twelve pages whose URL is a credential, in all three languages: that they open, that the language switch keeps the token (#134 broke the build here), that they are noindex and send no referrer, and that a dead link is answered rather than crashed on. The one file under `e2e/` that writes: it arranges one reservation, one order and one sign-up in staging and deletes them afterwards, because a token page cannot be opened without a row to open. |
 
 Tests skip rather than fail when there is no server listening or no `STAFF_USER` / `STAFF_PASS` in
 the environment, so `npm run check` stays runnable on a laptop with nothing else going on.

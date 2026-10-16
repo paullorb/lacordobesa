@@ -232,9 +232,30 @@ describe("the opening hours editor", () => {
     await visit("/staff/oeffnungszeiten", {
       staff: true,
       body: async ({ page }) => {
+        // 24e19d4 replaced the native date inputs with the custom picker, so there is no `min`
+        // attribute to read any more: the rule now lives in `allowed()` in pickers.tsx, which
+        // disables the day buttons. Test the rule itself, which is what the shop cares about —
+        // the earliest day the picker will let you choose is today.
         const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
-        assert.equal(await page.locator("#cl-from").getAttribute("min"), today);
-        assert.equal(await page.locator("#cl-to").getAttribute("min"), today);
+        const thisMonth = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric", timeZone: "Europe/Berlin" }).format(new Date());
+
+        for (const id of ["#cl-from", "#cl-to"]) {
+          await page.locator(id).click();
+          const pop = page.locator(".picker-pop").first();
+          await pop.waitFor({ timeout: 10_000 });
+          assert.equal((await pop.locator("strong").first().textContent())?.trim(), thisMonth, `${id} opens on another month`);
+
+          const days = await pop.locator(".picker-day").evaluateAll((els) => els.map((el) => ({ n: Number(el.textContent), off: el.disabled })));
+          const earliest = days.find((d) => !d.off);
+          assert.equal(earliest?.n, Number(today.slice(8)), `${id} offers day ${earliest?.n}, today is the ${Number(today.slice(8))}.`);
+          assert.deepEqual(
+            days.filter((d) => d.n < earliest.n && !d.off).map((d) => d.n),
+            [],
+            `${id} lets a closure start on a day that has passed`,
+          );
+
+          await page.keyboard.press("Escape");
+        }
       },
     });
   });
