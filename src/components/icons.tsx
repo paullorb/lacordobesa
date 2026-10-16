@@ -496,3 +496,10 @@ export const MailIcon = ({ size = 18, className }: IconProps) => (
     <path d="m3.6 7 7.3 5.3a2 2 0 0 0 2.2 0L20.4 7" />
   </Icon>
 );
+
+export const GlobeIcon = ({ size = 18, className }: IconProps) => (
+  <Icon size={size} className={className}>
+    <circle cx="12" cy="12" r="8.6" />
+    <path d="M3.6 12h16.8M12 3.4c2.3 2.4 3.4 5.3 3.4 8.6s-1.1 6.2-3.4 8.6c-2.3-2.4-3.4-5.3-3.4-8.6s1.1-6.2 3.4-8.6Z" />
+  </Icon>
+);

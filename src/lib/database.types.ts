@@ -195,6 +195,7 @@ export type Database = {
           caption: string | null
           category: string
           created_at: string
+          cursor_cheer: boolean
           id: string
           image_url: string
           is_featured: boolean
@@ -204,6 +205,7 @@ export type Database = {
           caption?: string | null
           category?: string
           created_at?: string
+          cursor_cheer?: boolean
           id?: string
           image_url: string
           is_featured?: boolean
@@ -213,6 +215,7 @@ export type Database = {
           caption?: string | null
           category?: string
           created_at?: string
+          cursor_cheer?: boolean
           id?: string
           image_url?: string
           is_featured?: boolean
@@ -403,6 +406,7 @@ export type Database = {
           phone: string
           pickup_date: string
           pickup_time: string
+          preparation: string | null
           source: string
           staff_notes: string | null
           status: Database["public"]["Enums"]["preorder_status"]
@@ -419,6 +423,7 @@ export type Database = {
           phone: string
           pickup_date: string
           pickup_time: string
+          preparation?: string | null
           source?: string
           staff_notes?: string | null
           status?: Database["public"]["Enums"]["preorder_status"]
@@ -435,6 +440,7 @@ export type Database = {
           phone?: string
           pickup_date?: string
           pickup_time?: string
+          preparation?: string | null
           source?: string
           staff_notes?: string | null
           status?: Database["public"]["Enums"]["preorder_status"]
@@ -535,6 +541,48 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      special_ideas: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_en: string | null
+          description_es: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          title_en: string | null
+          title_es: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_en?: string | null
+          description_es?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          title_en?: string | null
+          title_es?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_en?: string | null
+          description_es?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          title_en?: string | null
+          title_es?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -721,6 +769,7 @@ export type Database = {
           notes: string
           pickup_date: string
           pickup_time: string
+          preparation: string
           status: Database["public"]["Enums"]["preorder_status"]
         }[]
       }
@@ -748,6 +797,7 @@ export type Database = {
           p_phone: string
           p_pickup_date: string
           p_pickup_time: string
+          p_preparation?: string
         }
         Returns: string
       }

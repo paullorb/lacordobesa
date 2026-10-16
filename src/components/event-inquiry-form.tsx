@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { requestEventInquiry } from "@/app/catering/actions";
 import { ArrowIcon, OccasionIcon } from "@/components/icons";
+import { PhoneNote } from "@/components/phone-note";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -246,5 +247,5 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
     },
   ];
 
-  return <Wizard step={step} setStep={setStep} steps={steps} stepLabel={stepOf} />;
+  return <Wizard step={step} setStep={setStep} steps={steps} stepLabel={stepOf} footer={<PhoneNote locale={locale} />} />;
 }

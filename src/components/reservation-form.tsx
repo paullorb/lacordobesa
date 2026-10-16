@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
+import { CalendarDay } from "@/components/calendar-day";
 import { fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary, type Dictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n";
@@ -166,19 +167,16 @@ export function ReservationForm({ locale, maxPartySize, minDate, maxDate, closed
                   {month.days.map((iso) => {
                     const closed = closedWeekdays.includes(at(iso).getUTCDay());
                     return (
-                      <button
+                      <CalendarDay
                         key={iso}
-                        type="button"
-                        className="day"
-                        aria-pressed={date === iso}
-                        aria-label={fmtDate(iso, locale, { weekday: "long" })}
-                        disabled={closed || loading}
-                        title={closed ? t.restDay : undefined}
-                        onClick={() => chooseDate(iso)}
-                      >
-                        {Number(iso.slice(8))}
-                        {iso === today && <small>{t.today}</small>}
-                      </button>
+                        iso={iso}
+                        today={today}
+                        locale={locale}
+                        pressed={date === iso}
+                        closed={closed}
+                        disabled={loading}
+                        onPick={() => chooseDate(iso)}
+                      />
                     );
                   })}
                 </div>

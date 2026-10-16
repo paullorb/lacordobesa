@@ -79,6 +79,10 @@ async function StaffGallery() {
                   ))}
                 </select>
               </div>
+              <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
+                <input type="checkbox" name="cursor_cheer" defaultChecked={item.cursor_cheer ?? item.category === "food"} /> Mauszeiger
+                „¡Ñam!“ über dem Bild (für Essen)
+              </label>
               {featuredColumn && (
                 <>
                   <input type="hidden" name="featured_field" value="1" />

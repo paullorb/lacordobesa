@@ -26,6 +26,26 @@ export function startOfWeek(iso: string): string {
   return addDays(iso, -((weekday + 6) % 7));
 }
 
+/** How a day relates to today, for the hint on a calendar day. Weeks run Monday to Sunday, so
+ *  "this Friday" is the Friday of the current week and "next Saturday" is the Saturday of the week
+ *  after. Anything further out gets no relative name. */
+export type RelativeDay =
+  | { kind: "today" | "tomorrow" | "dayAfter" | "past" | "later" }
+  | { kind: "thisWeek" | "nextWeek"; weekday: number };
+
+export function relativeDay(iso: string, today: string): RelativeDay {
+  const diff = Math.round((Date.parse(`${iso}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
+  if (diff < 0) return { kind: "past" };
+  if (diff === 0) return { kind: "today" };
+  if (diff === 1) return { kind: "tomorrow" };
+  if (diff === 2) return { kind: "dayAfter" };
+  const weekday = new Date(`${iso}T12:00:00Z`).getUTCDay();
+  const weeks = (Date.parse(`${startOfWeek(iso)}T12:00:00Z`) - Date.parse(`${startOfWeek(today)}T12:00:00Z`)) / (7 * 86_400_000);
+  if (weeks === 0) return { kind: "thisWeek", weekday };
+  if (weeks === 1) return { kind: "nextWeek", weekday };
+  return { kind: "later" };
+}
+
 /** First day of the month containing `iso`. */
 export function startOfMonth(iso: string): string {
   return `${iso.slice(0, 7)}-01`;

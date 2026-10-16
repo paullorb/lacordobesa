@@ -2,6 +2,7 @@
 
 import { isISODate, isTime } from "@/lib/dates";
 import { formErrors, formLocale } from "@/lib/form-errors";
+import { isPreparation, type Preparation } from "@/lib/preorder-preparation";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import type { PreorderLine } from "@/lib/preorders";
 import { publicFormClient } from "@/lib/public-forms";
@@ -30,6 +31,9 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
   const date = String(formData.get("pickup_date") ?? "");
   const time = String(formData.get("pickup_time") ?? "");
   const notes = String(formData.get("notes") ?? "").trim();
+  // Only sent when the basket holds empanadas. Whether it is *required* is the RPC's call, because
+  // only the database knows which category a dish belongs to; here an unknown value is just refused.
+  const preparation = String(formData.get("preparation") ?? "");
 
   if (
     name.length > FIELD_LIMITS.name ||
@@ -40,6 +44,7 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
     return { ok: false, error: errorFor("field_too_long") };
   }
   if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
+  if (preparation && !isPreparation(preparation)) return { ok: false, error: errorFor("invalid_preparation") };
   const lines = readLines(formData);
   if (lines.length === 0) return { ok: false, error: errorFor("empty_order") };
 
@@ -54,6 +59,7 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
     p_lines: lines,
     p_notes: notes || undefined,
     p_locale: formLocale(formData),
+    p_preparation: preparation || undefined,
   });
   if (error) return { ok: false, error: errorFor(error.message) };
   return { ok: true, token: data };
@@ -65,6 +71,8 @@ export type GuestPreorder = {
   pickupTime: string;
   status: "pending" | "confirmed" | "ready" | "collected" | "cancelled";
   notes: string | null;
+  /** Null for orders without empanadas and for orders placed before the choice existed. */
+  preparation: Preparation | null;
   lines: PreorderLine[];
 };
 
@@ -80,6 +88,7 @@ export async function getPreorderByToken(token: string): Promise<GuestPreorder |
     pickupTime: row.pickup_time.slice(0, 5),
     status: row.status,
     notes: row.notes,
+    preparation: isPreparation(row.preparation) ? row.preparation : null,
     lines: (row.lines ?? []) as PreorderLine[],
   };
 }

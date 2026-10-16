@@ -39,6 +39,12 @@ export function ManagePreorder({ locale, token, order }: { locale: Locale; token
             {`${order.pickupTime} ${t.at}`.trim()}
           </dd>
         </div>
+        {order.preparation && (
+          <div>
+            <dt>{t.preparation}</dt>
+            <dd>{t.preparations[order.preparation]}</dd>
+          </div>
+        )}
         <div>
           <dt>{t.status}</dt>
           <dd>{t.statuses[order.status].label}</dd>

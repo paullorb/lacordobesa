@@ -90,10 +90,8 @@ describe(`${label}: the scripts run`, () => {
       await visit("/", {
         native: true,
         body: async ({ page }) => {
-          // On a phone the switch sits inside the menu.
-          const toggle = page.locator(".menu-toggle");
-          if (await toggle.isVisible()) await (mobile ? toggle.tap() : toggle.click());
-          const link = page.locator(`.lang-switch a[hreflang="${code}"]`).first();
+          // The footer carries the switch at every width; the bar has a dropdown of its own.
+          const link = page.locator(`footer .lang-switch a[hreflang="${code}"]`);
           assert.ok(await link.isVisible(), `the ${code} link is not reachable`);
           await Promise.all([page.waitForURL(new RegExp(`/${code}/?$`), { timeout: 30_000 }), mobile ? link.tap() : link.click()]);
           assert.equal(await page.locator("html").getAttribute("lang"), lang);
@@ -106,11 +104,9 @@ describe(`${label}: the scripts run`, () => {
     await visit("/en/karte", {
       native: true,
       body: async ({ page }) => {
-        const toggle = page.locator(".menu-toggle");
-        if (await toggle.isVisible()) await (mobile ? toggle.tap() : toggle.click());
-        const hrefs = await page.locator(".lang-switch a").evaluateAll((els) => els.map((e) => e.getAttribute("href")));
+        const hrefs = await page.locator("footer .lang-switch a").evaluateAll((els) => els.map((e) => e.getAttribute("href")));
         assert.deepEqual(hrefs.sort(), ["/es/karte", "/karte"]);
-        assert.equal(await page.locator(".lang-switch [aria-current]").first().textContent(), "EN");
+        assert.equal(await page.locator("footer .lang-switch [aria-current]").first().textContent(), "EN");
       },
     });
   });

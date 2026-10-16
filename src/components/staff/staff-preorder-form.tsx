@@ -5,6 +5,7 @@ import { createPreorderManually } from "@/app/staff/actions";
 import { MenuIcon } from "@/components/icons";
 import { SubmitButton } from "@/components/staff/form-bits";
 import { DateField, TimeField } from "@/components/staff/pickers";
+import { PREPARATIONS, PREPARATION_STAFF_LABEL } from "@/lib/preorder-preparation";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 export type StaffPreorderItem = { id: string; name: string; category: string; slug: string; step: number; unit: string };
@@ -68,6 +69,17 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
         <div>
           <label htmlFor="p-time">Abholzeit</label>
           <TimeField id="p-time" name="pickup_time" required />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="p-preparation">Empanadas</label>
+          <select id="p-preparation" name="preparation" defaultValue="">
+            <option value="">Nicht angegeben</option>
+            {PREPARATIONS.map((p) => (
+              <option key={p} value={p}>
+                {PREPARATION_STAFF_LABEL[p]}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="p-name">Name</label>

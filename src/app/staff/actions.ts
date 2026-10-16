@@ -12,6 +12,7 @@ import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
+import { isPreparation } from "@/lib/preorder-preparation";
 import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
@@ -253,6 +254,9 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
   const notes = str(formData, "notes");
   const date = str(formData, "pickup_date");
   const time = str(formData, "pickup_time");
+  // Optional here: a regular on the phone may not have said, and the card simply shows no badge then.
+  const preparationField = str(formData, "preparation");
+  const preparation = isPreparation(preparationField) ? preparationField : null;
 
   const quantities = new Map<string, number>();
   for (const [key, value] of formData.entries()) {
@@ -279,7 +283,7 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
 
   const { data: order, error } = await supabase
     .from("preorders")
-    .insert({ name, phone, pickup_date: date, pickup_time: time, notes: notes || null, status: "confirmed", source: "staff" })
+    .insert({ name, phone, pickup_date: date, pickup_time: time, notes: notes || null, preparation, status: "confirmed", source: "staff" })
     .select("id")
     .single();
   if (error || !order) {
@@ -485,6 +489,40 @@ export async function saveSpecial(_prev: ActionResult, formData: FormData): Prom
 export async function deleteSpecial(formData: FormData) {
   const { supabase } = await requireStaff();
   await supabase.from("specials").delete().eq("id", str(formData, "id"));
+  updateTag(TAG.content);
+  refresh();
+}
+
+// ---------------------------------------------------------------- special ideas (showcase)
+/** The cards shown before the specials sign-up question (migration 20261016050000). German is the
+ *  base text; Spanish and English are optional and fall back to it on the public page. */
+export async function saveSpecialIdea(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const id = str(formData, "id");
+  const sortOrder = Math.trunc(num(formData, "sort_order", 0));
+  const row = {
+    title: str(formData, "title"),
+    description: str(formData, "description") || null,
+    title_es: str(formData, "title_es") || null,
+    title_en: str(formData, "title_en") || null,
+    description_es: str(formData, "description_es") || null,
+    description_en: str(formData, "description_en") || null,
+    sort_order: Math.min(Math.max(sortOrder, -9999), 9999),
+    is_active: bool(formData, "is_active"),
+  };
+  if (!row.title) return { ok: false, error: "Der Titel ist Pflicht." };
+  const { error } = id
+    ? await supabase.from("special_ideas").update(row).eq("id", id)
+    : await supabase.from("special_ideas").insert(row);
+  if (error) return { ok: false, error: error.message };
+  updateTag(TAG.content);
+  refresh();
+  return { ok: true };
+}
+
+export async function deleteSpecialIdea(formData: FormData) {
+  const { supabase } = await requireStaff();
+  await supabase.from("special_ideas").delete().eq("id", str(formData, "id"));
   updateTag(TAG.content);
   refresh();
 }
@@ -703,6 +741,7 @@ export async function uploadGalleryImage(_prev: ActionResult, formData: FormData
     storage_path: path,
     caption: str(formData, "caption").slice(0, 160) || null,
     category,
+    cursor_cheer: bool(formData, "cursor_cheer"),
   });
   if (error) {
     await supabase.storage.from("gallery").remove([path]);
@@ -722,6 +761,7 @@ export async function saveGalleryItem(_prev: ActionResult, formData: FormData): 
     .update({
       caption: str(formData, "caption").slice(0, 160) || null,
       category,
+      cursor_cheer: bool(formData, "cursor_cheer"),
       // Only sent once migration 20261012101400 added the column.
       ...(formData.has("featured_field") ? { is_featured: bool(formData, "is_featured") } : {}),
     })
