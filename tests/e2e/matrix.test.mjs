@@ -72,7 +72,12 @@ describe(`${label}: the scripts run`, () => {
     await visit("/", {
       native: true,
       body: async ({ page }) => {
-        const open = page.locator(".day:not(:disabled)").first();
+        // Deliberately not the *first* open day, which is today. Today runs out of bookable slots
+        // during the evening: the lead time is two hours and the last seating is an hour before
+        // close, so from about 19:30 Frankfurt time today offers nothing, correctly. Asserting that
+        // today offers times therefore fails on any run late in the day, which is what happened on
+        // main at 19:00. The next open day has a full day of slots whatever the hour.
+        const open = page.locator(".day:not(:disabled):not(.is-today)").first();
         await open.scrollIntoViewIfNeeded();
         // A tap on a phone, a click elsewhere: Playwright sends the right events for the project.
         await (mobile ? open.tap() : open.click());

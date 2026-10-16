@@ -168,11 +168,18 @@ export async function serverIsUp() {
   }
 }
 
-/** Collects console errors and uncaught exceptions for one page. */
+/**
+ * Collects console errors and uncaught exceptions for one page.
+ *
+ * The cap used to be 200 characters, which is shorter than a React warning's own preamble: a
+ * failure said "Each child in a list should have a unique key prop" and then stopped, with the
+ * component stack, which is the half that names the file and the line, cut off. A console error is
+ * only worth failing a test over if the failure says where to look, so the whole message is kept.
+ */
 export function watchForErrors(page) {
   const seen = [];
-  page.on("console", (m) => m.type() === "error" && seen.push(`console: ${m.text().slice(0, 200)}`));
-  page.on("pageerror", (e) => seen.push(`pageerror: ${String(e).slice(0, 200)}`));
+  page.on("console", (m) => m.type() === "error" && seen.push(`console: ${m.text().slice(0, 4000)}`));
+  page.on("pageerror", (e) => seen.push(`pageerror: ${(e?.stack ?? String(e)).slice(0, 4000)}`));
   return seen;
 }
 
