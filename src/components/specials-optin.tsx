@@ -130,7 +130,7 @@ export function SpecialsOptin({ locale, ideas = [] }: { locale: Locale; ideas?: 
 
               <div>
                 <label htmlFor="optin-name">{t.name}</label>
-                <input id="optin-name" ref={nameRef} name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" />
+                <input id="optin-name" ref={nameRef} name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" />
               </div>
 
               {channel === "whatsapp" ? (

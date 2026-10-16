@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
@@ -58,11 +57,7 @@ export function PhotoStrip({
                 {t.fromInstagram(CONTACT.instagramHandle)}
               </a>
             ) : (
-              <>
-                {t.fromGalleryBefore}
-                <Link href={localeHref(locale, "/gallery")}>{t.galleryLink}</Link>
-                {t.fromGalleryAfter}
-              </>
+              t.fromGallery
             )}
           </p>
         </div>

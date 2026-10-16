@@ -23,6 +23,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   // The checkbox is the consent. Without it there is nothing to record, so nothing is sent.
   if (formData.get("consent") !== "on") return { ok: false, error: errorFor("invalid_consent") };
   if (!isOpenChannel(channel)) return { ok: false, error: errorFor("channel_unavailable") };
+  if (name.length < 2) return { ok: false, error: errorFor("invalid_name") };
   if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || email.length > FIELD_LIMITS.email) {
     return { ok: false, error: errorFor("field_too_long") };
   }
@@ -35,7 +36,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
     p_channel: channel,
     // Stored verbatim, so the record says exactly what was agreed to rather than just "true".
     p_consent_text: getDictionary(locale).optin.consent[channel],
-    p_name: name || undefined,
+    p_name: name,
     p_phone: channel === "whatsapp" ? phone : undefined,
     p_email: channel === "email" ? email : undefined,
   });
