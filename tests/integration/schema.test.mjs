@@ -32,7 +32,32 @@ const hasPsql = (() => {
   }
 })();
 
-const skip = !dbUrl ? "no STAGING_DB_URL, set it in .env.staging.local" : !hasPsql ? "psql is not installed" : false;
+/**
+ * Whether the database actually answers, not just whether a URL was supplied.
+ *
+ * `db.<ref>.supabase.co` resolves to an **IPv6** address only, and plenty of places have no IPv6:
+ * CLAUDE.md records it for Docker, and a GitHub Actions runner is the same. Without this probe the
+ * nine tests below each fail with "Network is unreachable", which reads as nine policy regressions
+ * rather than as one unreachable host. Use the IPv4 pooler there:
+ * postgresql://postgres.<ref>:<password>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+ */
+const reachable = (() => {
+  if (!dbUrl || !hasPsql) return false;
+  try {
+    execFileSync("psql", [dbUrl, "-At", "-c", "select 1"], { stdio: "ignore", timeout: 20_000 });
+    return true;
+  } catch (error) {
+    return String(error.stderr ?? error.message ?? error);
+  }
+})();
+
+const skip = !dbUrl
+  ? "no STAGING_DB_URL, set it in .env.staging.local"
+  : !hasPsql
+    ? "psql is not installed"
+    : reachable !== true
+      ? `the database did not answer. ${/unreachable|Network/i.test(String(reachable)) ? "The direct host is IPv6 only; use the IPv4 pooler (see the comment above)." : String(reachable).slice(0, 200)}`
+      : false;
 
 /**
  * One query, as an array of rows, each row an array of fields.
