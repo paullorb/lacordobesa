@@ -53,6 +53,8 @@ export async function getPickupRange(): Promise<{ minDate: string; maxDate: stri
 
 export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "description" | "description_es" | "description_en" | "price_label" | "preorder_unit"> & {
   category: string;
+  /** The category's slug, which names its drawing (MenuIcon). */
+  categorySlug: string;
   /** Sold in packs of this many: 6 for empanadas, 1 for everything else. */
   preorder_step: number;
 };
@@ -64,21 +66,36 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const { data, error } = await supabase
-    .from("menu_items_public")
-    .select("id, name, description, description_es, description_en, price_label, preorder_unit, preorder_step, category_label")
-    .eq("is_preorderable", true)
-    .order("sort_order");
+  const [{ data, error }, { data: categories }] = await Promise.all([
+    supabase
+      .from("menu_items_public")
+      .select("id, category_id, name, description, description_es, description_en, price_label, preorder_unit, preorder_step, category_label, category_sort")
+      .eq("is_preorderable", true)
+      .order("sort_order"),
+    supabase.from("menu_categories").select("id, slug"),
+  ]);
   if (error) return [];
-  return (data ?? []).map((i) => {
-    const { category_label, ...item } = i;
-    return { ...item, preorder_step: item.preorder_step ?? 1, category: category_label ?? "Weitere" } as PreorderableItem;
-  });
+  const slugOf = new Map((categories ?? []).map((c) => [c.id, c.slug]));
+  // Menu order: by category, then the dish's place in it. Stable, so the second key survives.
+  return (data ?? [])
+    .toSorted((a, b) => (a.category_sort ?? 0) - (b.category_sort ?? 0))
+    .map((i) => {
+      const { category_label, category_id, category_sort: _sort, ...item } = i;
+      return {
+        ...item,
+        preorder_step: item.preorder_step ?? 1,
+        category: category_label ?? "Weitere",
+        categorySlug: (category_id && slugOf.get(category_id)) || "",
+      } as PreorderableItem;
+    });
 }
 
 /** A pre-order with the lines the staff list joins in. Lives here rather than in the staff page,
  *  so the card component does not have to import a type out of a route file. */
-type StaffPreorderLine = Pick<Tables<"preorder_lines">, "id" | "label" | "unit_label" | "price_label" | "quantity">;
+type StaffPreorderLine = Pick<Tables<"preorder_lines">, "id" | "label" | "unit_label" | "price_label" | "quantity"> & {
+  /** Through the dish to its category, for the line's drawing. Null once the dish is deleted. */
+  menu_items: { menu_categories: { slug: string } | null } | null;
+};
 export type PreorderWithLines = Tables<"preorders"> & { preorder_lines: StaffPreorderLine[] };
 
 /** One line of a guest's order, as preorder_by_token() returns it. */

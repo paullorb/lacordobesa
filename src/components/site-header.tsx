@@ -81,9 +81,6 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
                 {l.label}
               </SectionLink>
             ))}
-            <a className="nav-cta" href={whatsappHref} target="_blank" rel="noreferrer">
-              {t.nav.write} <ArrowIcon direction="up-right" />
-            </a>
             <LanguageSwitch locale={locale} path={path} label={t.nav.language} />
             {/* Only in the open menu, where there is a whole screen to fill: the address, the phone
                 and the Instagram handle, so the menu is a page about the shop rather than a list of
@@ -101,6 +98,12 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
               <a href={`tel:${CONTACT.phoneE164}`}>
                 <PhoneIcon className="nav-icon" />
                 <span>{CONTACT.phoneDisplay}</span>
+              </a>
+              {/* WhatsApp lives here and not in the bar: two equal pills up there competed with
+                  Reservieren, which is the one thing the header should ask for. */}
+              <a href={whatsappHref} target="_blank" rel="noreferrer">
+                <ArrowIcon direction="up-right" className="nav-icon" />
+                <span>{t.nav.write} · WhatsApp</span>
               </a>
               <a href={CONTACT.instagram} target="_blank" rel="noreferrer">
                 <InstagramIcon className="nav-icon" />

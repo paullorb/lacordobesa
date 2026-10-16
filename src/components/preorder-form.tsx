@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { requestPreorder } from "@/app/vorbestellen/actions";
-import { ArrowIcon } from "@/components/icons";
+import { ArrowIcon, MenuIcon } from "@/components/icons";
 import { calendarMonths } from "@/components/reservation-form";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import type { PreorderableItem } from "@/lib/preorders";
@@ -44,7 +44,10 @@ function pickupSlots(window: PickupWindow, earliest: string | undefined) {
 }
 
 /**
- * A pre-order, asked the way the celebration inquiry asks: what, then when, then who.
+ * A pre-order, asked the way the celebration inquiry asks: which kind, which dishes, when, who.
+ *
+ * The kind comes first (Empanadas, Pizzas) so the dish list that follows is only the ones the guest
+ * came for, rather than every pre-orderable dish at once.
  *
  * Quantities move in the dish's pack size, so empanadas go 6, 12, 18 and a pizza goes one at a time;
  * request_preorder() refuses anything else. The guest's details come last and the closing note says
@@ -61,6 +64,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
   const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
 
   const [step, setStep] = useState(1);
+  const [picked, setPicked] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -72,6 +76,10 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
 
   const chosen = items.filter((i) => (quantities[i.id] ?? 0) > 0);
   const categories = [...new Set(items.map((i) => i.category))];
+  const slugOf = (category: string) => items.find((i) => i.category === category)?.categorySlug ?? "";
+  // A dish already counted stays in the order even if its category is unticked again, so going
+  // back to step 1 can never silently drop something from the basket.
+  const shown = categories.filter((c) => picked.includes(c) || items.some((i) => i.category === c && (quantities[i.id] ?? 0) > 0));
 
   const windowOf = (iso: string) => windows[at(iso).getUTCDay()];
   const isClosed = (iso: string) => closedDates.includes(iso) || !windowOf(iso);
@@ -111,13 +119,44 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
   const steps: WizardStep[] = [
     {
       title: t.steps[1],
+      summary: shown.length ? shown.join(" · ") : null,
+      changeLabel: t.changeCategories,
+      body: (
+        <div className="wizard-body">
+          <div className="slots occasions" role="group" aria-label={t.steps[1]}>
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className="slot slot-icon"
+                aria-pressed={picked.includes(category)}
+                onClick={() => setPicked((p) => (p.includes(category) ? p.filter((c) => c !== category) : [...p, category]))}
+              >
+                <MenuIcon slug={slugOf(category)} size={24} />
+                {category}
+              </button>
+            ))}
+          </div>
+          <p className="form-note">{t.categoriesNote}</p>
+          <div>
+            <button type="button" className="button" disabled={shown.length === 0} onClick={() => setStep(2)}>
+              {t.continueLabel} <ArrowIcon direction="right" />
+            </button>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: t.steps[2],
       summary: itemsSummary,
       changeLabel: t.changeItems,
       body: (
         <div className="wizard-body">
-          {categories.map((category) => (
+          {shown.map((category) => (
             <div key={category} className="preorder-group">
-              <h4>{category}</h4>
+              <h4>
+                <MenuIcon slug={slugOf(category)} size={22} className="icon-inline" /> {category}
+              </h4>
               <ul>
                 {items
                   .filter((i) => i.category === category)
@@ -156,7 +195,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
           ))}
           {chosen.length >= maxLines && <p className="form-note">{t.tooManyLines(maxLines)}</p>}
           <div>
-            <button type="button" className="button" disabled={chosen.length === 0} onClick={() => setStep(2)}>
+            <button type="button" className="button" disabled={chosen.length === 0} onClick={() => setStep(3)}>
               {t.continueLabel} <ArrowIcon direction="right" />
             </button>
           </div>
@@ -164,7 +203,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
       ),
     },
     {
-      title: t.steps[2],
+      title: t.steps[3],
       summary: date && time ? `${fmtDate(date, locale, { year: undefined })} · ${time}` : null,
       changeLabel: t.changeWhen,
       body: (
@@ -223,7 +262,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
                       aria-pressed={time === s}
                       onClick={() => {
                         setTime(s);
-                        setStep(3);
+                        setStep(4);
                       }}
                     >
                       {s}
@@ -236,7 +275,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
       ),
     },
     {
-      title: t.steps[3],
+      title: t.steps[4],
       body: (
         <form className="wizard-body wizard-contact" action={formAction}>
           <input type="hidden" name="locale" value={locale} />
@@ -249,7 +288,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
           <ul className="preorder-summary">
             {chosen.map((i) => (
               <li key={i.id}>
-                {quantities[i.id]} × {i.name}
+                <MenuIcon slug={i.categorySlug} size={18} className="icon-inline" /> {quantities[i.id]} × {i.name}
               </li>
             ))}
             {date && (

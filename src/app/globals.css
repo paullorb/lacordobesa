@@ -94,6 +94,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .nav-actions { display: flex; align-items: center; gap: .6rem; }
 /* A pill split over two lines reads as broken; the row collapses into the menu before it has to. */
 .nav-cta { white-space: nowrap; }
+/* The header's one call to action, in the shop's coral so it is the first thing the eye finds.
+   --coral-text rather than --coral: white on the graphic coral is under 3:1. */
+.nav-reserve { background: var(--coral-text); --button-hover: var(--ink); }
 .menu-toggle { display: none; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; }
 .menu-toggle svg { display: block; transition: transform .2s; }
 .menu-close { font-size: 2rem; line-height: 1; }
@@ -127,9 +130,13 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .hero-word { display: inline-block; vertical-align: top; overflow: hidden; padding: .14em .1em .16em; margin: -.14em -.1em -.16em; }
 .hero-word > span { display: inline-block; }
 /* "Scroll" and a line that keeps wiping across it, at the foot of the hero opposite the status pill. */
-.hero-scroll { position: absolute; z-index: 3; left: 4rem; bottom: 36px; display: flex; align-items: center; gap: .8rem; color: rgba(255,253,248,.72); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
-.hero-scroll-line { position: relative; width: 56px; height: 1px; background: rgba(255,253,248,.28); overflow: hidden; }
-.hero-scroll-line::after { content: ""; position: absolute; inset: 0; background: var(--paper); transform: scaleX(0); transform-origin: left; }
+/* The scroll hint riding the pointer over the hero (components/hero-cursor.tsx). */
+.hero-cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .hero-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: var(--paper); color: var(--ink); box-shadow: 0 10px 30px rgba(21,47,59,.22); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .12s ease-out; }
+  .hero-cursor[data-on] { opacity: 1; scale: 1; }
+  .hero[data-cursor] { cursor: none; }
+}
 
 /* ------------------------------------------------------------------ the repulgue
    The crimped edge an empanada is closed with, drawn by components/repulgue.tsx. It is the site's
@@ -719,7 +726,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .hero::before { background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)); }
   .hero-image { object-position: 58% center; }
   .hero-content { padding: 4rem 2rem; }
-  .hero-scroll { display: none; }
   .section { width: calc(100% - 40px); padding: 82px 0; }
   .intro-grid, .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
   .intro-art { min-height: 340px; max-width: 440px; width: 100%; margin: auto; }
@@ -858,7 +864,7 @@ body::after {
   .hero .eyebrow { animation-delay: .05s; }
   .hero-text { animation-delay: .5s; }
   .hero-actions { animation-delay: .62s; }
-  .hero-scroll-line::after { animation: scroll-cue 2.4s cubic-bezier(.65,0,.35,1) .8s infinite; }
+  .hero-cursor svg { animation: cursor-nudge 1.6s cubic-bezier(.65,0,.35,1) infinite; }
 
   @supports (animation-timeline: view()) {
     /* Section titles unveil from the top as they scroll in, a beat behind their section's lift. */
@@ -916,7 +922,7 @@ body::after {
 }
 
 @keyframes word-rise { from { transform: translateY(108%) rotate(2deg); } to { transform: none; } }
-@keyframes scroll-cue { 0% { transform: scaleX(0); transform-origin: left; } 42% { transform: scaleX(1); transform-origin: left; } 58% { transform: scaleX(1); transform-origin: right; } 100% { transform: scaleX(0); transform-origin: right; } }
+@keyframes cursor-nudge { 0%, 100% { translate: 0 -3px; } 50% { translate: 0 3px; } }
 @keyframes heading-reveal { from { opacity: 0; transform: translateY(.3em); clip-path: inset(0 0 60% 0); } to { opacity: 1; transform: none; clip-path: inset(-20% -5% -30% -5%); } }
 @keyframes edge-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 @keyframes repulgue-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
@@ -935,7 +941,7 @@ body::after {
        inside the frame while it lags. The settle from above runs on the clock; this one runs on
        the hero's own timeline, and the two compose. */
     .hero-image { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both, hero-parallax linear both; animation-timeline: auto, --hero; animation-range: normal, exit 0% exit 100%; }
-    .hero-content, .hero-scroll { animation: hero-leave linear both; animation-timeline: --hero; animation-range: exit 0% exit 55%; }
+    .hero-content { animation: hero-leave linear both; animation-timeline: --hero; animation-range: exit 0% exit 55%; }
 
     /* Cards and rows lift into place one by one. Neighbours in a row enter the viewport together,
        so the second, third and fourth are each held back a little, which is what reads as a
@@ -1061,30 +1067,28 @@ body::after {
   [data-spotlight]:hover::before { opacity: 1; }
 }
 
-/* The word "Ansehen" riding the pointer over a gallery tile, where the arrow would otherwise be.
-   Moved by the grid's pointer handler; the short transition is what makes it float a step behind
+/* A word riding the pointer over a gallery tile ("¡Ñam!", "Uff", a new one per photo), where the
+   arrow would otherwise be. Rendered into <body>, moved by the grid's pointer handler; the short transition is what makes it float a step behind
    rather than sit glued to the pointer. Not rendered at all without a fine pointer, and the tile
    only gives up its own cursor while the label is there to replace it. */
 .gallery-cursor { display: none; }
 @media (hover: hover) and (pointer: fine) {
-  .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
+  .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); line-height: 1.1; text-align: center; padding: .4rem; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
   .gallery-cursor[data-on] { opacity: 1; scale: 1; }
-  .gallery-grid:has(+ .gallery-cursor[data-on]) .gallery-tile { cursor: none; }
+  body:has(> .gallery-cursor[data-on]) .gallery-tile { cursor: none; }
 }
 
 /* Today's row in the opening hours, marked by components/opening-hours.tsx once the browser knows
-   what day it is in Frankfurt. The other rows step back a little so the one that matters reads first. */
-/* --coral-text, not --coral: the pill is made of words, and the graphic coral is 2.71:1 under white. */
-.hours-today { display: inline-block; margin-left: .5rem; padding: .12rem .48rem; border-radius: 999px; background: var(--coral-text); color: #fffdf8; font-size: .66rem; font-weight: 700; letter-spacing: .12em; line-height: 1.4; text-transform: uppercase; vertical-align: .12em; }
+   what day it is in Frankfurt: bold, nothing more. The word "Heute" is still there for a screen
+   reader; a coral pill beside it was one signal too many next to "Heute ab 16:00 geöffnet". */
+.hours-today { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .hours [data-today] > span:first-child { font-weight: 700; color: var(--ink); }
 .hours [data-today] > span:last-child:not(.closed) { font-weight: 600; color: var(--ink); }
-/* The footer's columns are too narrow for the pill, so there today is a coral dot in the margin
-   beside the day, and the word itself is kept for a screen reader. */
+/* In the footer today also gets a coral dot in the margin beside the day. */
 .footer-hours [data-today] { position: relative; }
 .footer-hours [data-today]::before { content: ""; position: absolute; left: -14px; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--coral); }
 .footer-hours [data-today] dt { color: var(--paper); font-weight: 600; }
 .footer-hours [data-today] dd:not(.closed) { color: var(--paper); font-weight: 600; }
-.footer-hours .hours-today { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* The shop's clock in the footer (components/local-time.tsx): a coral dot ticking beside the time. */
 .local-time { display: inline-flex; align-items: center; gap: .55rem; min-height: 1.2em; font-variant-numeric: tabular-nums; }

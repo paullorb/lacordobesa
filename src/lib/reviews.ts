@@ -133,3 +133,12 @@ export function resolveReviews(stored: unknown): ResolvedReview[] {
     return { ...p, score, stars: score ? starsOutOfFive(score.value, score.scale) : null };
   });
 }
+
+/** A review count as the site prints it: "50+" rather than "50". The numbers are typed in by hand
+ *  under Bewertungen and only go up between edits, so a floor stays true for weeks where the exact
+ *  figure is stale the day after. Rounded down to tens, to fifties from 100; under 10 it is exact. */
+export function reviewCountLabel(count: number) {
+  if (count < 10) return String(count);
+  const step = count < 100 ? 10 : 50;
+  return `${Math.floor(count / step) * step}+`;
+}

@@ -1,3 +1,4 @@
+import { reviewCountLabel } from "@/lib/reviews";
 /** German copy: the source of truth for the dictionary's shape.
  *
  *  `es.ts` and `en.ts` are typed against `Dictionary`, so a missing or misspelled key is a build
@@ -62,7 +63,6 @@ export const de = {
     heroReserve: "Tisch reservieren",
     heroMenu: "Zur Karte",
     /** Beside the small line at the foot of the hero that says there is more below. */
-    heroScroll: "Scrollen",
     marqueeLabel: "Hausgemachte Spezialitäten",
     storyEyebrow: "Unsere kleine Welt",
     storyTitle: "Mit Geschmack, der Erinnerungen weckt.",
@@ -88,7 +88,7 @@ export const de = {
     reviewsTitle: "Unsere Gäste sagen es besser.",
     reviewsText: "Lies selbst nach, was Gäste über uns schreiben, dort, wo wir nichts daran ändern können.",
     reviewsScoreBare: (value: string, scale: string) => `${value} von ${scale}`,
-    reviewsScore: (value: string, scale: string, count: number) => `${value} von ${scale} · ${count} Bewertungen`,
+    reviewsScore: (value: string, scale: string, count: number) => `${value} von ${scale} · ${reviewCountLabel(count)} Bewertungen`,
     reviewsAsOf: (date: string) => `Stand ${date}`,
     reviewsOpen: "Bewertungen lesen",
     reserveEyebrow: "Reservá tu mesa",
@@ -325,7 +325,9 @@ export const de = {
       item_unavailable: "Eines der gewählten Gerichte ist gerade nicht vorbestellbar. Bitte lade die Seite neu.",
     },
     legend: "Was möchtest du vorbestellen?",
-    steps: { 1: "Was darf es sein?", 2: "Wann holst du es ab?", 3: "Wie erreichen wir dich?" },
+    steps: { 1: "Worauf hast du Lust?", 2: "Was darf es sein?", 3: "Wann holst du es ab?", 4: "Wie erreichen wir dich?" },
+    categoriesNote: "Du kannst auch mehreres wählen.",
+    changeCategories: "Auswahl ändern",
     changeItems: "Bestellung ändern",
     changeWhen: "Abholtermin ändern",
     continueLabel: "Weiter",
@@ -559,7 +561,8 @@ export const de = {
     close: "Schließen",
     previous: "Vorheriges Bild",
     next: "Nächstes Bild",
-    view: "Ansehen",
+    /** Riding the pointer over a photo, one per photo. Argentine on purpose, in every language. */
+    cheers: ["¡Ñam!", "Uff", "¡Ayy!", "¡Eso!", "Mmm", "¡Qué rico!", "¡Epa!", "¡Joya!"],
   },
 };
 
