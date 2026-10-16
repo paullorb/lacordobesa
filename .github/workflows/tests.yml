@@ -72,65 +72,27 @@ jobs:
       - name: Assert the unit suite actually ran
         run: node .github/assert-ran.mjs /tmp/unit.log 300
 
-  # ---------------------------------------------------------------- the database suite
-  database:
-    if: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","database"]'), inputs.suites) }}
+  # ---------------------------------------------------------------- the suites that touch staging
+  # Deliberately one job rather than two.
+  #
+  # Both the database suite and the browser suite write to the staging project, so they must not run
+  # at the same time: they would spend each other's `request_reservation` allowance (15 an hour,
+  # site-wide) and sweep each other's fixtures. The first attempt gave them a job each and a shared
+  # `concurrency` group to serialise them, which does not work: GitHub keeps only **one** pending job
+  # per group, so as soon as a third contender appears (a push while a pull request is still running)
+  # the waiting one is cancelled, and a cancelled suite is indistinguishable from one that was never
+  # run. One job holds one slot, which is the thing that actually serialises.
+  staging:
+    if: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","database","browser"]'), inputs.suites) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # These tests write to the staging project and clean up after themselves. Two runs at once would
-    # book against one another's `request_reservation` allowance (15 an hour, site-wide) and sweep
-    # each other's rows, so they queue instead of overlapping. Never cancel-in-progress here: a
-    # cancelled run is a run that left its fixtures behind.
+    timeout-minutes: 35
     concurrency:
-      group: staging-database
+      group: staging
+      # Never cancel: a cancelled run is one that left its fixtures in the staging database.
       cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci --prefer-offline
-
-      - name: Write .env.staging.local from the repository secrets
-        id: creds
-        env:
-          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
-          STAGING_PUBLISHABLE_KEY: ${{ secrets.STAGING_PUBLISHABLE_KEY }}
-          STAGING_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SERVICE_ROLE_KEY }}
-          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
-          STAGING_STAFF_USER: ${{ secrets.STAGING_STAFF_USER }}
-          STAGING_STAFF_PASS: ${{ secrets.STAGING_STAFF_PASS }}
-        run: node .github/write-env.mjs
-
-      - name: Database tests
-        if: steps.creds.outputs.configured == 'true'
-        run: npm run test:integration | tee /tmp/integration.log
-
-      - name: Assert the database suite actually ran
-        if: steps.creds.outputs.configured == 'true'
-        run: node .github/assert-ran.mjs /tmp/integration.log 150
-
-      # A pull request from a fork has no secrets and must not be blocked by that. A scheduled run
-      # with no secrets is a canary watching nothing, which is worse than a red build.
-      - name: Refuse to call a skipped canary green
-        if: steps.creds.outputs.configured != 'true' && github.event_name != 'pull_request'
-        run: |
-          echo "::error::The database suite had no staging credentials, so it tested nothing."
-          echo "Add these repository secrets (values are in .env.staging.local):" >> "$GITHUB_STEP_SUMMARY"
-          echo '`STAGING_SUPABASE_URL`, `STAGING_PUBLISHABLE_KEY`, `STAGING_SERVICE_ROLE_KEY`, `STAGING_DB_URL`, `STAGING_STAFF_USER`, `STAGING_STAFF_PASS`' >> "$GITHUB_STEP_SUMMARY"
-          exit 1
-
-  # ---------------------------------------------------------------- the browser suite
-  browser:
-    if: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","browser"]'), inputs.suites) }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    # token-routes.test.mjs arranges a reservation and an order in staging, so this shares the queue
-    # with the database job rather than racing it for the same allowance.
-    concurrency:
-      group: staging-database
-      cancel-in-progress: false
+    env:
+      RUN_DATABASE: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","database"]'), inputs.suites) }}
+      RUN_BROWSER: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","browser"]'), inputs.suites) }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -150,14 +112,28 @@ jobs:
           STAGING_STAFF_PASS: ${{ secrets.STAGING_STAFF_PASS }}
         run: node .github/write-env.mjs
 
-      # `npm install` does not fetch browsers. Only the three engines the suite can drive; the matrix
-      # (npm run test:matrix) is not part of this workflow, it takes minutes per project.
+      # ---- the database suite, first because it is the fast one and the browser suite is pointless
+      # if the database it reads is broken.
+      - name: Database tests
+        if: steps.creds.outputs.configured == 'true' && env.RUN_DATABASE == 'true'
+        run: npm run test:integration | tee /tmp/integration.log
+      - name: Assert the database suite actually ran
+        if: steps.creds.outputs.configured == 'true' && env.RUN_DATABASE == 'true'
+        # 175 of 180, deliberately tight. schema.test.mjs is nine tests that skip when the database
+        # cannot be reached, and the direct Supabase host is IPv6 only, which a runner does not have:
+        # a loose floor would let those nine disappear and still report green. Raise this as the
+        # suite grows; it is meant to notice a suite getting smaller.
+        run: node .github/assert-ran.mjs /tmp/integration.log 175
+
+      # ---- the browser suite
+      # `npm install` does not fetch browsers. Only the three engines the suite drives; the device
+      # matrix (npm run test:matrix) is not part of this workflow, it takes minutes per project.
       - name: Install the browsers
-        if: steps.creds.outputs.configured == 'true'
+        if: steps.creds.outputs.configured == 'true' && env.RUN_BROWSER == 'true'
         run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Start the site
-        if: steps.creds.outputs.configured == 'true'
+        if: steps.creds.outputs.configured == 'true' && env.RUN_BROWSER == 'true'
         run: |
           npm run dev > /tmp/dev.log 2>&1 &
           # The suite skips rather than fails when nothing is listening, so waiting is what keeps
@@ -171,19 +147,22 @@ jobs:
           exit 1
 
       - name: Browser tests
-        if: steps.creds.outputs.configured == 'true'
+        if: steps.creds.outputs.configured == 'true' && env.RUN_BROWSER == 'true'
         run: npm run test:e2e | tee /tmp/e2e.log
-
       - name: Assert the browser suite actually ran
-        if: steps.creds.outputs.configured == 'true'
+        if: steps.creds.outputs.configured == 'true' && env.RUN_BROWSER == 'true'
         run: node .github/assert-ran.mjs /tmp/e2e.log 600
 
       - name: The dev server's own log, when something failed
         if: failure() && steps.creds.outputs.configured == 'true'
         run: tail -60 /tmp/dev.log
 
+      # A pull request from a fork has no secrets and must not be blocked by that. A scheduled run
+      # with no secrets is a canary watching nothing, which is worse than a red build.
       - name: Refuse to call a skipped canary green
         if: steps.creds.outputs.configured != 'true' && github.event_name != 'pull_request'
         run: |
-          echo "::error::The browser suite had no staging credentials, so it tested nothing."
+          echo "::error::The staging suites had no credentials, so they tested nothing."
+          echo "Add these repository secrets (values are in .env.staging.local):" >> "$GITHUB_STEP_SUMMARY"
+          echo '`STAGING_SUPABASE_URL`, `STAGING_PUBLISHABLE_KEY`, `STAGING_SERVICE_ROLE_KEY`, `STAGING_DB_URL`, `STAGING_STAFF_USER`, `STAGING_STAFF_PASS`' >> "$GITHUB_STEP_SUMMARY"
           exit 1
