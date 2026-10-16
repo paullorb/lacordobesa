@@ -114,6 +114,14 @@ quota allowance back.
 Tests skip rather than fail when there is no server listening or no `STAFF_USER` / `STAFF_PASS` in
 the environment, so `npm run check` stays runnable on a laptop with nothing else going on.
 
+**One sign-in per run, cached on disk.** `node --test` runs every file in its own process, so a
+module-level cache saved one sign-in *per file*: a full run signed in about thirteen times, and two
+runs inside an hour added up to enough for Supabase Auth to rate-limit the endpoint. It surfaced in
+CI as three tests failing with "staff sign-in failed" and an empty reason, which reads like a broken
+login form rather than a quota. `staffStorageState()` now keeps the cookies in a file under the
+system temp directory, keyed on the origin and good for ten minutes, and retries a refused sign-in
+twice with a backoff.
+
 ### Why the layout file exists
 
 A bug report with photographs: on an iPhone the staff menu editor rendered with the navbar
