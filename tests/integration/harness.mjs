@@ -165,3 +165,22 @@ export function berlinDatePlus(days) {
   base.setUTCDate(base.getUTCDate() + days);
   return base.toISOString().slice(0, 10);
 }
+
+/**
+ * The first `count` days from `from` days out that have a slot with room for `seats`, asked of
+ * `reservation_availability` exactly as the booking form asks it.
+ *
+ * A fixed offset like `berlinDatePlus(9)` lands on the shop's rest day one week in seven, and the
+ * nightly run then fails with "no slot has room" for a reason that has nothing to do with the
+ * code. Asking the calendar also skips closures and days staff have filled.
+ */
+export async function bookableDates(count, { from = 5, seats = 2 } = {}) {
+  const dates = [];
+  for (let days = from; days < from + 30 && dates.length < count; days++) {
+    const date = berlinDatePlus(days);
+    const { data } = await anon().rpc("reservation_availability", { p_date: date });
+    if ((data ?? []).some((s) => s.seats_left >= seats)) dates.push(date);
+  }
+  if (dates.length < count) throw new Error(`only ${dates.length} of ${count} bookable days in the next month`);
+  return dates;
+}

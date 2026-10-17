@@ -20,13 +20,19 @@
  */
 import { test, describe, after, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { admin, anon, berlinDatePlus, berlinToday, cleanup, rpcError, skip, TEST_NAME, testPhone, track } from "./harness.mjs";
+import { admin, anon, bookableDates, berlinDatePlus, berlinToday, cleanup, rpcError, skip, TEST_NAME, testPhone, track } from "./harness.mjs";
 
 afterEach(cleanup);
 after(cleanup);
 
-/** A date far enough out that the lead time and the horizon both allow it. */
-const SOON = berlinDatePlus(7);
+/**
+ * Five days the calendar really has room on, from five days out: far enough that the lead time
+ * allows them, and found by asking, so the shop's rest day is never one of them.
+ */
+const DAYS = skip ? [] : await bookableDates(5);
+
+/** The usual day for a booking. */
+const SOON = DAYS[2];
 
 /** The first slot on `date` with room for `seats`, read the way the form reads it. */
 async function freeSlot(date = SOON, seats = 2) {
@@ -220,11 +226,10 @@ describe("the limits that stop one person filling the calendar", () => {
   test("a phone number is held to three open future bookings", { skip }, async () => {
     const phone = testPhone();
     // Three different days, so duplicate_booking is not what trips first.
-    for (const days of [5, 6, 7]) {
-      const date = berlinDatePlus(days);
+    for (const date of DAYS.slice(0, 3)) {
       await book({ p_phone: phone, p_date: date, p_time: await freeSlot(date) });
     }
-    const date = berlinDatePlus(8);
+    const date = DAYS[3];
     const code = await rpcError(admin(), "request_reservation", booking({ p_phone: phone, p_date: date, p_time: await freeSlot(date) }));
     assert.equal(code, "too_many_requests");
   });
@@ -232,11 +237,10 @@ describe("the limits that stop one person filling the calendar", () => {
   test("the same e-mail address is counted too, not only the phone number", { skip }, async () => {
     // Otherwise rotating the phone number alone defeats the per-contact limit.
     const email = `zz-test-${Date.now()}@example.invalid`;
-    for (const days of [5, 6, 7]) {
-      const date = berlinDatePlus(days);
+    for (const date of DAYS.slice(0, 3)) {
       await book({ p_phone: testPhone(), p_email: email, p_date: date, p_time: await freeSlot(date) });
     }
-    const date = berlinDatePlus(9);
+    const date = DAYS[4];
     const code = await rpcError(
       admin(),
       "request_reservation",
@@ -311,7 +315,7 @@ describe("the guest's own management link", () => {
 
   test("the guest can move the booking, and the new time is the one stored", { skip }, async () => {
     const { id, token } = await booked();
-    const date = berlinDatePlus(9);
+    const date = DAYS[4];
     const time = await freeSlot(date);
     const { error } = await anon().rpc("move_reservation_by_token", { p_token: token, p_date: date, p_time: time, p_party_size: 3 });
     assert.equal(error, null, `moving failed: ${error?.message}`);
@@ -332,7 +336,7 @@ describe("the guest's own management link", () => {
   test("a cancelled booking cannot be moved back to life", { skip }, async () => {
     const { id, token } = await booked();
     await anon().rpc("cancel_reservation_by_token", { p_token: token });
-    const date = berlinDatePlus(9);
+    const date = DAYS[4];
     await anon().rpc("move_reservation_by_token", { p_token: token, p_date: date, p_time: await freeSlot(date), p_party_size: 2 });
     const { data } = await admin().from("reservations").select("status").eq("id", id).single();
     assert.equal(data.status, "cancelled", "a cancelled booking was revived through its link");
