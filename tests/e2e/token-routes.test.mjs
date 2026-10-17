@@ -30,7 +30,7 @@ import assert from "node:assert/strict";
 import { BASE, closeBrowser, serverIsUp, visit } from "./harness.mjs";
 // Shared with the database tests on purpose: one definition of "which project, and with which key",
 // including its refusal to point at production.
-import { admin, anon, berlinDatePlus, skip as skipDatabase, TEST_NAME, testPhone } from "../integration/harness.mjs";
+import { admin, anon, bookableDates, berlinDatePlus, skip as skipDatabase, TEST_NAME, testPhone } from "../integration/harness.mjs";
 
 const up = await serverIsUp();
 const skip = !up ? `no site at ${BASE}, run npm run dev` : skipDatabase ? skipDatabase : false;
@@ -62,7 +62,7 @@ async function arrangeFixtures() {
   const supabase = admin();
 
   // A reservation, booked the way the Server Action books one.
-  const date = berlinDatePlus(7);
+  const [date] = await bookableDates(1, { from: 7 });
   const { data: slots } = await anon().rpc("reservation_availability", { p_date: date });
   const slot = (slots ?? []).find((s) => s.seats_left >= 2);
   assert.ok(slot, `no bookable slot on ${date}, so the manage page cannot be opened`);

@@ -155,7 +155,8 @@ jobs:
 
       - name: The dev server's own log, when something failed
         if: failure() && steps.creds.outputs.configured == 'true'
-        run: tail -60 /tmp/dev.log
+        # A failure before "Start the site" leaves no log, and a red step here would hide the real one.
+        run: if [ -f /tmp/dev.log ]; then tail -60 /tmp/dev.log; else echo "the dev server was never started"; fi
 
       # A pull request from a fork has no secrets and must not be blocked by that. A scheduled run
       # with no secrets is a canary watching nothing, which is worse than a red build.
