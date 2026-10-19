@@ -11,6 +11,18 @@ export function mergeStored<T extends object>(stored: unknown, submitted: Partia
   return { ...base, ...submitted };
 }
 
+/** The reservation settings to store: submitted keys over stored keys over the defaults.
+ *
+ *  `mergeStored` alone is not enough for the first save. When `site_settings.reservations` is
+ *  absent, which is a fresh database, it writes only the three keys the form carries, and the SQL
+ *  `reservation_settings()` fills in defaults only when the whole row is missing, not per key. The
+ *  row would then hold NULL for `slot_minutes`, `duration_minutes` and
+ *  `last_seating_minutes_before_close`, `reservation_availability()` would return no slots, and
+ *  nobody could book. Writing the effective object keeps every key present. */
+export function mergeReservationSettings(stored: unknown, submitted: Partial<ReservationSettings>): ReservationSettings {
+  return { ...effectiveReservationSettings(stored), ...submitted };
+}
+
 /** The reservation settings as they apply today: stored keys over the built-in defaults. */
 export function effectiveReservationSettings(stored: unknown): ReservationSettings {
   return { ...DEFAULT_RESERVATION_SETTINGS, ...mergeStored<ReservationSettings>(stored, {}) };

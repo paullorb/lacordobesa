@@ -5,16 +5,16 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { createClient } from "@/lib/supabase/server";
-import { fmtTime, TAG, type ReservationSettings } from "@/lib/data";
+import { fmtTime, TAG } from "@/lib/data";
 import { STAFF_EMAIL_DOMAIN, staffEmail } from "@/lib/staff";
-import { addDays, isISODate, isTime, todayISO } from "@/lib/dates";
+import { addDays, hasStarted, isISODate, isTime, todayISO } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
 import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/gallery";
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { isPreparation } from "@/lib/preorder-preparation";
 import { MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
-import { effectiveReservationSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
+import { effectiveReservationSettings, mergeReservationSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import {
@@ -71,6 +71,17 @@ export async function setReservationStatus(formData: FormData) {
   const id = str(formData, "id");
   const status = str(formData, "status") as Enums<"reservation_status">;
   if (!STATUSES.includes(status)) return;
+
+  // The card's boundary is a render-time value, so a page left open across a booking's start can
+  // still submit the control it was drawn with. Checked again here, because the wrong outcome is
+  // recorded for a real guest: a stale "Stornieren" cancelled a booking that had already begun,
+  // and a stale "Erledigt" would close one that has not.
+  const { data: when } = await supabase.from("reservations").select("date, start_time").eq("id", id).maybeSingle();
+  if (!when) return;
+  const started = hasStarted(when.date, when.start_time);
+  if (status === "cancelled" && started) return;
+  if ((status === "completed" || status === "no_show") && !started) return;
+
   // Returning the row saves a second read, and gives sendConfirmation() the values it needs.
   const { data: updated } = await supabase.from("reservations").update({ status }).eq("id", id).select("*").maybeSingle();
   if (status === "confirmed" && updated) await sendConfirmation(supabase, updated);
@@ -583,7 +594,7 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
   if (invalid) return { ok: false, error: invalid };
 
   const { error } = await supabase.from("site_settings").upsert([
-    { key: "reservations", value: mergeStored<ReservationSettings>(stored("reservations"), submitted) },
+    { key: "reservations", value: mergeReservationSettings(stored("reservations"), submitted) },
     { key: "announcement", value: { text: str(formData, "announcement") } },
     {
       key: "preorders",

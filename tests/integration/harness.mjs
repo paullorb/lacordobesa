@@ -173,14 +173,30 @@ export function berlinDatePlus(days) {
  * A fixed offset like `berlinDatePlus(9)` lands on the shop's rest day one week in seven, and the
  * nightly run then fails with "no slot has room" for a reason that has nothing to do with the
  * code. Asking the calendar also skips closures and days staff have filled.
+ *
+ * `seats` defaults to the configured maximum party, not to two, because these dates are shared by
+ * every test in the file: a partly filled day with three of eight seats left satisfied `seats = 2`
+ * and then failed the maximum-party test, which asks the same day for eight, before
+ * `request_reservation` was exercised at all.
+ *
+ * The scan stops at `max_days_ahead`. `reservation_availability` does not enforce the horizon but
+ * `request_reservation` and `move_reservation_by_token` do, so closures or busy days could push
+ * this past it and hand back dates every booking then refuses as `too_far_ahead`.
  */
-export async function bookableDates(count, { from = 5, seats = 2 } = {}) {
+export async function bookableDates(count, { from = 5, seats } = {}) {
+  const { data: settings } = await anon().rpc("reservation_settings");
+  const room = seats ?? Number(settings?.max_party_size ?? 2);
+  const horizon = Number(settings?.max_days_ahead ?? 30);
   const dates = [];
-  for (let days = from; days < from + 30 && dates.length < count; days++) {
+  for (let days = from; days <= horizon && dates.length < count; days++) {
     const date = berlinDatePlus(days);
     const { data } = await anon().rpc("reservation_availability", { p_date: date });
-    if ((data ?? []).some((s) => s.seats_left >= seats)) dates.push(date);
+    if ((data ?? []).some((s) => s.seats_left >= room)) dates.push(date);
   }
-  if (dates.length < count) throw new Error(`only ${dates.length} of ${count} bookable days in the next month`);
+  if (dates.length < count) {
+    throw new Error(
+      `only ${dates.length} of ${count} days with room for ${room} between ${from} and ${horizon} days out`,
+    );
+  }
   return dates;
 }

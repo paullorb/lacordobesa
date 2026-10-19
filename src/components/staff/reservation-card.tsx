@@ -2,6 +2,7 @@ import { resendConfirmation, setReservationStatus, saveStaffNotes } from "@/app/
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { CopyButton } from "@/components/staff/copy-button";
+import { StartGate } from "@/components/staff/start-gate";
 import { fmtTime } from "@/lib/data";
 import { fmtDate, fmtDateDE, hasStarted } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
@@ -77,17 +78,30 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           {r.notes && <p className="mt-2 rounded bg-cream px-3 py-2 text-sm">„{r.notes}“</p>}
         </div>
         <div className="flex flex-wrap items-start gap-1.5">
-          {isLive && !started && <WhatsAppButton phone={r.phone} text={confirmText} />}
+          {isLive && r.status !== "confirmed" && <WhatsAppButton phone={r.phone} text={confirmText} />}
           {r.status === "pending" && (
             <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Bestätigen" primary />
           )}
-          {started && (
-            <>
-              <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" primary />
-              <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
-            </>
+          {r.status === "confirmed" && (
+            <StartGate
+              date={r.date}
+              initiallyStarted={started}
+              time={r.start_time}
+              before={
+                <>
+                  <WhatsAppButton phone={r.phone} text={confirmText} />
+                  <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
+                </>
+              }
+              after={
+                <>
+                  <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" primary />
+                  <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
+                </>
+              }
+            />
           )}
-          {isLive && !started && (
+          {isLive && r.status !== "confirmed" && (
             <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
           )}
           {!isLive && (

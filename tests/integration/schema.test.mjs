@@ -44,12 +44,25 @@ const hasPsql = (() => {
 const reachable = (() => {
   if (!dbUrl || !hasPsql) return false;
   try {
-    execFileSync("psql", [dbUrl, "-At", "-c", "select 1"], { stdio: "ignore", timeout: 20_000 });
+    // stderr is piped, not ignored, for two reasons. `error.message` is the only other thing to
+    // report and Node builds it from the whole command line, which here is the password-bearing
+    // STAGING_DB_URL: the skip reason below printed it once for each of the nine tests. Piping
+    // also lets the IPv6 detection read what psql actually said.
+    execFileSync("psql", [dbUrl, "-At", "-c", "select 1"], {
+      stdio: ["ignore", "ignore", "pipe"],
+      timeout: 20_000,
+    });
     return true;
   } catch (error) {
-    return String(error.stderr ?? error.message ?? error);
+    const said = (error.stderr ?? "").toString().trim();
+    return said ? scrub(said) : "psql did not answer and said nothing";
   }
 })();
+
+/** A connection string carries the password in it, so no URL survives into a printed reason. */
+function scrub(text) {
+  return text.replace(/postgres(?:ql)?:\/\/\S+/gi, "<db-url>");
+}
 
 const skip = !dbUrl
   ? "no STAGING_DB_URL, set it in .env.staging.local"

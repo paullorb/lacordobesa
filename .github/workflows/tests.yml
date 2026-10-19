@@ -31,10 +31,15 @@ permissions:
   contents: read
 
 concurrency:
-  # Supersede an earlier run of the same branch, but never a scheduled one: a nightly result that
-  # was cancelled by a push looks identical to a nightly that was never run.
+  # One group per branch, and nothing in it is cancelled. `cancel-in-progress` cancels the whole
+  # *workflow run*, and job-level `cancel-in-progress: false` cannot save a job once its run is
+  # gone: a push to a pull request would kill the staging job between a mutation and its cleanup
+  # hook, leaving fixtures in the shared database. The hermetic `check` job supersedes its own
+  # earlier run in a group of its own instead, which is the only job where a cancel costs nothing.
+  # A scheduled run is never superseded either: a nightly cancelled by a push looks identical to a
+  # nightly that was never run.
   group: tests-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 env:
   # Node 22.18 is the floor (tests/require-node.mjs: type stripping and module.registerHooks). 24 is
@@ -48,6 +53,10 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["all","check"]'), inputs.suites) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      # The one job that may be cancelled: it writes nothing, so a superseded run costs only time.
+      group: tests-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
