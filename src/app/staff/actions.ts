@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin, requireStaff } from "@/lib/auth";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, type ReservationSettings } from "@/lib/data";
+import { fmtTime, TAG, type ReservationSettings } from "@/lib/data";
 import { STAFF_EMAIL_DOMAIN, staffEmail } from "@/lib/staff";
 import { addDays, isISODate, isTime, todayISO } from "@/lib/dates";
 import type { Enums, Tables } from "@/lib/database.types";
@@ -13,7 +13,8 @@ import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { isPreparation } from "@/lib/preorder-preparation";
-import { DEFAULT_PREORDER_SETTINGS, MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
+import { MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
+import { effectiveReservationSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import {
@@ -604,61 +605,35 @@ export async function deleteClosure(formData: FormData) {
 }
 
 // ---------------------------------------------------------------- settings
+/** The settings form carries four decisions: the announcement, the reservation switch with its seats
+ *  and party size, and the pre-order switch. Everything else stored under `reservations` and
+ *  `preorders` (slot and sitting length, lead times, limits) is merged in from site_settings and
+ *  kept as it is, so a save never resets a value the form cannot show. */
 export async function saveSettings(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  const reservations: ReservationSettings = {
+  const { data: rows, error: readError } = await supabase
+    .from("site_settings")
+    .select("key, value")
+    .in("key", ["reservations", "preorders"]);
+  if (readError) return { ok: false, error: readError.message };
+  const stored = (key: string) => rows?.find((r) => r.key === key)?.value;
+
+  const current = effectiveReservationSettings(stored("reservations"));
+  const submitted = {
     enabled: bool(formData, "enabled"),
-    slot_minutes: num(formData, "slot_minutes", DEFAULT_RESERVATION_SETTINGS.slot_minutes),
-    duration_minutes: num(formData, "duration_minutes", DEFAULT_RESERVATION_SETTINGS.duration_minutes),
-    capacity_seats: num(formData, "capacity_seats", DEFAULT_RESERVATION_SETTINGS.capacity_seats),
-    max_party_size: num(formData, "max_party_size", DEFAULT_RESERVATION_SETTINGS.max_party_size),
-    min_lead_hours: num(formData, "min_lead_hours", DEFAULT_RESERVATION_SETTINGS.min_lead_hours),
-    max_days_ahead: num(formData, "max_days_ahead", DEFAULT_RESERVATION_SETTINGS.max_days_ahead),
-    last_seating_minutes_before_close: num(
-      formData,
-      "last_seating_minutes_before_close",
-      DEFAULT_RESERVATION_SETTINGS.last_seating_minutes_before_close,
-    ),
+    capacity_seats: num(formData, "capacity_seats", current.capacity_seats),
+    max_party_size: num(formData, "max_party_size", current.max_party_size),
   };
-  if (
-    reservations.slot_minutes < 5 ||
-    reservations.duration_minutes < 15 ||
-    reservations.capacity_seats < 1 ||
-    reservations.max_party_size < 1 ||
-    reservations.min_lead_hours < 0 ||
-    reservations.max_days_ahead < 1 ||
-    reservations.last_seating_minutes_before_close < 0
-  ) {
-    return { ok: false, error: "Bitte sinnvolle Werte eintragen (Dauer mindestens 15 Minuten, Raster mindestens 5)." };
-  }
-  // Only written when the form rendered the block, so a checkout without the pre-order migration
-  // cannot blank the key.
-  const preorders: PreorderSettings | null = formData.has("preorder_settings_field")
-    ? {
-        enabled: bool(formData, "preorders_enabled"),
-        min_lead_hours: num(formData, "preorders_min_lead_hours", DEFAULT_PREORDER_SETTINGS.min_lead_hours),
-        max_days_ahead: num(formData, "preorders_max_days_ahead", DEFAULT_PREORDER_SETTINGS.max_days_ahead),
-        max_lines: num(formData, "preorders_max_lines", DEFAULT_PREORDER_SETTINGS.max_lines),
-        max_quantity: num(formData, "preorders_max_quantity", DEFAULT_PREORDER_SETTINGS.max_quantity),
-      }
-    : null;
-  if (
-    preorders &&
-    (preorders.min_lead_hours < 0 ||
-      preorders.max_days_ahead < 1 ||
-      preorders.max_lines < 1 ||
-      preorders.max_quantity < 1 ||
-      // preorder_lines.quantity is checked against 200 in the database, so a larger setting would
-      // let the form accept an order the insert then refuses.
-      preorders.max_quantity > MAX_PREORDER_QUANTITY)
-  ) {
-    return { ok: false, error: "Bitte sinnvolle Werte für Vorbestellungen eintragen." };
-  }
+  const invalid = reservationFormError(submitted);
+  if (invalid) return { ok: false, error: invalid };
 
   const { error } = await supabase.from("site_settings").upsert([
-    { key: "reservations", value: reservations },
+    { key: "reservations", value: mergeStored<ReservationSettings>(stored("reservations"), submitted) },
     { key: "announcement", value: { text: str(formData, "announcement") } },
-    ...(preorders ? [{ key: "preorders", value: preorders }] : []),
+    {
+      key: "preorders",
+      value: mergeStored<PreorderSettings>(stored("preorders"), { enabled: bool(formData, "preorders_enabled") }),
+    },
   ]);
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.content);

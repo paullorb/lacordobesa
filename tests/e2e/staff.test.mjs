@@ -116,6 +116,51 @@ describe("the navigation says where you are", () => {
   });
 });
 
+describe("Einstellungen holds four decisions, and Team-Zugänge has its own page", () => {
+  test("the form carries the announcement, the two switches and two numbers, and one Speichern", { skip }, async () => {
+    await visit("/staff/einstellungen", {
+      staff: true,
+      body: async ({ page }) => {
+        const names = await page.locator("main form [name]").evaluateAll((els) =>
+          els.map((e) => e.getAttribute("name")).filter((n) => !n.startsWith("$ACTION")).sort(), // Next's own hidden inputs
+        );
+        assert.deepEqual(names, ["announcement", "capacity_seats", "enabled", "max_party_size", "preorders_enabled"]);
+        assert.equal(await page.getByRole("button", { name: "Speichern", exact: true }).count(), 1);
+        for (const label of ["Hinweiszeile ganz oben", "Sitzplätze gesamt", "Max. Personen online"]) {
+          assert.equal(await page.getByLabel(label, { exact: false }).count(), 1, label);
+        }
+        assert.equal(await page.getByText("Datenbank-Migration").count(), 0, "the migration banner is gone");
+        assert.equal(await page.getByText("Team-Zugänge", { exact: true }).count(), 0, "the account list moved to /staff/team");
+      },
+    });
+  });
+
+  test("an admin gets a link to the Team page", { skip }, async () => {
+    // The suite signs in as an admin (see STAFF_PAGES), so the link is there.
+    await visit("/staff/einstellungen", {
+      staff: true,
+      body: async ({ page }) => {
+        const link = page.getByRole("link", { name: "Team-Zugänge verwalten" });
+        assert.equal(await link.count(), 1);
+        assert.equal(await link.getAttribute("href"), "/staff/team");
+      },
+    });
+  });
+
+  test("the Team page lists the accounts and offers the form to add one", { skip }, async () => {
+    await visit("/staff/team", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.match(page.url(), /\/staff\/team$/);
+        assert.ok((await page.locator("main ul li").count()) > 0, "no accounts listed");
+        assert.equal(await page.locator("#new-username").count(), 1);
+        assert.equal(await page.locator("#new-password").count(), 1);
+        assert.equal(await page.getByRole("button", { name: "Anlegen", exact: true }).count(), 1);
+      },
+    });
+  });
+});
+
 describe("the menu editor", () => {
   test("lists the categories with their dish counts", { skip }, async () => {
     await visit("/staff/karte", {
