@@ -2,19 +2,17 @@ import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
-import { MonthCalendar } from "@/components/staff/month-calendar";
 import { DateField, TimeField } from "@/components/staff/pickers";
-import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime, WEEKDAYS_DE } from "@/lib/data";
 import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
 
 export const metadata = { title: "Öffnungszeiten" };
 
-export default function HoursPage(props: PageProps<"/staff/oeffnungszeiten">) {
+export default function HoursPage() {
   return (
     <Suspense fallback={<StaffLoading />}>
-      <Hours searchParams={props.searchParams} />
+      <Hours />
     </Suspense>
   );
 }
@@ -30,15 +28,12 @@ function groupClosures(rows: { date: string; reason: string | null }[]) {
   return out;
 }
 
-async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">, "searchParams">) {
+async function Hours() {
   const { supabase } = await requireStaff();
-  const sp = await searchParams;
   const today = todayISO();
-  const month = monthParam(sp, today);
-  const [{ data: hours }, { data: closures }, cal] = await Promise.all([
+  const [{ data: hours }, { data: closures }] = await Promise.all([
     supabase.from("opening_hours").select("*"),
     supabase.from("closures").select("date, reason").gte("date", today).order("date"),
-    loadCalendarMonth(supabase, month),
   ]);
   const ranges = groupClosures(closures ?? []);
 
@@ -46,17 +41,8 @@ async function Hours({ searchParams }: Pick<PageProps<"/staff/oeffnungszeiten">,
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Öffnungszeiten</h1>
-        <p className="text-sm text-muted">Gilt für die Website und für die buchbaren Reservierungszeiten.</p>
+        <p className="text-sm text-muted">Gilt für die Website und die buchbaren Reservierungszeiten.</p>
       </div>
-
-      <MonthCalendar
-        month={month}
-        today={today}
-        days={cal.days}
-        weeklyClosed={cal.weeklyClosed}
-        hrefForDay={(d) => `/staff/reservierungen?date=${d}`}
-        hrefForMonth={(m) => `/staff/oeffnungszeiten?monat=${m}`}
-      />
 
       <section className="card">
         <h2 className="mb-3 font-semibold">Reguläre Zeiten</h2>

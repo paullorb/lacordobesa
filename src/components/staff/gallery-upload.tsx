@@ -25,8 +25,6 @@ export function GalleryUpload() {
   const [preview, setPreview] = useState<string | null>(null);
   const [prepared, setPrepared] = useState<Blob | null>(null);
   const [busy, setBusy] = useState(false);
-  // Food photos get the cheering cursor by default; the box stays editable for the odd exception.
-  const [cheer, setCheer] = useState(true);
   const form = useRef<HTMLFormElement>(null);
   // Counts selections so a slow resize of an earlier file cannot overwrite a newer one.
   const selection = useRef(0);
@@ -57,7 +55,6 @@ export function GalleryUpload() {
         fd.set("file", new File([prepared], "photo.jpg", { type: prepared.type || "image/jpeg" }));
         action(fd);
         form.current?.reset();
-        setCheer(true);
         selection.current++;
         setPrepared(null);
         setPreview(null);
@@ -80,7 +77,7 @@ export function GalleryUpload() {
       </div>
       <div>
         <label htmlFor="g-category">Kategorie</label>
-        <select id="g-category" name="category" defaultValue="food" onChange={(e) => setCheer(e.target.value === "food")}>
+        <select id="g-category" name="category" defaultValue="food">
           {GALLERY_CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
@@ -92,10 +89,6 @@ export function GalleryUpload() {
         <label htmlFor="g-caption">Bildunterschrift</label>
         <input id="g-caption" name="caption" maxLength={160} placeholder="Frisch aus dem Ofen" />
       </div>
-      <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal sm:col-span-2">
-        <input type="checkbox" name="cursor_cheer" checked={cheer} onChange={(e) => setCheer(e.target.checked)} /> Mauszeiger
-        „¡Ñam!“ über dem Bild (für Essen)
-      </label>
       <div className="sm:col-span-2">
         <SubmitButton pendingText="Wird hochgeladen …">Hochladen</SubmitButton>
       </div>

@@ -15,7 +15,7 @@ function nextCheer(words: readonly string[], last: string) {
 
 /**
  * The round "¡Ñam!" label that rides the pointer over anything marked `data-cheer`: the dishes on the
- * landing page and the food photos in the gallery (staff choose which photos, see cursor_cheer).
+ * landing page and the food photos in the gallery (the ones in the "food" category, see cursor_cheer).
  *
  * Mounted once per page and listening on the document, so a page only has to mark its elements. The
  * label is moved directly on the DOM rather than through state, since a pointer moves far more often

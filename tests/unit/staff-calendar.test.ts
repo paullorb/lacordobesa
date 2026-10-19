@@ -1,5 +1,5 @@
 /**
- * The month view behind /staff/reservierungen and /staff/oeffnungszeiten.
+ * The month view behind /staff and /staff/reservierungen.
  *
  * `monthParam` is the interesting half. It validates `?monat=` with isMonth() rather than a shape
  * regex, because "2026-99" matches /^\d{4}-\d{2}$/ and then reaches MonthCalendar as an invalid

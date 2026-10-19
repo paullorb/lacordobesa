@@ -487,40 +487,6 @@ export async function deleteSpecial(formData: FormData) {
   refresh();
 }
 
-// ---------------------------------------------------------------- special ideas (showcase)
-/** The cards shown before the specials sign-up question (migration 20261016050000). German is the
- *  base text; Spanish and English are optional and fall back to it on the public page. */
-export async function saveSpecialIdea(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { supabase } = await requireStaff();
-  const id = str(formData, "id");
-  const sortOrder = Math.trunc(num(formData, "sort_order", 0));
-  const row = {
-    title: str(formData, "title"),
-    description: str(formData, "description") || null,
-    title_es: str(formData, "title_es") || null,
-    title_en: str(formData, "title_en") || null,
-    description_es: str(formData, "description_es") || null,
-    description_en: str(formData, "description_en") || null,
-    sort_order: Math.min(Math.max(sortOrder, -9999), 9999),
-    is_active: bool(formData, "is_active"),
-  };
-  if (!row.title) return { ok: false, error: "Der Titel ist Pflicht." };
-  const { error } = id
-    ? await supabase.from("special_ideas").update(row).eq("id", id)
-    : await supabase.from("special_ideas").insert(row);
-  if (error) return { ok: false, error: error.message };
-  updateTag(TAG.content);
-  refresh();
-  return { ok: true };
-}
-
-export async function deleteSpecialIdea(formData: FormData) {
-  const { supabase } = await requireStaff();
-  await supabase.from("special_ideas").delete().eq("id", str(formData, "id"));
-  updateTag(TAG.content);
-  refresh();
-}
-
 // ---------------------------------------------------------------- specials list
 /** The second opt-in step (migration 20261012215041): the guest's WhatsApp message arrived from the
  *  number they signed up with. Only confirmed rows are offered for sending. Throws rather than
@@ -739,7 +705,8 @@ export async function uploadGalleryImage(_prev: ActionResult, formData: FormData
     storage_path: path,
     caption: str(formData, "caption").slice(0, 160) || null,
     category,
-    cursor_cheer: bool(formData, "cursor_cheer"),
+    // Derived, not asked: the cheering cursor belongs to food photos and to nothing else.
+    cursor_cheer: category === "food",
   });
   if (error) {
     await supabase.storage.from("gallery").remove([path]);
@@ -759,9 +726,9 @@ export async function saveGalleryItem(_prev: ActionResult, formData: FormData): 
     .update({
       caption: str(formData, "caption").slice(0, 160) || null,
       category,
-      cursor_cheer: bool(formData, "cursor_cheer"),
-      // Only sent once migration 20261012101400 added the column.
-      ...(formData.has("featured_field") ? { is_featured: bool(formData, "is_featured") } : {}),
+      // Follows the category, so changing it later keeps the cursor coherent.
+      cursor_cheer: category === "food",
+      is_featured: bool(formData, "is_featured"),
     })
     .eq("id", str(formData, "id"));
   if (error) return { ok: false, error: error.message };

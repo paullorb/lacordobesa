@@ -25,29 +25,16 @@ async function StaffGallery() {
   ]);
   const items = data ?? [];
   const heroId = (heroSetting?.value as { gallery_item_id?: string } | null)?.gallery_item_id ?? null;
-  // The is_featured column and the hero controls arrive with migration 20261012101400.
-  const featuredColumn =
-    items.length > 0
-      ? typeof items[0].is_featured === "boolean"
-      : !(await supabase.from("gallery_items").select("is_featured").limit(1)).error;
 
   return (
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Galerie</h1>
         <p className="text-sm text-muted">
-          Bilder vom Lokal, vom Essen und von Events erscheinen auf der Seite „Galerie“. „Auf der Startseite“ nimmt ein
-          Bild zusätzlich in den Bilderstreifen der Startseite auf, „Als Hauptbild“ macht es zum großen Bild im Bereich
-          „Besuch uns“.
+          Diese Bilder erscheinen auf der Seite „Galerie“. „Auf der Startseite zeigen“ nimmt ein Bild in den
+          Bilderstreifen der Startseite auf, „Als Hauptbild“ macht es zum großen Bild dort.
         </p>
       </div>
-
-      {!featuredColumn && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Startseiten-Bilder und Hauptbild sind erst verfügbar, sobald die Datenbank-Migration 20261012101400
-          eingespielt ist.
-        </p>
-      )}
 
       <section className="card">
         <h2 className="mb-3 font-semibold">Neues Bild</h2>
@@ -60,7 +47,7 @@ async function StaffGallery() {
             <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-mint">
               <Image src={item.image_url} alt={item.caption ?? "Galeriebild"} fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" />
             </div>
-            {featuredColumn && item.id === heroId && (
+            {item.id === heroId && (
               <p className="text-xs font-semibold text-emerald-700">Hauptbild auf der Startseite</p>
             )}
             <ActionForm action={saveGalleryItem} className="grid gap-2">
@@ -80,30 +67,21 @@ async function StaffGallery() {
                 </select>
               </div>
               <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
-                <input type="checkbox" name="cursor_cheer" defaultChecked={item.cursor_cheer ?? item.category === "food"} /> Mauszeiger
-                „¡Ñam!“ über dem Bild (für Essen)
+                <input type="checkbox" name="is_featured" defaultChecked={item.is_featured ?? false} /> Auf der
+                Startseite zeigen
               </label>
-              {featuredColumn && (
-                <>
-                  <input type="hidden" name="featured_field" value="1" />
-                  <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
-                    <input type="checkbox" name="is_featured" defaultChecked={item.is_featured ?? false} /> Auf der
-                    Startseite zeigen
-                  </label>
-                </>
-              )}
               <div>
                 <SubmitButton>Speichern</SubmitButton>
               </div>
             </ActionForm>
             <div className="flex flex-wrap gap-2">
-              {featuredColumn && item.id !== heroId && (
+              {item.id !== heroId && (
                 <form action={setHeroImage}>
                   <input type="hidden" name="id" value={item.id} />
                   <button className="btn-ghost">Als Hauptbild</button>
                 </form>
               )}
-              {featuredColumn && item.id === heroId && (
+              {item.id === heroId && (
                 <form action={setHeroImage}>
                   {/* No id clears the choice, so the bundled image comes back. */}
                   <button className="btn-ghost">Hauptbild entfernen</button>

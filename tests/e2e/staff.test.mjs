@@ -189,6 +189,52 @@ describe("the menu editor", () => {
   });
 });
 
+describe("sending lives on the specials page", () => {
+  test("the old Verschicken address lands on Specials, at the sending section", { skip }, async () => {
+    await visit("/staff/broadcast", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.match(new URL(page.url()).pathname, /^\/staff\/specials$/);
+        const section = page.locator("main section#verschicken");
+        assert.equal(await section.count(), 1);
+        assert.equal(await section.getByRole("heading", { name: "An Gäste verschicken" }).count(), 1);
+      },
+    });
+  });
+
+  test("the ideas editor is gone from the specials page", { skip }, async () => {
+    await visit("/staff/specials", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator('input[name="sort_order"], input[name="title_es"]').count(), 0);
+        assert.equal(await page.getByText("Ideen für Specials").count(), 0);
+      },
+    });
+  });
+});
+
+describe("the gallery form", () => {
+  test("does not ask about the cursor: that follows the category", { skip }, async () => {
+    await visit("/staff/gallery", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator('input[name="cursor_cheer"]').count(), 0);
+      },
+    });
+  });
+});
+
+describe("the opening hours page", () => {
+  test("has no month calendar, which belongs to the reservations page", { skip }, async () => {
+    await visit("/staff/oeffnungszeiten", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.getByRole("link", { name: "Nächster Monat" }).count(), 0);
+      },
+    });
+  });
+});
+
 describe("the opening hours editor", () => {
   test("every weekday has an opening time, a closing time and a rest-day box", { skip }, async () => {
     await visit("/staff/oeffnungszeiten", {
