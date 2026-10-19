@@ -14,7 +14,7 @@ import type { Tables } from "@/lib/database.types";
  *  from WEEKDAYS_DE so this module stays free of the server-only data layer and can be run on its own. */
 const WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
-export type ReservationRow = Pick<Tables<"reservations">, "date" | "start_time" | "party_size" | "status" | "source">;
+export type ReservationRow = Pick<Tables<"reservations">, "date" | "party_size" | "status">;
 
 /** Bookings where somebody actually sat down, or still intends to today. A pending booking from a
  *  past day was never answered, so it says nothing about who came and is left out. */
@@ -38,13 +38,9 @@ export type ReservationStats = {
   coversToday: number;
   coversWeek: number;
   coversMonth: number;
-  bookingsWindow: number;
   noShow: Rate;
   cancelled: Rate;
-  online: Rate;
-  averageParty: number | null;
   byWeekday: Bar[];
-  byHour: Bar[];
 };
 
 /**
@@ -64,26 +60,15 @@ export function reservationStats(rows: ReservationRow[], today: string): Reserva
   const seated = rows.filter((r) => isSeated(r, today));
 
   const weekdayTotals = new Array(7).fill(0) as number[];
-  const hourTotals = new Map<number, number>();
-  for (const r of seated) {
-    weekdayTotals[new Date(`${r.date}T12:00:00Z`).getUTCDay()] += r.party_size;
-    const hour = Number(r.start_time.slice(0, 2));
-    if (Number.isInteger(hour)) hourTotals.set(hour, (hourTotals.get(hour) ?? 0) + r.party_size);
-  }
+  for (const r of seated) weekdayTotals[new Date(`${r.date}T12:00:00Z`).getUTCDay()] += r.party_size;
 
   return {
     coversToday: covers(rows.filter((r) => r.date === today), today),
     coversWeek: covers(rows.filter((r) => r.date >= weekStart && r.date <= today), today),
     coversMonth: covers(rows.filter((r) => r.date >= monthStart && r.date <= today), today),
-    bookingsWindow: rows.length,
     noShow: rate(noShows, decided.length),
     cancelled: rate(cancellations, decided.length),
-    online: rate(rows.filter((r) => r.source !== "staff").length, rows.length),
-    averageParty: seated.length > 0 ? Math.round((covers(seated, today) / seated.length) * 10) / 10 : null,
     byWeekday: [1, 2, 3, 4, 5, 6, 0].map((wd, i) => ({ label: WEEKDAY_SHORT[i], value: weekdayTotals[wd] })),
-    byHour: [...hourTotals.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([hour, value]) => ({ label: `${String(hour).padStart(2, "0")} Uhr`, value })),
   };
 }
 

@@ -11,8 +11,8 @@ Website and staff app for La Cordobesa Pastelería Argentina, Frankfurt am Main.
 - **Feiern & Catering** (`/catering`): inquiries for birthdays, Firmenfeiern, Taufen and catering, worked as a small
   lead pipeline under `/staff/anfragen`.
 - **Staff app** (`/staff`): installable PWA where the team confirms reservations and edits menu, specials, gallery, hours and settings.
-- **Numbers** (`/staff/zahlen`): covers per day/week/month, no-show and cancellation rates, the weekday and time-of-day
-  pattern, and the most pre-ordered dishes.
+- **Numbers** (`/staff/zahlen`): covers per day/week/month, no-show and cancellation rates, the weekday pattern, and
+  the most pre-ordered dishes.
 - **Visitors** (`/staff/besucher`): consent-free analytics. The browser sends one beacon per pageview, form step,
   contact click and Web Vital to `/api/a` (own origin, no cookies or storage, silent under Do Not Track); the server
   drops bots, validates against closed lists and bumps a daily counter through `track_event` (secret key only). No

@@ -81,8 +81,11 @@ describe("every staff page loads for a signed-in member of the team", () => {
 describe("the navigation says where you are", () => {
   const cases = [
     ["/staff", "Heute"],
-    ["/staff/reservierungen", "Gäste"],
-    ["/staff/karte", "Inhalte"],
+    ["/staff/reservierungen", "Tische"],
+    ["/staff/oeffnungszeiten", "Tische"],
+    ["/staff/vorbestellungen", "Bestellungen"],
+    ["/staff/karte", "Website"],
+    ["/staff/gallery", "Website"],
     ["/staff/zahlen", "Zahlen"],
     ["/staff/einstellungen", "Einstellungen"],
   ];
@@ -104,13 +107,13 @@ describe("the navigation says where you are", () => {
     await visit("/staff/warteliste", {
       staff: true,
       body: async ({ page }) => {
-        // Gäste leads to Reservierungen, so the tab is "true" and the sub-link is "page".
+        // Tische leads to Reservierungen, so the tab is "true" and the sub-link is "page".
         assert.equal(
           await page.locator('nav[aria-label="Bereiche"] a[aria-current="true"]').count(),
           1,
           "the area tab leads elsewhere, so it is current but not the page",
         );
-        const page_ = page.locator('nav[aria-label="Gäste"] a[aria-current="page"]');
+        const page_ = page.locator('nav[aria-label="Tische"] a[aria-current="page"]');
         assert.equal((await page_.textContent()).trim(), "Warteliste");
       },
     });
@@ -162,7 +165,54 @@ describe("Einstellungen holds four decisions, and Team-Zugänge has its own page
   });
 });
 
+describe("Heute is the one-glance page", () => {
+  test("it links to the reservations and their calendar instead of carrying a calendar", { skip }, async () => {
+    await visit("/staff", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator('main [aria-label="Vorheriger Monat"]').count(), 0, "the month calendar is back on Heute");
+        const link = page.getByRole("link", { name: "Alle Reservierungen und Kalender" });
+        assert.equal(await link.getAttribute("href"), "/staff/reservierungen");
+      },
+    });
+  });
+});
+
+describe("the agency's pages stay out of the restaurant's way", () => {
+  test("the navigation lists Specials once and no separate Verschicken", { skip }, async () => {
+    await visit("/staff/specials", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator('nav a[href="/staff/specials"]').count(), 1);
+        assert.equal(await page.locator('nav a[href="/staff/broadcast"]').count(), 0, "Verschicken is part of Specials now");
+      },
+    });
+  });
+});
+
 describe("the menu editor", () => {
+  test("the Karte pill names the category being read once the page is scrolled", { skip }, async () => {
+    await visit("/staff/karte", {
+      staff: true,
+      body: async ({ page }) => {
+        const pill = page.locator('nav[aria-label="Website"] a[aria-current="page"]');
+        assert.equal((await pill.textContent()).trim(), "Karte", "at the top the pill just says Karte");
+        // The second category, so the first is certainly above the header line.
+        const target = page.locator("[data-arrange-cat]").nth(1);
+        const label = await target.getAttribute("data-cat-label");
+        await target.evaluate((el) =>
+          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 150, behavior: "instant" }),
+        );
+        await page.waitForFunction(
+          () => document.querySelector('nav[aria-label="Website"] a[aria-current="page"]')?.getAttribute("aria-label")?.startsWith("Karte: "),
+          null,
+          { timeout: 5000 },
+        );
+        assert.equal(await pill.getAttribute("aria-label"), `Karte: ${label}`);
+      },
+    });
+  });
+
   test("lists the categories with their dish counts", { skip }, async () => {
     await visit("/staff/karte", {
       staff: true,
