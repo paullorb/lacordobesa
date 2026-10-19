@@ -204,7 +204,7 @@ guests pay at pickup.
 
 Specials list (migrations `20261012100835`, `20261012215041`): `specials` had no distribution channel, so only a
 visitor who happened to open the site ever saw one. Guests opt in on the landing page, right under the specials, and
-staff send from `/staff/broadcast` with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
+staff send from the "An Gäste verschicken" section of `/staff/specials` (`/staff/broadcast` redirects there) with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
 the guest then sends the restaurant a prefilled WhatsApp from that number, and staff press "bestätigen" when it
 arrives. Only confirmed rows are offered for sending, so a stranger's number entered by someone else never gets a
 message. E-mail sign-ups are switched off (in `OPEN_CHANNELS` and in `subscribe_broadcast`) because their second step

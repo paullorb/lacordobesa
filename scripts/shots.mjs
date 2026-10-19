@@ -53,7 +53,6 @@ const STAFF_PAGES = [
   ["staff-numbers", "/staff/zahlen"],
   ["staff-menu", "/staff/karte"],
   ["staff-specials", "/staff/specials"],
-  ["staff-broadcast", "/staff/broadcast"],
   ["staff-gallery", "/staff/gallery"],
   ["staff-hours", "/staff/oeffnungszeiten"],
   ["staff-settings", "/staff/einstellungen"],

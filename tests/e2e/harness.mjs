@@ -121,6 +121,7 @@ export const STAFF_PAGES = [
   ["visitors", "/staff/besucher"],
   ["menu", "/staff/karte"],
   ["specials", "/staff/specials"],
+  // Redirects to /staff/specials; kept because the navigation may still offer it.
   ["broadcast", "/staff/broadcast"],
   ["gallery", "/staff/gallery"],
   ["hours", "/staff/oeffnungszeiten"],
