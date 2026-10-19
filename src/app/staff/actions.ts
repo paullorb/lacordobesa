@@ -76,9 +76,19 @@ export async function setReservationStatus(formData: FormData) {
   // still submit the control it was drawn with. Checked again here, because the wrong outcome is
   // recorded for a real guest: a stale "Stornieren" cancelled a booking that had already begun,
   // and a stale "Erledigt" would close one that has not.
-  const { data: when } = await supabase.from("reservations").select("date, start_time").eq("id", id).maybeSingle();
+  //
+  // `started` is the card's own rule, not just the clock: only a *confirmed* booking swaps its
+  // actions at the start time. A booking still pending after its start keeps "Stornieren" and is
+  // offered no outcome, so rejecting that cancellation here would leave staff having to confirm an
+  // expired booking (and mail the guest an obsolete confirmation) before they could record how it
+  // went. The guard refuses exactly what the card refuses to show.
+  const { data: when } = await supabase
+    .from("reservations")
+    .select("date, start_time, status")
+    .eq("id", id)
+    .maybeSingle();
   if (!when) return;
-  const started = hasStarted(when.date, when.start_time);
+  const started = when.status === "confirmed" && hasStarted(when.date, when.start_time);
   if (status === "cancelled" && started) return;
   if ((status === "completed" || status === "no_show") && !started) return;
 
