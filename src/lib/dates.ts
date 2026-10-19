@@ -151,3 +151,13 @@ export function leadBoundary(leadHours: number, now: number = Date.now()): { dat
   if (rounded >= 24 * 60) return { date: addDays(date, 1), time: "00:00" };
   return { date, time: `${String(Math.floor(rounded / 60)).padStart(2, "0")}:${String(rounded % 60).padStart(2, "0")}` };
 }
+
+/** Whether a booking's start has passed on the shop's clock. Staff cards use it to tell "still to come,
+ *  cancel it if the guest drops out" apart from "should have happened, mark how it went". `time` is
+ *  `HH:MM` or Postgres's `HH:MM:SS`. */
+export function hasStarted(date: string, time: string, now: Date = new Date()): boolean {
+  const clock = berlinClock(now);
+  if (date !== clock.date) return date < clock.date;
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m <= clock.minute;
+}

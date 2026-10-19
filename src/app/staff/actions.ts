@@ -84,9 +84,7 @@ type StaffClient = Awaited<ReturnType<typeof requireStaff>>["supabase"];
  *  outage, a missing API key or an unverified sender domain must not undo the staff member's click.
  *  The staff card shows "noch nicht verschickt" with a retry button whenever this did not succeed. */
 async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">) {
-  // confirmation_sent_at arrives with migration 20261012094449. Without the column there is nowhere
-  // to record the send, and re-confirming would mail the guest again, so sending waits for it.
-  if (!("confirmation_sent_at" in r) || r.confirmation_sent_at) return;
+  if (r.confirmation_sent_at) return;
   if (!r.email || !mailConfigured()) return;
 
   // Claimed before sending, not recorded after: two staff confirming the same booking at once (or a
@@ -138,9 +136,7 @@ export async function resendConfirmation(_prev: ActionResult, formData: FormData
   if (!result.ok) {
     return { ok: false, error: `Die E-Mail konnte nicht verschickt werden. ${result.detail ?? ""}`.trim() };
   }
-  if ("confirmation_sent_at" in r) {
-    await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
-  }
+  await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
   refresh();
   return { ok: true };
 }

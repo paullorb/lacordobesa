@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { saveInquiryNotes, setInquiryStatus } from "@/app/staff/actions";
-import { StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
+import { MoreActions, StaffLoadError, StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE } from "@/lib/dates";
 import { budgetLabel, occasionLabel } from "@/lib/events";
@@ -22,11 +22,8 @@ async function Inquiries() {
   const { data, error } = await supabase.from("event_inquiries").select("*").order("created_at", { ascending: false });
 
   if (error) {
-    return (
-      <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Feier-Anfragen sind erst verfügbar, sobald die Datenbank-Migration 20261012095610 eingespielt ist.
-      </p>
-    );
+    console.error("staff/anfragen", error);
+    return <StaffLoadError />;
   }
 
   const all = data ?? [];
@@ -39,10 +36,7 @@ async function Inquiries() {
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Feier-Anfragen</h1>
-        <p className="text-sm text-muted">
-          Anfragen für Geburtstage, Firmenfeiern und Catering. Die wertvollsten Anfragen der Website, also am besten
-          innerhalb von ein, zwei Tagen beantworten.
-        </p>
+        <p className="text-sm text-muted">Anfragen für Feiern und Catering, am besten in ein, zwei Tagen beantworten.</p>
       </div>
 
       {fresh > 0 && (
@@ -74,6 +68,7 @@ async function Inquiries() {
 }
 
 function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
+  const isLive = i.status === "new" || i.status === "in_progress" || i.status === "quoted";
   const greeting = `Hola ${i.name}! Danke für deine Anfrage bei La Cordobesa. Wir schauen uns das gern an, ein paar Fragen dazu:`;
 
   return (
@@ -104,19 +99,20 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
           </div>
           <div className="text-xs text-muted">Angefragt am {fmtDateDE(i.created_at.slice(0, 10))}</div>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <WhatsAppButton phone={i.phone} text={greeting} />
+        <div className="flex flex-wrap items-start gap-1.5">
+          {isLive && <WhatsAppButton phone={i.phone} text={greeting} />}
+          {/* "quoted" (Angebot raus) is no longer set from here; rows already in it are live and finish like any other. */}
           {i.status === "new" && (
             <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Übernehmen" primary />
           )}
-          {(i.status === "new" || i.status === "in_progress") && (
-            <StatusButton action={setInquiryStatus} id={i.id} status="quoted" label="Angebot raus" />
-          )}
-          {i.status !== "won" && (
+          {isLive && i.status !== "new" && (
             <StatusButton action={setInquiryStatus} id={i.id} status="won" label="Gewonnen" primary />
           )}
-          {i.status !== "lost" && (
-            <StatusButton action={setInquiryStatus} id={i.id} status="lost" label="Verloren" danger />
+          {isLive && <StatusButton action={setInquiryStatus} id={i.id} status="lost" label="Verloren" danger />}
+          {!isLive && (
+            <MoreActions>
+              <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Wieder öffnen" />
+            </MoreActions>
           )}
         </div>
       </div>

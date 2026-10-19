@@ -1,7 +1,7 @@
 import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
 
 import { MenuIcon } from "@/components/icons";
-import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
+import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDate, fmtDateDE } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
@@ -22,6 +22,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
     en: { fresh: "Empanadas: freshly baked to take away", frozen: "Empanadas: par-baked, to keep in your freezer" },
     es: { fresh: "Empanadas: recién horneadas para llevar", frozen: "Empanadas: pre-horneadas para congelar" },
   }[locale];
+  const isLive = o.status === "pending" || o.status === "confirmed" || o.status === "ready";
   const confirmText = (
     locale === "en"
       ? [
@@ -98,8 +99,8 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <WhatsAppButton phone={o.phone} text={confirmText} />
+        <div className="flex flex-wrap items-start gap-1.5">
+          {isLive && <WhatsAppButton phone={o.phone} text={confirmText} />}
           {o.status === "pending" && (
             <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Bestätigen" primary />
           )}
@@ -107,13 +108,15 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             <StatusButton action={setPreorderStatus} id={o.id} status="ready" label="Bereit" primary />
           )}
           {o.status === "ready" && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="collected" label="Abgeholt" />
+            <StatusButton action={setPreorderStatus} id={o.id} status="collected" label="Abgeholt" primary />
           )}
-          {(o.status === "pending" || o.status === "confirmed" || o.status === "ready") && (
+          {isLive && (
             <StatusButton action={setPreorderStatus} id={o.id} status="cancelled" label="Stornieren" danger />
           )}
-          {(o.status === "cancelled" || o.status === "collected") && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Wieder öffnen" />
+          {!isLive && (
+            <MoreActions>
+              <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Wieder öffnen" />
+            </MoreActions>
           )}
         </div>
       </div>

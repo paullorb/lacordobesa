@@ -9,6 +9,7 @@ import {
   dateAfterHours,
   fmtDate,
   fmtDateDE,
+  hasStarted,
   isISODate,
   isMonth,
   isTime,
@@ -321,5 +322,38 @@ describe("relativeDay", () => {
 
   test("days before today are past", () => {
     assert.deepEqual(relativeDay("2026-10-13", today), { kind: "past" });
+  });
+});
+
+describe("hasStarted", () => {
+  // 18:30 CEST on Thursday 15 October.
+  const now = new Date("2026-10-15T16:30:00Z");
+
+  test("is false for a booking later today and true from its start minute on", () => {
+    assert.equal(hasStarted("2026-10-15", "19:00", now), false);
+    assert.equal(hasStarted("2026-10-15", "19:00:00", now), false);
+    assert.equal(hasStarted("2026-10-15", "18:30", now), true);
+    assert.equal(hasStarted("2026-10-15", "18:00:00", now), true);
+  });
+
+  test("looks at the day first", () => {
+    assert.equal(hasStarted("2026-10-14", "23:45", now), true);
+    assert.equal(hasStarted("2026-10-16", "00:00", now), false);
+  });
+
+  test("reads the shop's clock, not the machine's", () => {
+    // 00:30 on the 16th in Berlin, still the 15th in UTC: the 15th's evening is over.
+    const lateNight = new Date("2026-10-15T22:30:00Z");
+    for (const zone of MACHINE_ZONES) {
+      const before = process.env.TZ;
+      process.env.TZ = zone;
+      try {
+        assert.equal(hasStarted("2026-10-15", "23:00", lateNight), true, zone);
+        assert.equal(hasStarted("2026-10-16", "12:00", lateNight), false, zone);
+      } finally {
+        if (before === undefined) delete process.env.TZ;
+        else process.env.TZ = before;
+      }
+    }
   });
 });

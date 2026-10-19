@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { saveWaitlistNotes, setWaitlistStatus } from "@/app/staff/actions";
-import { StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
+import { Disclosure, MoreActions, StaffLoadError, StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
 import { fmtDateDE, todayISO } from "@/lib/dates";
 import { WAITLIST_STATUS_LABEL } from "@/lib/statuses";
@@ -27,11 +27,8 @@ async function Waitlist() {
     .order("created_at");
 
   if (error) {
-    return (
-      <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Die Warteliste ist erst verfügbar, sobald die Datenbank-Migration 20261012100456 eingespielt ist.
-      </p>
-    );
+    console.error("staff/warteliste", error);
+    return <StaffLoadError />;
   }
 
   const entries = data ?? [];
@@ -44,10 +41,13 @@ async function Waitlist() {
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Warteliste</h1>
-        <p className="text-sm text-muted">
-          Gäste, die an einem ausgebuchten Tag trotzdem kommen wollten, pro Tag und in der Reihenfolge der Anmeldung.
-          Wird ein Tisch frei, zum Beispiel durch eine Stornierung, ruf hier von oben nach unten durch.
-        </p>
+        <p className="text-sm text-muted">Gäste, die an einem ausgebuchten Tag trotzdem kommen wollten.</p>
+        <Disclosure summary="So funktioniert's">
+          <p className="text-sm text-muted">
+            Die Liste ist pro Tag und nach der Reihenfolge der Anmeldung sortiert. Wird ein Tisch frei, zum Beispiel
+            durch eine Stornierung, biete ihn von oben nach unten an.
+          </p>
+        </Disclosure>
       </div>
 
       {waitingCount > 0 && (
@@ -73,12 +73,13 @@ async function Waitlist() {
 }
 
 function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; position: number }) {
+  const isLive = e.status === "waiting" || e.status === "notified";
   const offer = `Hola ${e.name}! Bei La Cordobesa ist für ${fmtDateDE(e.date, { weekday: undefined })} ein Tisch für ${e.party_size} ${
     e.party_size === 1 ? "Person" : "Personen"
   } frei geworden. Passt das noch bei dir?`;
 
   return (
-    <article className={`card grid gap-3 ${e.status === "waiting" ? "" : "opacity-60"}`}>
+    <article className={`card grid gap-3 ${isLive ? "" : "opacity-60"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -104,16 +105,17 @@ function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; posi
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <WhatsAppButton phone={e.phone} text={offer} label="Tisch anbieten" />
-          {e.status === "waiting" && (
-            <StatusButton action={setWaitlistStatus} id={e.id} status="notified" label="Angerufen" />
-          )}
-          {e.status !== "converted" && (
+        <div className="flex flex-wrap items-start gap-1.5">
+          {/* "notified" (Angerufen) is no longer set from here; rows already in it still count as live. */}
+          {isLive && <WhatsAppButton phone={e.phone} text={offer} label="Tisch anbieten" />}
+          {isLive && (
             <StatusButton action={setWaitlistStatus} id={e.id} status="converted" label="Hat einen Tisch" primary />
           )}
-          {e.status !== "cancelled" && (
-            <StatusButton action={setWaitlistStatus} id={e.id} status="cancelled" label="Abgesagt" danger />
+          {isLive && <StatusButton action={setWaitlistStatus} id={e.id} status="cancelled" label="Abgesagt" danger />}
+          {!isLive && (
+            <MoreActions>
+              <StatusButton action={setWaitlistStatus} id={e.id} status="waiting" label="Wieder öffnen" />
+            </MoreActions>
           )}
         </div>
       </div>
