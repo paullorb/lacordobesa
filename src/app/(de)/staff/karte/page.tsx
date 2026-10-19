@@ -62,6 +62,11 @@ async function Menu() {
       </nav>
 
       <MenuArranger
+        // The header, footer and row elements below carry keys although none sits in a list here:
+        // MenuArranger renders each inside a static children array, and when its streamed chunk is
+        // still pending at that first render React only meets the element during array reconciliation,
+        // where an unkeyed, unvalidated element is the "unique key prop" warning (#147). A key is what
+        // that check exempts, and it is why the warning came and went with timing.
         // A new server order remounts it, so after every save it shows what the database holds.
         key={[...cats.map((c) => c.id), ...all.map((i) => `${i.id}:${i.category_id}:${i.sort_order}:${i.is_featured}`)].join()}
         categories={cats.map((cat) => {
@@ -71,7 +76,7 @@ async function Menu() {
             slug: cat.slug,
             label: cat.label,
             header: (
-              <details className="group">
+              <details key={cat.id} className="group">
                 <summary className="flex cursor-pointer flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
                   <h2 className="font-serif text-xl">{cat.label}</h2>
                   {cat.label_secondary && <span className="text-xs uppercase tracking-wider text-blue-dark">{cat.label_secondary}</span>}
@@ -91,7 +96,7 @@ async function Menu() {
               </details>
             ),
             footer: (
-              <details className="rounded-md border border-dashed border-line px-3 py-2">
+              <details key={cat.id} className="rounded-md border border-dashed border-line px-3 py-2">
                 <summary className="cursor-pointer text-sm font-semibold text-blue-dark">+ Gericht in „{cat.label}“</summary>
                 <ItemForm
                   categoryId={cat.id}
@@ -109,7 +114,7 @@ async function Menu() {
           name: item.name,
           featured: item.is_featured,
           available: item.is_available,
-          row: <ItemRow item={item} preorderColumns={preorderColumns} translationColumns={translationColumns} />,
+          row: <ItemRow key={item.id} item={item} preorderColumns={preorderColumns} translationColumns={translationColumns} />,
         }))}
       />
 
