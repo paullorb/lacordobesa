@@ -604,7 +604,8 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
  *  next to a figure is set here and not typed: it moves to today when the figures change or when
  *  "heute nochmal geprüft" is ticked, and otherwise stays at the day they were last read. */
 export async function saveReviewScores(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { supabase } = await requireStaff();
+  // The page is admin-only, so the action is too: a Server Action is a public POST endpoint.
+  const { supabase } = await requireAdmin();
   const { data: row } = await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle();
   // What the form was showing: the saved set, or the built-in baseline before the first save.
   const before: ReviewScores = Object.fromEntries(
