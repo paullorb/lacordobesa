@@ -6,7 +6,7 @@ type Described = Pick<Tables<"menu_items">, "description" | "description_es" | "
 /** The description in the reader's language, falling back to German (migration 20261012102608).
  *  A German sentence is more use to a Spanish or English reader than a blank line.
  *
- *  `menu_items.description_es` and `description_en` are both editable by staff under /staff/karte.
+ *  `menu_items.description_es` and `description_en` are no longer editable under /staff/karte (the field was removed to keep the editor simple); saving a dish leaves stored values alone.
  *  Dish *names* are not translated at all: they are the Spanish and Argentine names on the menu,
  *  which is what the kitchen and the guests say. */
 export function menuDescription(item: Described, locale: Locale) {

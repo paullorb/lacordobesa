@@ -46,7 +46,7 @@ RPCs coerce an unknown locale to `de`, so an English booking still succeeds, it 
   dictionary rather than receiving it as a prop, since a function cannot cross the RSC boundary.
 - **Staff-entered content** is not in the dictionaries. Dish *names* are already Spanish and work in every language (they are not translated);
   `menu_items.description_es` (migration `20261012102608`) is optional and falls back to the German description, and
-  `/es` says so rather than quietly showing German text under a Spanish heading. `description_en` works the same way
+  `/es` says so rather than quietly showing German text under a Spanish heading (the staff Karte editor has no field for either translation any more; saving a dish leaves stored ones untouched). `description_en` works the same way
   for `/en`: empty means the German text, marked as German. Specials and category labels are deliberately not translatable: a special
   lives for a few days, and asking the team to write each one twice is how a feature stops being used.
 - **The staff app is German only**, and so are Impressum and Datenschutzerklärung: a translation would be a second

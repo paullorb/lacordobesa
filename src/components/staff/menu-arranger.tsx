@@ -65,10 +65,60 @@ const KEY_GLIDE = 0.4;
  * API, because the staff area mostly runs on phones and Chrome on Android never fires HTML drag
  * events for touch. The handles also take ↑/↓ from the keyboard.
  *
- * Remounted by the page (`key`) whenever the server's order changes, so after a save the state is
- * whatever the database says, not what this component guessed.
+ * Calm by default: no handles and no Startseite zone until staff press "Anordnen" (a featured dish
+ * still carries its "Startseite" badge on the row). The mode is a boolean held above the part that
+ * is remounted whenever the server's order changes, so after a save the layout is whatever the
+ * database says, not what this component guessed, and the mode stays on until "Fertig".
  */
-export function MenuArranger({ categories, items }: { categories: ArrangerCategory[]; items: ArrangerItem[] }) {
+export function MenuArranger({
+  title,
+  jump,
+  categories,
+  items,
+}: {
+  /** The page heading, which the Anordnen button sits beside. */
+  title: React.ReactNode;
+  /** The row of jump links to each category. */
+  jump: React.ReactNode;
+  categories: ArrangerCategory[];
+  items: ArrangerItem[];
+}) {
+  // Held out here, above the remount below: a save changes the server's order, the arranger under
+  // the key starts over from it, and the mode staff are in must survive that.
+  const [arranging, setArranging] = useState(false);
+  return (
+    <div className="group/arrange grid gap-6" data-arranging={arranging ? "" : undefined}>
+      <div className="grid gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          {title}
+          <button
+            type="button"
+            aria-pressed={arranging}
+            onClick={() => setArranging((on) => !on)}
+            className={`${arranging ? "btn-primary" : "btn-ghost"} min-h-10`}
+          >
+            {arranging ? "Fertig" : "Anordnen"}
+          </button>
+        </div>
+        <p className="text-sm text-muted">
+          {arranging
+            ? "Am Griff ⠿ ziehen, oder ein Gericht auf „Startseite“ legen."
+            : "Tippe auf ein Gericht, um es zu ändern."}
+        </p>
+      </div>
+      {jump}
+      <Arranger
+        // A new server order remounts it, so after every save it shows what the database holds.
+        key={[...categories.map((c) => c.id), ...items.map((i) => `${i.id}:${i.categoryId}:${i.featured}`)].join()}
+        arranging={arranging}
+        categories={categories}
+        items={items}
+      />
+    </div>
+  );
+}
+
+function Arranger({ arranging, categories, items }: { arranging: boolean; categories: ArrangerCategory[]; items: ArrangerItem[] }) {
   const [layout, setLayout] = useState(() => layoutOf(categories, items));
   const [drag, setDrag] = useState<Drag | null>(null);
   const [overFeatured, setOverFeatured] = useState(false);
@@ -408,58 +458,60 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
         </p>
       )}
 
-      <section
-        ref={featuredZone}
-        className={`grid gap-2 rounded-md border-2 border-dashed p-3 transition-colors ${
-          overFeatured && drag?.kind === "item" ? "border-blue bg-sky-50" : "border-line bg-mint/40"
-        }`}
-        aria-labelledby="startseite-title"
-      >
-        <div className="flex flex-wrap items-baseline gap-x-3">
-          <h2 id="startseite-title" className="font-serif text-xl">
-            Startseite
-          </h2>
-          <span className="text-xs text-muted">Gericht hierher ziehen, um es oben auf der Website zu zeigen.</span>
-        </div>
-        {layout.featured.length === 0 ? (
-          <p className="text-sm text-muted">Noch nichts ausgewählt: die Website zeigt dann das erste Gericht jeder Kategorie.</p>
-        ) : (
-          <ul className="flex flex-wrap gap-2">
-            {layout.featured.map((id) => {
-              const item = itemById.get(id);
-              if (!item) return null;
-              return (
-                <li
-                  key={id}
-                  data-arrange-chip={id}
-                  data-flip-id={`chip-${id}`}
-                  className={`flex min-h-10 items-center gap-1 rounded-full border border-line bg-white py-0.5 pr-1 text-sm ${
-                    drag?.id === id ? "opacity-50" : ""
-                  } ${item.available ? "" : "text-muted line-through"}`}
-                >
-                  <button
-                    {...handleProps(id, item.name)}
-                    aria-label={`${item.name} von der Startseite nehmen: herausziehen`}
-                    onPointerDown={(e) => start(e, { kind: "featured", id, pointerId: e.pointerId })}
+      {arranging && (
+        <section
+          ref={featuredZone}
+          className={`grid gap-2 rounded-md border-2 border-dashed p-3 transition-colors ${
+            overFeatured && drag?.kind === "item" ? "border-blue bg-sky-50" : "border-line bg-mint/40"
+          }`}
+          aria-labelledby="startseite-title"
+        >
+          <div className="flex flex-wrap items-baseline gap-x-3">
+            <h2 id="startseite-title" className="font-serif text-xl">
+              Startseite
+            </h2>
+            <span className="text-xs text-muted">Gericht hierher ziehen, um es oben auf der Website zu zeigen.</span>
+          </div>
+          {layout.featured.length === 0 ? (
+            <p className="text-sm text-muted">Noch nichts ausgewählt: die Website zeigt dann das erste Gericht jeder Kategorie.</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {layout.featured.map((id) => {
+                const item = itemById.get(id);
+                if (!item) return null;
+                return (
+                  <li
+                    key={id}
+                    data-arrange-chip={id}
+                    data-flip-id={`chip-${id}`}
+                    className={`flex min-h-10 items-center gap-1 rounded-full border border-line bg-white py-0.5 pr-1 text-sm ${
+                      drag?.id === id ? "opacity-50" : ""
+                    } ${item.available ? "" : "text-muted line-through"}`}
                   >
-                    ⠿
-                  </button>
-                  {item.name}
-                  <button
-                    type="button"
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-cream hover:text-ink"
-                    aria-label={`${item.name} von der Startseite nehmen`}
-                    onClick={() => unfeature(id)}
-                    disabled={pending}
-                  >
-                    ×
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+                    <button
+                      {...handleProps(id, item.name)}
+                      aria-label={`${item.name} von der Startseite nehmen: herausziehen`}
+                      onPointerDown={(e) => start(e, { kind: "featured", id, pointerId: e.pointerId })}
+                    >
+                      ⠿
+                    </button>
+                    {item.name}
+                    <button
+                      type="button"
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-cream hover:text-ink"
+                      aria-label={`${item.name} von der Startseite nehmen`}
+                      onClick={() => unfeature(id)}
+                      disabled={pending}
+                    >
+                      ×
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       {layout.cats.map((catId) => {
         const cat = catById.get(catId);
@@ -478,9 +530,11 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
             }`}
           >
             <div className="flex items-start gap-2">
-              <button {...handleProps(catId, `Kategorie ${cat.label}`)} onPointerDown={(e) => start(e, { kind: "cat", id: catId, pointerId: e.pointerId })} onKeyDown={(e) => keyCat(e, catId)}>
-                ⠿
-              </button>
+              {arranging && (
+                <button {...handleProps(catId, `Kategorie ${cat.label}`)} onPointerDown={(e) => start(e, { kind: "cat", id: catId, pointerId: e.pointerId })} onKeyDown={(e) => keyCat(e, catId)}>
+                  ⠿
+                </button>
+              )}
               <div className="min-w-0 flex-1">{cat.header}</div>
             </div>
 
@@ -491,7 +545,7 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
                     drop?.cat === catId ? "border-blue bg-sky-50" : "border-line"
                   }`}
                 >
-                  Noch keine Gerichte. Hierher ziehen, um eins zu verschieben.
+                  {arranging ? "Noch keine Gerichte. Hierher ziehen, um eins zu verschieben." : "Noch keine Gerichte."}
                 </p>
               )}
               {list.map((id, index) => {
@@ -511,13 +565,15 @@ export function MenuArranger({ categories, items }: { categories: ArrangerCatego
                     className={`relative ${drag?.id === id && drag.kind === "item" ? "rounded-md opacity-60 ring-2 ring-blue" : ""}`}
                   >
                     {lineBefore && <span aria-hidden="true" className="pointer-events-none absolute -top-1 left-0 right-0 z-[2] h-1 rounded-full bg-blue" />}
-                    <button
-                      {...handleProps(id, item.name, "absolute left-0 top-0 z-[1]")}
-                      onPointerDown={(e) => start(e, { kind: "item", id, pointerId: e.pointerId, from: catId })}
-                      onKeyDown={(e) => keyItem(e, id)}
-                    >
-                      ⠿
-                    </button>
+                    {arranging && (
+                      <button
+                        {...handleProps(id, item.name, "absolute left-0 top-0 z-[1]")}
+                        onPointerDown={(e) => start(e, { kind: "item", id, pointerId: e.pointerId, from: catId })}
+                        onKeyDown={(e) => keyItem(e, id)}
+                      >
+                        ⠿
+                      </button>
+                    )}
                     {item.row}
                     {lineAfter && <span aria-hidden="true" className="pointer-events-none absolute -bottom-1 left-0 right-0 z-[2] h-1 rounded-full bg-blue" />}
                   </div>
