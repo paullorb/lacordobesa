@@ -92,9 +92,22 @@ export async function setReservationStatus(formData: FormData) {
   if (status === "cancelled" && started) return;
   if ((status === "completed" || status === "no_show") && !started) return;
 
+  // Constrained by the status the guard above validated, so the check and the write are one
+  // decision. Unconstrained, two staff acting at once could cancel a booking the other had just
+  // confirmed: the read saw `pending`, allowed it, and the write then landed on a `confirmed` row
+  // that had already started, which is the outcome the guard exists to forbid. No row comes back
+  // when the status moved under us, and nothing further happens.
+  //
   // Returning the row saves a second read, and gives sendConfirmation() the values it needs.
-  const { data: updated } = await supabase.from("reservations").update({ status }).eq("id", id).select("*").maybeSingle();
-  if (status === "confirmed" && updated) await sendConfirmation(supabase, updated);
+  const { data: updated } = await supabase
+    .from("reservations")
+    .update({ status })
+    .eq("id", id)
+    .eq("status", when.status)
+    .select("*")
+    .maybeSingle();
+  if (!updated) return;
+  if (status === "confirmed") await sendConfirmation(supabase, updated);
   refresh();
 }
 

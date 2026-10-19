@@ -312,6 +312,11 @@ export async function staffStorageState() {
 
   const stopBeating = beatSignInLock();
   try {
+    // Once more now the lock is ours: the holder can have written its file and released between
+    // this process reading the file and winning the lock, and signing in on top of a valid cache
+    // is the duplicate request the lock exists to prevent.
+    staffState = freshStateOnDisk();
+    if (staffState) return staffState;
     return await signInAndCache();
   } finally {
     stopBeating();
