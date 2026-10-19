@@ -145,7 +145,7 @@ describe("the grant matrix", () => {
     cancel_reservation_by_token: "true,false,true",
     create_preorder_manually: "false,true,true",
     is_admin: "false,true,true",
-    is_staff: "true,true,true",
+    is_staff: "false,true,true",
     join_waitlist: "false,false,true",
     manage_token_valid: "true,true,true",
     move_reservation_by_token: "true,false,true",
