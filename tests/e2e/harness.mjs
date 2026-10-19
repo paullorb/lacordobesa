@@ -17,7 +17,7 @@
  */
 import { chromium, firefox, webkit, devices } from "playwright";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -221,16 +221,28 @@ const STAFF_STATE_TTL_MS = 10 * 60_000;
  * files can both miss and both start authenticating. Letting the last write win protects the
  * result but not the request, and the rate limit is on the request: that is the flake this cache
  * exists to remove. `mkdir` is atomic on every platform the suite runs on, so exactly one process
- * gets the lock and the rest poll for the state it writes.
+ * gets the lock and the rest wait for the state it writes.
+ *
+ * The holder touches the lock every few seconds while it works, so "abandoned" means a process
+ * that stopped, not one that is slow. Without the heartbeat the threshold would have to exceed the
+ * whole retry sequence below, which is three attempts of two 90-second timeouts plus its backoff:
+ * over nine minutes, and a waiter that gave up sooner would delete a live holder's lock and sign in
+ * beside it, under exactly the rate limit the lock exists to avoid.
  */
+const SIGN_IN_LOCK_STALE_MS = 30_000;
+const SIGN_IN_HEARTBEAT_MS = 5_000;
+/** Generous: the wait only ends early, when the holder's file appears. */
+const SIGN_IN_WAIT_MS = 10 * 60_000;
+
 const takeSignInLock = () => {
   try {
     mkdirSync(STAFF_STATE_LOCK);
     return true;
   } catch {
-    // A lock left behind by a killed process must not stall the next run for ever.
+    // A lock left behind by a killed process must not stall the next run for ever. A live holder
+    // keeps its mtime fresh, so anything this old has stopped.
     try {
-      if (Date.now() - statSync(STAFF_STATE_LOCK).mtimeMs > 2 * 60_000) {
+      if (Date.now() - statSync(STAFF_STATE_LOCK).mtimeMs > SIGN_IN_LOCK_STALE_MS) {
         rmSync(STAFF_STATE_LOCK, { force: true, recursive: true });
         mkdirSync(STAFF_STATE_LOCK);
         return true;
@@ -240,6 +252,20 @@ const takeSignInLock = () => {
     }
     return false;
   }
+};
+
+/** Says the holder is still alive, until the returned stop is called. */
+const beatSignInLock = () => {
+  const id = setInterval(() => {
+    try {
+      const now = new Date();
+      utimesSync(STAFF_STATE_LOCK, now, now);
+    } catch {
+      /* the lock is gone; the finally below will not mind either */
+    }
+  }, SIGN_IN_HEARTBEAT_MS);
+  id.unref?.();
+  return () => clearInterval(id);
 };
 
 const releaseSignInLock = () => {
@@ -269,20 +295,26 @@ export async function staffStorageState() {
   staffState = freshStateOnDisk();
   if (staffState) return staffState;
 
-  // Whoever does not get the lock waits for the file rather than signing in as well.
-  if (!takeSignInLock()) {
-    for (let waited = 0; waited < 120_000; waited += 500) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      staffState = freshStateOnDisk();
-      if (staffState) return staffState;
+  // Whoever does not get the lock waits for the holder's file, and only ever signs in while
+  // holding the lock itself: the waiter re-tries acquisition rather than clearing a lock it does
+  // not own, so a slow-but-live holder is never joined by a second sign-in.
+  for (let waited = 0; !takeSignInLock(); waited += 500) {
+    if (waited >= SIGN_IN_WAIT_MS) {
+      throw new Error(
+        `waited ${Math.round(SIGN_IN_WAIT_MS / 1000)}s for another test process to sign in and it ` +
+          `never wrote ${STAFF_STATE_FILE}. Remove ${STAFF_STATE_LOCK} if nothing is running.`,
+      );
     }
-    // The holder died without writing. Fall through and sign in rather than fail the file.
-    releaseSignInLock();
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    staffState = freshStateOnDisk();
+    if (staffState) return staffState;
   }
 
+  const stopBeating = beatSignInLock();
   try {
     return await signInAndCache();
   } finally {
+    stopBeating();
     releaseSignInLock();
   }
 }
