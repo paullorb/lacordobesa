@@ -48,7 +48,7 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
   return (categories ?? []).map((c) => ({
     ...c,
     // Blanked here, not in the UI, so a hidden price can't leak through any public page. `!== false` keeps
-    // prices visible if the show_prices column doesn't exist yet (migration 0008).
+    // prices visible if the show_prices column doesn't exist yet (migration 20261012085200).
     items: (items ?? [])
       .filter((i) => i.category_id === c.id)
       .map((i) => i as Tables<"menu_items">)

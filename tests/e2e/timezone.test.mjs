@@ -51,6 +51,8 @@ async function dayFingerprint(page, selector) {
       day: (el.textContent ?? "").trim(),
       month: (el.closest(".calendar-month")?.querySelector(".calendar-label")?.textContent ?? "").trim(),
       hint: el.getAttribute("data-hint"),
+      // A closed day (the Monday rest day) says "Ruhetag" instead of "Heute" and is disabled.
+      closed: el.disabled,
     };
   }, selector);
 }
@@ -98,7 +100,8 @@ describe(`${PROJECTS[PROJECT].label}: the visitor's timezone does not change the
           Number(dd),
           `the ring is on day ${baseline.heute?.day} of "${baseline.heute?.month}", Frankfurt's date is ${expected}`,
         );
-        assert.equal(baseline.heute?.hint, "Heute", "the ringed day should name itself Heute");
+        // On the rest day the ring still sits on today, but the cell is disabled and says so.
+        assert.equal(baseline.heute?.hint, baseline.heute?.closed ? "Ruhetag" : "Heute", "the ringed day should name itself Heute");
         assert.ok(baseline.firstBookable, "nothing is bookable");
       });
 

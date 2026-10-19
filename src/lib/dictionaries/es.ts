@@ -280,6 +280,7 @@ export const es: Dictionary = {
       closed: (weekday: string) => `Los ${weekday} cerramos. Elegí otro día, por favor.`,
       holiday: "Ese día estamos cerrados. Elegí otro día, por favor.",
       late: "Para ese día ya es muy sobre la hora para reservar online.",
+      paused: "Las reservas online están pausadas por el momento.",
       error: "No pudimos cargar la disponibilidad. Probá de nuevo, por favor.",
       full: "Ese día está todo completo.",
       nothingLeft: "Para ese día no queda nada libre. ",

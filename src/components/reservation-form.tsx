@@ -36,7 +36,7 @@ const at = (iso: string) => new Date(`${iso}T12:00:00Z`);
 /** Today does not change while somebody fills in a form, and if they leave the page open past
  *  midnight the RPC still has the last word. Hoisted so React is not handed a new subscribe
  *  function on every render. */
-const NEVER_CHANGES = () => () => {};
+export const NEVER_CHANGES = () => () => {};
 
 /** How many days step 1 offers before asking. Two weeks is the horizon most people book inside, and
  *  showing every day up to max_days_ahead (30 by default) opens with two months of tiles to scroll
@@ -442,6 +442,7 @@ function unavailableMessage(
   if (reason === "closed") return <>{t.unavailable.closed(weekdayLong.format(at(date)))}</>;
   if (reason === "holiday") return <>{t.unavailable.holiday}</>;
   if (reason === "late") return <>{t.unavailable.late}{phone}</>;
+  if (reason === "paused") return <>{t.unavailable.paused}{phone}</>;
   if (reason === "error") return <>{t.unavailable.error}{phone}</>;
   if (fullyBooked) return <>{t.unavailable.full}{phone}</>;
   return null;

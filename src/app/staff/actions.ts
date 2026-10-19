@@ -28,9 +28,14 @@ import {
 export type ActionResult = { ok: true } | { ok: false; error: string } | null;
 
 const str = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
+/** A whole number from a field, `fallback` when the field is missing, blank or not a number. Truncated,
+ *  because every numeric field here is a count or a number of minutes and the SQL side casts the
+ *  stored text with `::int`, which raises on "7.5" and would take availability down for every guest. */
 const num = (fd: FormData, key: string, fallback = 0) => {
-  const n = Number(fd.get(key));
-  return Number.isFinite(n) ? n : fallback;
+  const raw = fd.get(key);
+  if (raw === null || raw === "") return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? Math.trunc(n) : fallback;
 };
 const bool = (fd: FormData, key: string) => fd.get(key) === "on" || fd.get(key) === "true";
 
@@ -717,7 +722,11 @@ export async function uploadGalleryImage(_prev: ActionResult, formData: FormData
   const file = formData.get("file");
   const category = str(formData, "category");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Bitte wähle ein Bild aus." };
-  if (!GALLERY_MIME_TYPES.includes(file.type)) return { ok: false, error: "Nur JPG, PNG oder WebP sind erlaubt." };
+  // The declared type picks the extension and the stored content type, so it is checked against the
+  // bytes rather than trusted: a browser (or anything else) can label a file however it likes.
+  if (!GALLERY_MIME_TYPES.includes(file.type) || (await sniffImageType(file)) !== file.type) {
+    return { ok: false, error: "Nur JPG, PNG oder WebP sind erlaubt." };
+  }
   if (file.size > GALLERY_MAX_BYTES) return { ok: false, error: "Das Bild ist größer als 5 MB." };
   if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
 
@@ -823,17 +832,29 @@ export async function createStaffAccount(_prev: ActionResult, formData: FormData
 }
 
 export async function resetStaffPassword(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  await requireAdmin();
+  const { user } = await requireAdmin();
   const id = str(formData, "user_id");
   const password = String(formData.get("password") ?? "");
   if (password.length < MIN_PASSWORD) return { ok: false, error: `Passwort: mindestens ${MIN_PASSWORD} Zeichen.` };
   const admin = createPrivilegedClient();
   // Only team accounts, never some other auth user that happens to share the project.
-  const { data: member } = await admin.from("staff").select("user_id").eq("user_id", id).maybeSingle();
+  const { data: member } = await admin.from("staff").select("role").eq("user_id", id).maybeSingle();
   if (!member) return { ok: false, error: "Diesen Zugang gibt es nicht." };
+  // Staff accounts and one's own, never another admin's: the same line deleteStaffAccount draws.
+  if (member.role !== "staff" && id !== user.id) return { ok: false, error: "Das Passwort eines anderen Admin-Zugangs wird hier nicht geändert." };
   const { error } = await admin.auth.admin.updateUserById(id, { password });
   if (error) return { ok: false, error: "Das Passwort konnte nicht geändert werden." };
   return { ok: true };
+}
+
+/** The image type the first bytes say the file is, or null. */
+async function sniffImageType(file: File): Promise<string | null> {
+  const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "image/png";
+  const ascii = (from: number, to: number) => String.fromCharCode(...b.subarray(from, to));
+  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp";
+  return null;
 }
 
 export async function deleteStaffAccount(formData: FormData) {

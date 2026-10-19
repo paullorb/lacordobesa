@@ -1,6 +1,6 @@
 # Tests
 
-Two suites, one runner, no new dependencies. Node's own test runner drives both; the browser tests
+Three suites (unit, database, browser), one runner, no new dependencies. Node's own test runner drives them all; the browser tests
 use the `playwright` package that `npm run shots` already needed.
 
 ```bash
@@ -16,7 +16,9 @@ npm test                  # all three
 `check` stays fast and hermetic on purpose, so it is runnable on a laptop with nothing else going
 on. That is also how the browser suite came to rot: for three commits in a row nobody ran it, and
 twelve of its tests had been failing against a selector that a UI change had removed. **`check` is
-the commit gate; `check:full` is the one to run before a release, and the one CI should run.**
+the commit gate; `check:full` is the one to run before a release.** CI (`.github/workflows/tests.yml`)
+runs `check` on every push and pull request, and the database and browser suites against staging every
+night; only `check` is required to merge.
 
 Browsers are not installed by `npm install`. Once per machine:
 
@@ -109,6 +111,9 @@ quota allowance back.
 | `timezone.test.mjs` | The browser's timezone and clock set to Los Angeles, Tokyo, Samoa and Kiribati around Frankfurt's midnight: "Heute", the first bookable day and "open now" must not move. Also pins that the browser's language does not pick the site's. |
 | `pwa.test.mjs` | The staff app's manifest, icons and scope, and the pages under emulated `display-mode: standalone` / `navigator.standalone`. |
 | `perf.test.mjs` | Request origins, fonts, layout shift, image sizing, DOM size, duplicate requests. |
+| `house-style.test.mjs` | House style as the browser paints it: the site's own icons rather than the system's emoji, and the rest of the rules an editor would flag. |
+| `motion.test.mjs` | The FLIP layer: the two places where a list reorders or a grid refilters, and that the rows are followed to where they land. |
+| `polish.test.mjs` | The finishing layer, each detail checked for the one way it quietly breaks: the word-by-word headline and its siblings. |
 | `token-routes.test.mjs` | The twelve pages whose URL is a credential, in all three languages: that they open, that the language switch keeps the token (#134 broke the build here), that they are noindex and send no referrer, and that a dead link is answered rather than crashed on. The one file under `e2e/` that writes: it arranges one reservation, one order and one sign-up in staging and deletes them afterwards, because a token page cannot be opened without a row to open. |
 
 Tests skip rather than fail when there is no server listening or no `STAFF_USER` / `STAFF_PASS` in

@@ -81,11 +81,12 @@ describe("locale tables", () => {
 
 describe("alternates", () => {
   test("names every locale by its BCP-47 tag", () => {
-    assert.deepEqual(alternates("/karte"), { "de-DE": "/karte", "es-AR": "/es/karte", "en-GB": "/en/karte" });
+    assert.deepEqual(alternates("/karte"), { de: "/karte", es: "/es/karte", en: "/en/karte", "x-default": "/karte" });
   });
 
-  test("covers all locales for any path", () => {
-    assert.equal(Object.keys(alternates("/gallery")).length, LOCALES.length);
+  test("covers all locales for any path, plus x-default for everyone else", () => {
+    assert.equal(Object.keys(alternates("/gallery")).length, LOCALES.length + 1);
+    assert.equal(alternates("/gallery")["x-default"], "/gallery");
   });
 });
 

@@ -5,7 +5,7 @@ import { useTrackForm } from "@/components/analytics";
 import { requestPreorder } from "@/app/vorbestellen/actions";
 import { ArrowIcon, MenuIcon } from "@/components/icons";
 import { CalendarDay } from "@/components/calendar-day";
-import { calendarMonths } from "@/components/reservation-form";
+import { calendarMonths, NEVER_CHANGES } from "@/components/reservation-form";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { PhoneNote } from "@/components/phone-note";
 import { EMPANADA_SLUG, PREPARATIONS, type Preparation } from "@/lib/preorder-preparation";
@@ -69,11 +69,11 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
   const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
 
   // The calendar hints ("Morgen") count from the visitor's today; the server render has no clock to trust.
-  const today = useSyncExternalStore(
-    () => () => {},
-    todayISO,
-    () => minDate,
-  );
+  // Hoisted subscribe, as in ReservationForm, so React is not handed a new one every render.
+  const today = useSyncExternalStore(NEVER_CHANGES, todayISO, () => minDate);
+  // `minDate` comes out of a cached shell and can name yesterday just after midnight; the browser's
+  // clock is the one that is right, so the calendar never opens on a day that has gone.
+  const firstDay = today > minDate ? today : minDate;
   const [step, setStep] = useState(1);
   const [picked, setPicked] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -266,7 +266,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
     body: (
       <div className="wizard-body">
         <div className="calendar" role="group" aria-label={t.pickupDate}>
-          {calendarMonths(minDate, maxDate, monthLong).map((month) => (
+          {calendarMonths(firstDay, maxDate, monthLong).map((month) => (
             <div className="calendar-month" key={month.key}>
               <p className="calendar-label">{month.label}</p>
               <div className="calendar-heads" aria-hidden="true">

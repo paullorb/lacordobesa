@@ -6,8 +6,8 @@ export const LEGAL_FROM = "von";
 /**
  * A link to a legal page that remembers where the reader came from.
  *
- * `/impressum` and `/datenschutz` are German only and live outside the locale route groups, so the
- * page itself cannot tell whether the reader arrived from `/` or from `/es`. Without this, "zurück
+ * `/impressum` and `/datenschutz` are German only (under `(de)/(legal)`), with no `/es` or `/en` twin,
+ * so the page itself cannot tell whether the reader arrived from `/` or from `/es`. Without this, "zurück
  * zur Startseite" silently moved a Spanish reader to the German site. German adds no parameter,
  * because German is where the link already leads.
  */

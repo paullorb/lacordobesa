@@ -49,7 +49,7 @@ export function ManageReservation({
     setTime("");
     setDaySlots([]);
     startLoading(async () => {
-      const result = await getAvailability(value);
+      const result = await getAvailability(value, token);
       setDaySlots(result.slots);
     });
   }
@@ -92,7 +92,7 @@ export function ManageReservation({
         </div>
       </dl>
       <p className="manage-note">{t.statuses[reservation.status].note}</p>
-      {reservation.notes && <p className="manage-guest-note">„{reservation.notes}“</p>}
+      {reservation.notes && <p className="manage-guest-note">{locale === "de" ? `„${reservation.notes}“` : `“${reservation.notes}”`}</p>}
 
       {error && (
         <p className="form-error" role="alert">

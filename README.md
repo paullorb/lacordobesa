@@ -156,7 +156,11 @@ content is in [`supabase/seed.sql`](supabase/seed.sql), and the menu in
 schema, regenerate the types:
 
 ```bash
-npx supabase gen types typescript --project-id iabpugtwgjqldlzjjgqj > src/lib/database.types.ts
+# Docker running, and the IPv4 pooler: the direct host is IPv6 only, and --project-id would block on the
+# keychain in an agent session (CLAUDE.md). Staging and production carry the same schema.
+supabase gen types typescript \
+  --db-url "postgresql://postgres.yfcpqyxonzjuflsqhasz:<password>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres" \
+  > src/lib/database.types.ts
 ```
 
 How reservations work:
@@ -274,10 +278,17 @@ separate installable apps (`/manifest.webmanifest`, `/staff.webmanifest`).
 ## Tests
 
 ```bash
-npm run check      # lint + typecheck + unit tests. The gate for a commit.
-npm run test:e2e   # browser tests; needs `npm run dev` in another terminal
-npm run test:matrix # the same suite as Chrome, Firefox, Safari and four phones/tablets (a few minutes)
+npm run check            # lint + typecheck + unit tests. The gate for a commit, and what branch protection requires.
+npm run test:unit        # the unit tests alone (or test:unit:coverage)
+npm run test:integration # the database suite, against staging
+npm run test:e2e         # browser tests; needs `npm run dev` in another terminal
+npm run check:full       # all of the above, before a release
+npm run test:matrix      # the browser suite as Chrome, Firefox, Safari and four phones/tablets (a few minutes)
 ```
+
+CI (`.github/workflows/tests.yml`) runs `check` on every push and pull request, and the two staging
+suites plus a production build nightly at 05:10 UTC as a canary. Only `check` gates a merge; a red
+nightly is read in the morning, so look at it. `tests/README.md` has the detail.
 
 Node's own test runner drives both suites and no test dependency was added: the unit tests use
 native TypeScript stripping with a small resolver hook for the `@/` alias, and the browser tests

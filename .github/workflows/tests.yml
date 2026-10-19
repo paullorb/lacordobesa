@@ -112,6 +112,14 @@ jobs:
           STAGING_STAFF_PASS: ${{ secrets.STAGING_STAFF_PASS }}
         run: node .github/write-env.mjs
 
+      # `check` never builds, and there are no preview deployments (vercel.json), so without this a
+      # build-only break (a prerender reading the clock, a route type) was first found by the
+      # production deploy of main. Needs the staging credentials: the public pages prerender from
+      # the database.
+      - name: Production build
+        if: steps.creds.outputs.configured == 'true'
+        run: npm run build
+
       # ---- the database suite, first because it is the fast one and the browser suite is pointless
       # if the database it reads is broken.
       - name: Database tests

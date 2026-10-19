@@ -38,12 +38,13 @@ export async function getPreorderSettings(): Promise<PreorderSettings> {
 /** The pickup days the form may offer: from the earliest the RPC would accept to the planning horizon.
  *
  *  Cached, because reading the clock during a prerender is not allowed otherwise. "Now" is therefore
- *  baked into the cached entry and refreshed hourly, exactly like today's date in getActiveSpecials().
- *  With a lead time measured in hours that is harmless, and request_preorder() is the authority anyway:
- *  a stale boundary day is rejected there with too_soon. */
+ *  baked into the cached entry. "minutes" rather than "hours", the same reason as dateBounds() on the
+ *  home page: across midnight an hourly entry offered a first day that was already gone. The form
+ *  clamps with the browser's today as well, and request_preorder() is the authority anyway: a stale
+ *  boundary day is rejected there with too_soon. */
 export async function getPickupRange(): Promise<{ minDate: string; maxDate: string }> {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
   cacheTag(TAG.hours);
   const settings = await getPreorderSettings();
   const minDate = dateAfterHours(settings.min_lead_hours);
