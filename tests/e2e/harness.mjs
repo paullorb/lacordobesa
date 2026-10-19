@@ -126,6 +126,8 @@ export const STAFF_PAGES = [
   ["hours", "/staff/oeffnungszeiten"],
   ["reviews", "/staff/bewertungen"],
   ["settings", "/staff/einstellungen"],
+  // Admin only, like visitors above: the suite signs in as an admin.
+  ["team", "/staff/team"],
 ];
 
 /** The widths that actually decide a layout here: the narrowest phone still in use, the phone the
