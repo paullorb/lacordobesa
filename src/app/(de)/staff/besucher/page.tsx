@@ -37,8 +37,8 @@ async function Visitors() {
     event: string,
     dimension: string,
     detail?: string,
-  ): Promise<{ rows: Row[]; failed: boolean }> {
-    const { data, error } = await supabase.rpc("analytics_breakdown", {
+  ): Promise<{ rows: Row[] }> {
+    const { data } = await supabase.rpc("analytics_breakdown", {
       p_from: from,
       p_to: to,
       p_event: event,
@@ -50,7 +50,6 @@ async function Visitors() {
         bucket: r.bucket,
         total: Number(r.total),
       })),
-      failed: !!error,
     };
   }
 
@@ -85,19 +84,6 @@ async function Visitors() {
     by("gallery_open", "day"),
     by("map_load", "day"),
   ]);
-
-  // The function arrives with a migration; until then every call fails the same way.
-  if (days.failed) {
-    return (
-      <div className="grid gap-2">
-        <h1 className="font-serif text-3xl">Besucher</h1>
-        <p className="text-sm text-muted">
-          Die Besucherzahlen erscheinen hier, sobald die Datenbank-Migration
-          20261015085039 eingespielt ist.
-        </p>
-      </div>
-    );
-  }
 
   const count = (r: { rows: Row[] }, key: string) =>
     r.rows.find((x) => x.bucket === key)?.total ?? 0;

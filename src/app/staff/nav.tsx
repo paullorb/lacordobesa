@@ -12,37 +12,38 @@ const MENU_HREF = "/staff/karte";
 /** How far the menu has to be scrolled before the Karte pill starts naming categories. */
 const SCROLL_THRESHOLD = 120;
 
-// Six tabs instead of twelve: pages that answer the same question share a tab, and the
-// active tab's pages show as a second row.
+// Six tabs: pages that answer the same question share a tab, and the active tab's pages show as a
+// second row. A tab with one page for the viewer has no second row. The /staff/team and
+// /staff/specials routes are plain links on purpose: this file does not import them.
 const GROUPS: Group[] = [
   { label: "Heute", icon: "today", items: [{ href: "/staff", label: "Heute", icon: "today" }] },
+  // Everything that decides who sits where and when: bookings, the waitlist, celebrations, and the
+  // opening hours that say which slots exist at all.
   {
-    label: "Gäste",
+    label: "Tische",
     icon: "guests",
     items: [
       { href: "/staff/reservierungen", label: "Reservierungen", icon: "reservations" },
       { href: "/staff/warteliste", label: "Warteliste", icon: "waitlist" },
-      { href: "/staff/vorbestellungen", label: "Vorbestellungen", icon: "preorder" },
       { href: "/staff/anfragen", label: "Feier-Anfragen", icon: "celebrate" },
+      { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten", icon: "hours" },
     ],
   },
   {
-    label: "Inhalte",
+    label: "Bestellungen",
+    icon: "preorder",
+    items: [{ href: "/staff/vorbestellungen", label: "Vorbestellungen", icon: "preorder" }],
+  },
+  {
+    label: "Website",
     icon: "content",
     items: [
       { href: MENU_HREF, label: "Karte", icon: "menu" },
+      // Specials and sending them to the guests who asked for them are one page.
+      { href: "/staff/specials", label: "Specials", icon: "specials" },
       { href: "/staff/gallery", label: "Galerie", icon: "gallery" },
-      { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten", icon: "hours" },
-      { href: "/staff/bewertungen", label: "Bewertungen", icon: "reviews" },
-    ],
-  },
-  // The specials themselves and sending them to the guests who asked for them: one job, one tab.
-  {
-    label: "Specials",
-    icon: "specials",
-    items: [
-      { href: "/staff/specials", label: "Angebote", icon: "specials" },
-      { href: "/staff/broadcast", label: "Verschicken", icon: "send" },
+      // The review scores on the site are the agency's business, not the restaurant's.
+      { href: "/staff/bewertungen", label: "Bewertungen", icon: "reviews", adminOnly: true },
     ],
   },
   {
@@ -57,7 +58,10 @@ const GROUPS: Group[] = [
   {
     label: "Einstellungen",
     icon: "settings",
-    items: [{ href: "/staff/einstellungen", label: "Einstellungen", icon: "settings" }],
+    items: [
+      { href: "/staff/einstellungen", label: "Einstellungen", icon: "settings" },
+      { href: "/staff/team", label: "Team", icon: "guests", adminOnly: true },
+    ],
   },
 ];
 
@@ -89,7 +93,7 @@ function useScrolledCategory(enabled: boolean) {
           const box = section.getBoundingClientRect();
           // A section React is still streaming in sits in a hidden container, where every box is
           // 0x0 at the top of the viewport. Counting those made the pill read "Cocktails", the
-          // last category, the moment Inhalte opened.
+          // last category, the moment the menu opened.
           if (box.height === 0) continue;
           if (box.top > line) break;
           found = section;
@@ -121,7 +125,7 @@ function useScrolledCategory(enabled: boolean) {
 const pill = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 font-semibold";
 
 // Wraps on a phone rather than scrolling sideways. A scrolling tab strip hid Einstellungen and
-// the Website link off the right edge with nothing on screen to say they were there, and on iOS
+// the link to the site off the right edge with nothing on screen to say they were there, and on iOS
 // there is no scrollbar to hint at it either. Two rows of pills cost less than an unreachable tab.
 const row = "mx-auto flex max-w-5xl flex-wrap gap-1 px-2 pb-2 text-sm";
 
@@ -139,7 +143,7 @@ export function StaffNav({ isAdmin }: { isAdmin: boolean }) {
             <Link
               key={g.label}
               href={g.items[0].href}
-              // "page" only where the link leads to the page itself. On /staff/warteliste the Gäste
+              // "page" only where the link leads to the page itself. On /staff/warteliste the Tische
               // tab leads elsewhere, and the sub-nav's Warteliste link is the one that is the page.
               aria-current={active ? (isActive(pathname, g.items[0].href) ? "page" : "true") : undefined}
               className={`${pill} ${active ? "bg-ink text-white" : "text-ink hover:bg-mint"}`}
@@ -155,7 +159,7 @@ export function StaffNav({ isAdmin }: { isAdmin: boolean }) {
           rel="noreferrer"
           className={`${pill} ml-auto text-blue-dark hover:bg-mint`}
         >
-          Website <ArrowIcon direction="up-right" size={14} />
+          Seite ansehen <ArrowIcon direction="up-right" size={14} />
         </a>
       </nav>
       {current && current.items.length > 1 && (

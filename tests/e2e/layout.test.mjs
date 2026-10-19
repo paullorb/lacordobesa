@@ -246,12 +246,14 @@ describe("the staff navigation is reachable on a phone", () => {
       staff: true,
       body: async ({ page }) => {
         const viewport = page.viewportSize().width;
-        const links = await page.locator('nav[aria-label="Inhalte"] a').all();
-        // The labels rather than a count, so that moving a tab between groups (Specials became a
-        // group of its own) names what changed instead of failing as "4 !== 5". Keep in step with
-        // the "Inhalte" group in src/app/staff/nav.tsx.
-        const labels = await page.locator('nav[aria-label="Inhalte"] a').evaluateAll((els) => els.map((e) => e.textContent.trim()));
-        assert.deepEqual(labels, ["Karte", "Galerie", "Öffnungszeiten", "Bewertungen"], "the Inhalte sub-navigation");
+        const links = await page.locator('nav[aria-label="Website"] a').all();
+        // The labels rather than a count, so that moving a tab between groups names what changed
+        // instead of failing as "4 !== 5". Keep in step with the "Website" group in
+        // src/app/staff/nav.tsx. Bewertungen is admin only, so it is allowed to be absent.
+        const labels = await page
+          .locator('nav[aria-label="Website"] a')
+          .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((l) => l !== "Bewertungen"));
+        assert.deepEqual(labels, ["Karte", "Specials", "Galerie"], "the Website sub-navigation");
         for (const link of links) {
           const box = await link.boundingBox();
           assert.ok(box.x + box.width <= viewport + 1, `"${(await link.textContent()).trim()}" runs off the screen`);

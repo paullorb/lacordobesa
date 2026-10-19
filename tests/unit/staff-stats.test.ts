@@ -8,10 +8,8 @@ const TODAY = "2026-10-15"; // a Thursday
 
 const row = (over: Partial<ReservationRow> = {}): ReservationRow => ({
   date: TODAY,
-  start_time: "19:00:00",
   party_size: 2,
   status: "confirmed",
-  source: "web",
   ...over,
 });
 
@@ -90,25 +88,6 @@ describe("rates", () => {
     const stats = reservationStats([], TODAY);
     assert.equal(stats.noShow.percent, null);
     assert.equal(stats.cancelled.percent, null);
-    assert.equal(stats.online.percent, null);
-    assert.equal(stats.averageParty, null);
-  });
-
-  test("the online share counts everything the team did not type in", () => {
-    const stats = reservationStats([row({ source: "web" }), row({ source: "staff" }), row({ source: "web" })], TODAY);
-    assert.deepEqual(stats.online, { value: 2, of: 3, percent: 67 });
-  });
-});
-
-describe("averageParty", () => {
-  test("is seats per seated booking, to one decimal", () => {
-    const stats = reservationStats([row({ party_size: 2 }), row({ party_size: 3 }), row({ party_size: 2 })], TODAY);
-    assert.equal(stats.averageParty, 2.3);
-  });
-
-  test("ignores bookings nobody showed up for", () => {
-    const stats = reservationStats([row({ party_size: 4 }), row({ party_size: 20, status: "cancelled" })], TODAY);
-    assert.equal(stats.averageParty, 4);
   });
 });
 
@@ -130,35 +109,6 @@ describe("byWeekday", () => {
   test("puts a Sunday booking under So, not under Mo", () => {
     const stats = reservationStats([row({ date: "2026-10-11", party_size: 6 })], TODAY);
     assert.equal(stats.byWeekday.find((b) => b.label === "So")?.value, 6);
-  });
-});
-
-describe("byHour", () => {
-  test("is sorted by the clock and labelled in German", () => {
-    const stats = reservationStats(
-      [row({ start_time: "20:30:00" }), row({ start_time: "18:00:00" }), row({ start_time: "18:45:00" })],
-      TODAY,
-    );
-    assert.deepEqual(stats.byHour, [
-      { label: "18 Uhr", value: 4 },
-      { label: "20 Uhr", value: 2 },
-    ]);
-  });
-
-  test("pads a morning hour, so the labels line up", () => {
-    const stats = reservationStats([row({ start_time: "09:15:00" })], TODAY);
-    assert.equal(stats.byHour[0].label, "09 Uhr");
-  });
-
-  test("has no entry for an hour nobody booked", () => {
-    assert.deepEqual(reservationStats([], TODAY).byHour, []);
-  });
-});
-
-describe("bookingsWindow", () => {
-  test("counts every row, including the ones no figure above uses", () => {
-    const rows = [row(), row({ status: "cancelled" }), row({ date: "2026-10-01", status: "no_show" })];
-    assert.equal(reservationStats(rows, TODAY).bookingsWindow, 3);
   });
 });
 

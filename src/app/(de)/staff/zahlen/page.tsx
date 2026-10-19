@@ -25,34 +25,26 @@ async function Numbers() {
   // Both query ends are inclusive, so today plus the 89 days before it make the 90.
   const from = addDays(today, -(WINDOW_DAYS - 1));
 
-  const [{ data: reservations }, preorders, openInquiryCount, wonInquiryCount] = await Promise.all([
+  const [{ data: reservations }, preorders] = await Promise.all([
     // Bounded at both ends: a booking for next Friday has not happened yet, so letting it into the
     // weekday pattern or the cancellation rate would describe the future rather than the business.
-    supabase.from("reservations").select("date, start_time, party_size, status, source").gte("date", from).lte("date", today),
-    // Both tables arrive with later migrations; an error here means "not deployed yet", not "broken".
+    supabase.from("reservations").select("date, party_size, status").gte("date", from).lte("date", today),
     supabase
       .from("preorder_lines")
       .select("label, quantity, preorders!inner(pickup_date)")
       .gte("preorders.pickup_date", from)
       .lte("preorders.pickup_date", today),
-    // Counted in the database rather than fetched: this table has no date bound, and a select would
-    // stop at the API's row limit once it grew past it.
-    supabase.from("event_inquiries").select("id", { count: "exact", head: true }).in("status", ["new", "in_progress", "quoted"]),
-    supabase.from("event_inquiries").select("id", { count: "exact", head: true }).eq("status", "won"),
   ]);
 
   const stats = reservationStats(reservations ?? [], today);
   const dishes = preorders.error ? [] : topPreorderedDishes(preorders.data ?? []);
-  const openInquiries = openInquiryCount.error ? null : (openInquiryCount.count ?? 0);
-  const wonInquiries = wonInquiryCount.error ? null : (wonInquiryCount.count ?? 0);
 
   return (
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Zahlen</h1>
         <p className="text-sm text-muted">
-          Reservierungen und Gäste der letzten {WINDOW_DAYS} Tage, also ab {fmtDateDE(from)}. „Gäste“ zählt Plätze, nicht
-          Buchungen, und zählt Stornierungen und Nichterscheinen nicht mit.
+          Die letzten {WINDOW_DAYS} Tage, ab {fmtDateDE(from)}. „Gäste“ zählt Plätze, ohne Stornierungen und Nichterscheinen.
         </p>
       </div>
 
@@ -62,46 +54,15 @@ async function Numbers() {
         <Tile label="Gäste diesen Monat" value={stats.coversMonth} />
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Reservierungen im Zeitraum" value={stats.bookingsWindow} />
+      <section className="grid gap-3 sm:grid-cols-2">
         <RateTile label="Nicht erschienen" rate={stats.noShow} hint="Anteil der vergangenen Reservierungen" />
         <RateTile label="Storniert" rate={stats.cancelled} hint="Anteil der vergangenen Reservierungen" />
-        <RateTile label="Über die Website" rate={stats.online} hint="Rest kam per Telefon oder vor Ort" />
       </section>
 
       <section className="card grid gap-6 lg:grid-cols-2">
         <BarList caption={`Gäste pro Wochentag (${WINDOW_DAYS} Tage)`} valueLabel="Gäste" bars={stats.byWeekday} />
-        <BarList caption={`Gäste pro Uhrzeit (${WINDOW_DAYS} Tage)`} valueLabel="Gäste" bars={stats.byHour} />
+        <BarList caption="Am häufigsten vorbestellt" valueLabel="Menge" bars={dishes} />
       </section>
-
-      <section className="card grid gap-6 lg:grid-cols-2">
-        {preorders.error ? (
-          <p className="text-sm text-muted">
-            Vorbestellungen erscheinen hier, sobald die Datenbank-Migration 20261012094815 eingespielt ist.
-          </p>
-        ) : (
-          <BarList caption="Am häufigsten vorbestellt" valueLabel="Menge" bars={dishes} />
-        )}
-        <div className="grid content-start gap-3">
-          <h2 className="text-sm font-semibold">Feier-Anfragen</h2>
-          {openInquiries === null ? (
-            <p className="text-sm text-muted">
-              Erscheint hier, sobald die Datenbank-Migration 20261012095610 eingespielt ist.
-            </p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Tile label="Offen" value={openInquiries} />
-              <Tile label="Gewonnen" value={wonInquiries ?? 0} />
-            </div>
-          )}
-        </div>
-      </section>
-
-      {stats.averageParty !== null && (
-        <p className="text-sm text-muted">
-          Durchschnittliche Gruppengröße: {stats.averageParty.toLocaleString("de-DE")} Personen pro Reservierung.
-        </p>
-      )}
     </div>
   );
 }

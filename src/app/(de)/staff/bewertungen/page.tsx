@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { saveReviewScores } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
-import { requireStaff } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { fmtDateDE } from "@/lib/dates";
 import { REVIEW_SCORES_KEY, resolveReviews } from "@/lib/reviews";
 
@@ -17,7 +17,7 @@ export default function ReviewsPage() {
 }
 
 async function Reviews() {
-  const { supabase } = await requireStaff();
+  const { supabase } = await requireAdmin();
   const { data } = await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle();
   const platforms = resolveReviews(data?.value ?? null);
 
