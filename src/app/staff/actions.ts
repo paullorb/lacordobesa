@@ -72,33 +72,51 @@ export async function setReservationStatus(formData: FormData) {
   const status = str(formData, "status") as Enums<"reservation_status">;
   if (!STATUSES.includes(status)) return;
 
-  // The card's boundary is a render-time value, so a page left open across a booking's start can
-  // still submit the control it was drawn with. Checked again here, because the wrong outcome is
-  // recorded for a real guest: a stale "Stornieren" cancelled a booking that had already begun,
-  // and a stale "Erledigt" would close one that has not.
-  //
-  // `started` is the card's own rule, not just the clock: only a *confirmed* booking swaps its
-  // actions at the start time. A booking still pending after its start keeps "Stornieren" and is
-  // offered no outcome, so rejecting that cancellation here would leave staff having to confirm an
-  // expired booking (and mail the guest an obsolete confirmation) before they could record how it
-  // went. The guard refuses exactly what the card refuses to show.
+  const updated = await moveReservationStatus(supabase, id, status);
+  if (status === "confirmed" && updated) await sendConfirmation(supabase, updated);
+  // Always, including every way the move can decline. Each of those means the control came from a
+  // view that is out of date, and the staff member is looking at exactly the card that has to be
+  // re-rendered; returning without it left the losing browser showing the stale card and its
+  // now-invalid buttons, so the click appeared to do nothing at all.
+  refresh();
+}
+
+/**
+ * The transition, or null when the booking has moved on since the card was drawn.
+ *
+ * The card's time boundary is a render-time value, so a page left open across a booking's start can
+ * still submit the control it was drawn with. Checked again here, because the wrong outcome is
+ * recorded for a real guest: a stale "Stornieren" cancelled a booking that had already begun, and a
+ * stale "Erledigt" would close one that has not.
+ *
+ * `started` is the card's own rule, not just the clock: only a *confirmed* booking swaps its actions
+ * at the start time. A booking still pending after its start keeps "Stornieren" and is offered no
+ * outcome, so refusing that cancellation would leave staff having to confirm an expired booking,
+ * and mail the guest an obsolete confirmation, before they could record how it went. This refuses
+ * exactly what the card refuses to show.
+ *
+ * The update then carries the status the check validated, so the two are one decision. Unconstrained,
+ * two staff acting at once could cancel a booking the other had just confirmed: the read saw
+ * `pending`, allowed it, and the write landed on a `confirmed` row that had already started, which is
+ * the outcome the check exists to forbid. Returning the row also saves a second read and gives
+ * sendConfirmation() the values it needs.
+ */
+async function moveReservationStatus(
+  supabase: StaffClient,
+  id: string,
+  status: Enums<"reservation_status">,
+): Promise<Tables<"reservations"> | null> {
   const { data: when } = await supabase
     .from("reservations")
     .select("date, start_time, status")
     .eq("id", id)
     .maybeSingle();
-  if (!when) return;
-  const started = when.status === "confirmed" && hasStarted(when.date, when.start_time);
-  if (status === "cancelled" && started) return;
-  if ((status === "completed" || status === "no_show") && !started) return;
+  if (!when) return null;
 
-  // Constrained by the status the guard above validated, so the check and the write are one
-  // decision. Unconstrained, two staff acting at once could cancel a booking the other had just
-  // confirmed: the read saw `pending`, allowed it, and the write then landed on a `confirmed` row
-  // that had already started, which is the outcome the guard exists to forbid. No row comes back
-  // when the status moved under us, and nothing further happens.
-  //
-  // Returning the row saves a second read, and gives sendConfirmation() the values it needs.
+  const started = when.status === "confirmed" && hasStarted(when.date, when.start_time);
+  if (status === "cancelled" && started) return null;
+  if ((status === "completed" || status === "no_show") && !started) return null;
+
   const { data: updated } = await supabase
     .from("reservations")
     .update({ status })
@@ -106,9 +124,7 @@ export async function setReservationStatus(formData: FormData) {
     .eq("status", when.status)
     .select("*")
     .maybeSingle();
-  if (!updated) return;
-  if (status === "confirmed") await sendConfirmation(supabase, updated);
-  refresh();
+  return updated;
 }
 
 type StaffClient = Awaited<ReturnType<typeof requireStaff>>["supabase"];
