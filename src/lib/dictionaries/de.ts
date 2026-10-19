@@ -291,6 +291,7 @@ export const de = {
       closed: (weekday: string) => `${weekday}s ist Ruhetag. Bitte wähle einen anderen Tag.`,
       holiday: "An diesem Tag haben wir geschlossen. Bitte wähle einen anderen Tag.",
       late: "Für diesen Tag ist es für eine Online-Reservierung zu kurzfristig.",
+      paused: "Online-Reservierungen sind gerade ausgesetzt.",
       error: "Die Verfügbarkeit konnte nicht geladen werden. Bitte versuch es noch einmal.",
       full: "An diesem Tag ist leider alles ausgebucht.",
       nothingLeft: "Für diesen Tag ist nichts mehr frei. ",

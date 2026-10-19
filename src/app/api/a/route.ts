@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
   const ownHost = h.get("host");
 
   const origin = h.get("origin");
-  const sameOrigin = !origin || (() => {
+  // A browser always sends Origin on a POST (sendBeacon included), so a request without one is not
+  // a visitor's and does not get to count.
+  const sameOrigin = !!origin && (() => {
     try {
       return new URL(origin).host === ownHost;
     } catch {

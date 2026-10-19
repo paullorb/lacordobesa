@@ -26,7 +26,9 @@ describe("the reservation calendar", () => {
         const label = await marked[0].textContent();
         const expected = Number(berlinToday().slice(8));
         assert.equal(Number(label), expected, `the calendar rings day ${label}, but today is the ${expected}.`);
-        assert.equal(await marked[0].getAttribute("data-hint"), "Heute");
+        // On the rest day the ring still sits on today, but the cell is disabled and says so.
+        const closed = await marked[0].isDisabled();
+        assert.equal(await marked[0].getAttribute("data-hint"), closed ? "Ruhetag" : "Heute");
       },
     });
   });
@@ -36,7 +38,11 @@ describe("the reservation calendar", () => {
       body: async ({ page }) => {
         const hints = await page.locator(".day:not(:disabled)").evaluateAll((els) => els.slice(0, 3).map((e) => e.getAttribute("data-hint")));
         assert.ok(hints.every((h) => h && h.length > 0), "every open day should have a hint");
-        assert.ok(hints.includes("Heute") || hints.includes("Morgen") || hints.includes("Übermorgen"), `no relative name among ${hints}`);
+        // Relative names ("Heute", "Morgen", "Diesen Freitag"), never a bare date, for the first open
+        // days. Which of them appear depends on the weekday: on the rest day today is not open, and
+        // in the evening today has no slot left, so none is required by name.
+        const relative = /^(Heute|Morgen|Übermorgen|Diesen |Nächsten )/;
+        assert.ok(hints.every((h) => relative.test(h)), `no relative name among ${hints}`);
         const day = page.locator(".day:not(:disabled)").first();
         await day.scrollIntoViewIfNeeded();
         await day.hover();
@@ -214,9 +220,13 @@ describe("language", () => {
             .locator('link[rel="alternate"][hreflang]')
             .evaluateAll((els) => Object.fromEntries(els.map((e) => [e.getAttribute("hreflang"), new URL(e.href).pathname])));
           const karte = path.endsWith("karte");
-          assert.equal(alternates["de-DE"], karte ? "/karte" : "/");
-          assert.equal(alternates["es-AR"], karte ? "/es/karte" : "/es");
-          assert.equal(alternates["en-GB"], karte ? "/en/karte" : "/en");
+          // Bare languages, not es-AR / en-GB: a region on hreflang would narrow the page to that
+          // country's readers. x-default is the German page for everyone else.
+          assert.equal(alternates.de, karte ? "/karte" : "/");
+          assert.equal(alternates.es, karte ? "/es/karte" : "/es");
+          assert.equal(alternates.en, karte ? "/en/karte" : "/en");
+          assert.equal(alternates["x-default"], karte ? "/karte" : "/");
+          assert.equal(Object.keys(alternates).length, 4);
           const canonical = new URL(await page.locator('link[rel="canonical"]').getAttribute("href")).pathname;
           assert.equal(canonical, self);
           const og = await page.locator('meta[property="og:locale"]').getAttribute("content");

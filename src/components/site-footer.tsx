@@ -97,7 +97,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
           {/* Impressum and Datenschutzerklärung stay German in every locale: the German text is the
               legally binding one, and a translated version would be a second thing to keep correct.
               `?von=` is how they hand the reader back to the language they arrived in, since the
-              pages themselves sit outside the locale route groups. */}
+              pages exist in German only. */}
           <Link href={legalHref("/impressum", locale)}>{t.imprint}</Link>
           <Link href={legalHref("/datenschutz", locale)}>{t.privacy}</Link>
         </span>

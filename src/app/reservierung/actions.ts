@@ -1,5 +1,6 @@
 "use server";
 
+import { getReservationSettings } from "@/lib/data";
 import { addDays, isISODate, isTime } from "@/lib/dates";
 import { formErrors, formLocale } from "@/lib/form-errors";
 import { publicFormClient } from "@/lib/public-forms";
@@ -12,7 +13,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 // ---------------------------------------------------------------- availability
 export type Slot = { time: string; seatsLeft: number };
-export type UnavailableReason = "closed" | "holiday" | "late" | "error";
+export type UnavailableReason = "closed" | "holiday" | "late" | "paused" | "error";
 export type Availability = { slots: Slot[]; reason: UnavailableReason | null };
 
 async function fetchSlots(date: string): Promise<Slot[] | null> {
@@ -22,12 +23,16 @@ async function fetchSlots(date: string): Promise<Slot[] | null> {
   return (data ?? []).map((s) => ({ time: s.slot.slice(0, 5), seatsLeft: s.seats_left }));
 }
 
-/** Bookable time slots for a day, or why there are none. Public: backed by the SECURITY DEFINER RPC. */
-export async function getAvailability(date: string): Promise<Availability> {
+/** Bookable time slots for a day, or why there are none. Public: backed by the SECURITY DEFINER RPC.
+ *  `ownToken` is the manage token of a booking being moved: its seats are given back (see withOwnSeats). */
+export async function getAvailability(date: string, ownToken?: string): Promise<Availability> {
   if (!isISODate(date)) return { slots: [], reason: "error" };
   const slots = await fetchSlots(date);
   if (!slots) return { slots: [], reason: "error" };
-  if (slots.length > 0) return { slots, reason: null };
+  if (slots.length > 0) return { slots: ownToken ? await withOwnSeats(slots, date, ownToken) : slots, reason: null };
+
+  // Switched off under Einstellungen: the home page hides the form, the manage page does not.
+  if (!(await getReservationSettings()).enabled) return { slots: [], reason: "paused" };
 
   const supabase = createPublicClient();
   const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -39,6 +44,23 @@ export async function getAvailability(date: string): Promise<Availability> {
   if (!hours || hours.is_closed) return { slots: [], reason: "closed" };
   // Open day, but every slot is already inside the lead time (e.g. asking in the evening for today).
   return { slots: [], reason: "late" };
+}
+
+/** A booking being moved still counts in its own day's availability, so a party of four on a busy
+ *  evening saw every nearby slot as full and the move button stayed disabled. move_reservation_by_token()
+ *  cancels the old row before it checks (20261014024537), so the RPC would have said yes; this makes
+ *  the client agree with it by handing the booking's own seats back on the slots it overlaps. */
+async function withOwnSeats(slots: Slot[], date: string, token: string): Promise<Slot[]> {
+  const own = await getReservationByToken(token);
+  if (!own || own.date !== date || (own.status !== "pending" && own.status !== "confirmed")) return slots;
+  const { duration_minutes: duration, capacity_seats: capacity } = await getReservationSettings();
+  const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  const start = minutes(own.time);
+  return slots.map((s) => {
+    const at = minutes(s.time);
+    const overlaps = at < start + duration && at + duration > start;
+    return overlaps ? { ...s, seatsLeft: Math.min(capacity, s.seatsLeft + own.partySize) } : s;
+  });
 }
 
 const SEARCH_DAYS = 10;

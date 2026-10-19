@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/server";
  * answer, and getClaims() checks the token's signature locally against the project's published
  * key (both projects sign with ES256) instead of asking the Auth server.
  *
- * The staff row says both things at once: there is one (on the allowlist, migration 0004) and its
+ * The staff row says both things at once: there is one (on the allowlist, migration 20261012074936) and its
  * role (admin or staff, migration 20261016030801). RLS lets a user read only their own row.
  */
 export const staffSession = cache(async () => {

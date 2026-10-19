@@ -59,9 +59,17 @@ export function localeHref(locale: Locale, path: string): string {
   return `${prefix}${path}`;
 }
 
-/** The same page in every locale, for `alternates.languages` and hreflang. */
+/** The same page in every locale, for `alternates.languages` and hreflang.
+ *
+ *  Keyed by bare language, not by INTL_LOCALE: `hreflang="es-AR"` tells a search engine to serve the
+ *  Spanish page to readers in Argentina only, and `en-GB` to the UK only, when the point of both is
+ *  readers here who do not read German. The region tags stay on `<html lang>`, where they pick the
+ *  wording. `x-default` names the German page for everyone else. */
 export function alternates(path: string): Record<string, string> {
-  return Object.fromEntries(LOCALES.map((locale) => [INTL_LOCALE[locale], localeHref(locale, path)]));
+  return {
+    ...Object.fromEntries(LOCALES.map((locale) => [locale, localeHref(locale, path)])),
+    "x-default": localeHref(DEFAULT_LOCALE, path),
+  };
 }
 
 /** The inverse of localeHref for a pathname: "/es/karte" -> "/karte", "/en" -> "/". */

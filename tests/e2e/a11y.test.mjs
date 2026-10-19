@@ -116,11 +116,14 @@ describe("every picture says what it is, or says it is decoration", () => {
             .evaluateAll((els) => els.filter((el) => el.getAttribute("alt") === null).map((el) => el.src.slice(-60)));
           assert.deepEqual(missing, []);
           // A drawn icon must be hidden from the reading order, or it is announced as "graphic".
-          // Next's development overlay draws its own; it is not part of the site.
+          // Next's development overlay draws its own; it is not part of the site. It lives in a
+          // shadow root (Playwright's locator pierces those, closest() does not), and the site has
+          // no shadow DOM of its own, so anything outside the document is the overlay.
           const loudIcons = await page
             .locator("svg")
             .evaluateAll((els) =>
               els
+                .filter((el) => el.getRootNode() === document)
                 .filter((el) => !el.closest("nextjs-portal, [data-nextjs-toast], [data-next-badge-root], #__next-devtools"))
                 .filter((el) => el.getAttribute("aria-hidden") !== "true" && !el.querySelector("title"))
                 .filter((el) => !el.getAttribute("role") || el.getAttribute("role") === "img")
