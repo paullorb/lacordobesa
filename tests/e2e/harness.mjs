@@ -427,6 +427,22 @@ export const VISUALLY_HIDDEN = `(() => {
 })()`;
 
 /**
+ * Presses "Anordnen" on /staff/karte and waits until the drag handles are there.
+ *
+ * The page is server-rendered, so a click that lands before React has hydrated is lost without a
+ * sound. Press again until the button has taken (it then reads "Fertig" and is aria-pressed).
+ */
+export async function startArranging(page) {
+  const button = page.getByRole("button", { name: "Anordnen", exact: true });
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (await page.locator('main button[aria-pressed="true"]').count()) return;
+    await button.click({ timeout: 2_000 }).catch(() => {});
+    await page.waitForTimeout(500);
+  }
+  throw new Error("Anordnen never switched on");
+}
+
+/**
  * Everything a finger has to hit, with the box it actually offers.
  *
  * A checkbox is reported as the `<label>` wrapped around it where there is one: the browser draws

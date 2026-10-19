@@ -13,6 +13,7 @@ import {
   haveStaffCredentials,
   serverIsUp,
   STAFF_PAGES,
+  startArranging,
   visit,
   visitOnPhone,
 } from "./harness.mjs";
@@ -143,14 +144,17 @@ describe("the menu editor", () => {
     });
   });
 
-  test("the sold-out button reads as an action, not as a status", { skip }, async () => {
+  test("the sold-out button sits on the collapsed row and reads as an action, not as a status", { skip }, async () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
-        const inSummary = await page.locator("main details summary form").count();
-        assert.equal(inSummary, 0, "the availability button belongs in the expanded card, not the collapsed row");
+        const rows = await page.locator("main details:has(> summary form)").count();
+        assert.ok(rows > 0, "no availability button on a collapsed dish row");
+        // One per dish, and none left in the expanded card.
+        const inCard = await page.locator('main details > div form:has(input[name="is_available"])').count();
+        assert.equal(inCard, 0, "the availability button is also in the expanded card");
         const labels = await page
-          .locator('main details form:has(input[name="is_available"]) button')
+          .locator('main summary form:has(input[name="is_available"]) button')
           .evaluateAll((els) => [...new Set(els.map((e) => e.textContent.trim()))]);
         assert.ok(labels.length > 0, "no availability buttons found");
         for (const label of labels) {
@@ -163,10 +167,52 @@ describe("the menu editor", () => {
     });
   });
 
+  test("the sold-out button is a thumb-sized target and does not open or close the card", { skip }, async () => {
+    await visitOnPhone("/staff/karte", {
+      staff: true,
+      body: async ({ page }) => {
+        // Hold every write: this suite does not mark real dishes sold out. The POST is never answered.
+        await page.route("**/*", (route) => (route.request().method() === "POST" ? undefined : route.continue()));
+        const button = page.locator('main summary form:has(input[name="is_available"]) button').first();
+        const box = await button.boundingBox();
+        assert.ok(box.height >= 40, `the sold-out button is ${Math.round(box.height)}px tall`);
+        const card = page.locator("main details:has(> summary form)").first();
+        // Wait for hydration, which is when React attaches the form action; a native submit before
+        // that would navigate. The held POST means either way nothing is saved.
+        await page.waitForTimeout(1500);
+        await button.click();
+        await page.waitForTimeout(300);
+        assert.equal(await card.evaluate((el) => el.open), false, "clicking the sold-out button opened the card");
+      },
+    });
+  });
+
+  test("the page starts calm: no drag handles and no Startseite drop zone until Anordnen", { skip }, async () => {
+    await visit("/staff/karte", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator("[data-handle]").count(), 0, "drag handles on the calm list");
+        assert.equal(await page.locator("#startseite-title").count(), 0, "the Startseite zone on the calm list");
+        const toggle = page.getByRole("button", { name: "Anordnen", exact: true });
+        assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+        await startArranging(page);
+        assert.ok((await page.locator("[data-handle]").count()) > 0, "no drag handles while arranging");
+        assert.equal(await page.locator("#startseite-title").count(), 1, "no Startseite zone while arranging");
+        const done = page.getByRole("button", { name: "Fertig", exact: true });
+        assert.equal(await done.getAttribute("aria-pressed"), "true");
+        await done.click();
+        await page.waitForTimeout(300);
+        assert.equal(await page.locator("[data-handle]").count(), 0, "handles stayed after Fertig");
+        assert.equal(await page.locator("#startseite-title").count(), 0, "the zone stayed after Fertig");
+      },
+    });
+  });
+
   test("every drag handle can be reached from the keyboard and says what it does", { skip }, async () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
+        await startArranging(page);
         const handles = page.locator("[data-handle]");
         const count = await handles.count();
         assert.ok(count > 0, "no drag handles");
@@ -174,6 +220,37 @@ describe("the menu editor", () => {
           els.filter((el) => !(el.getAttribute("aria-label") ?? "").trim()).map((el) => el.outerHTML.slice(0, 60)),
         );
         assert.deepEqual(unlabelled, []);
+      },
+    });
+  });
+
+  test("the category form is one field and a button, with the rest behind Mehr", { skip }, async () => {
+    await visit("/staff/karte", {
+      staff: true,
+      body: async ({ page }) => {
+        const header = page.locator('main details:has(> summary:has-text("Kategorie bearbeiten"))').first();
+        await header.locator("> summary").click();
+        const form = header.locator("form").first();
+        const visible = await form.locator("input:not([type=hidden])").evaluateAll((els) =>
+          els.filter((el) => el.checkVisibility()).map((el) => el.name),
+        );
+        assert.deepEqual(visible, ["label"]);
+        const more = form.locator("details").first();
+        assert.equal((await more.locator("> summary").textContent()).trim(), "Mehr");
+        assert.equal(await more.evaluate((el) => el.open), false, "Mehr starts open");
+        // Closed, yet still submitted with the form.
+        const submitted = await form.evaluate((f) => [...new FormData(f).keys()]);
+        assert.ok(submitted.includes("label_secondary") && submitted.includes("note"), `Mehr fields are not in the form: ${submitted}`);
+        assert.ok(!submitted.includes("show_prices"), "the price toggle is back");
+      },
+    });
+  });
+
+  test("the dish form has no translation fields", { skip }, async () => {
+    await visit("/staff/karte", {
+      staff: true,
+      body: async ({ page }) => {
+        assert.equal(await page.locator('[name="description_es"], [name="description_en"], [name="translations_field"]').count(), 0);
       },
     });
   });

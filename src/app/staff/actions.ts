@@ -337,17 +337,11 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     price_label: str(formData, "price_label") || null,
     // Not here: availability is the "Ausverkauft melden" button's job (toggleMenuItemAvailable), so a
     // save cannot undo it. A new dish takes the column default, which is available.
-    // Only sent once migration 20261012102608 added the columns. Empty means "no translation yet",
-    // which the public menu falls back from, so it is stored as null rather than "".
-    ...(formData.has("translations_field")
-      ? {
-          description_es: str(formData, "description_es") || null,
-          description_en: str(formData, "description_en") || null,
-        }
-      : {}),
-    // Likewise only sent once migration 20261012094815 added the columns. preorder_unit is no
-    // longer edited here: new dishes take the column default ("Stück"), existing ones keep theirs.
-    ...(formData.has("preorder_field") ? { is_preorderable: bool(formData, "is_preorderable") } : {}),
+    // Not here either: the Spanish and English descriptions have no field on this form any more.
+    // Leaving description_es / description_en out of the row means an update does not touch them,
+    // so whatever translation is stored stays stored.
+    // preorder_unit is not edited here: new dishes take the column default ("Stück"), existing ones keep theirs.
+    is_preorderable: bool(formData, "is_preorderable"),
   };
   if (!row.name) return { ok: false, error: "Name ist Pflicht." };
   const categoryId = str(formData, "category_id");
@@ -432,8 +426,7 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
     note: str(formData, "note") || null,
     // Set by dragging; only a new category sends it, to land at the end.
     ...(formData.has("sort_order") ? { sort_order: num(formData, "sort_order") } : {}),
-    // Only sent when the form rendered the toggle, i.e. when the show_prices column exists.
-    ...(formData.has("show_prices_field") ? { show_prices: bool(formData, "show_prices") } : {}),
+    // show_prices is not edited here any more, so a save leaves the column as it is.
   };
   const { error } = id
     ? await supabase.from("menu_categories").update(row).eq("id", id)

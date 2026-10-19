@@ -15,7 +15,7 @@
  */
 import { test, describe, after } from "node:test";
 import assert from "node:assert/strict";
-import { BASE, closeBrowser, haveStaffCredentials, serverIsUp, visit } from "./harness.mjs";
+import { BASE, closeBrowser, haveStaffCredentials, serverIsUp, startArranging, visit } from "./harness.mjs";
 
 const up = await serverIsUp();
 const skip = up ? false : `no site at ${BASE}, run npm run dev`;
@@ -160,6 +160,7 @@ describe("the staff menu arranger moves the rows it reorders", () => {
       motion: true,
       body: async ({ page }) => {
         await page.waitForTimeout(2500);
+        await startArranging(page);
         const handles = page.locator("[data-arrange-item] [data-handle]");
         if ((await handles.count()) < 2) return;
         await holdWrites(page);
@@ -192,6 +193,7 @@ describe("the staff menu arranger moves the rows it reorders", () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
+        await startArranging(page);
         const handles = page.locator("[data-arrange-item] [data-handle]");
         if ((await handles.count()) < 2) return;
         await holdWrites(page);
