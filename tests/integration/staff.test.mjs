@@ -177,17 +177,22 @@ describe("rearranging the menu", () => {
     if (before.length < 2) return;
 
     const reversed = [...before].reverse().map((i) => i.id);
-    const { error } = await client.rpc("arrange_menu_items", { p_category: categoryId, p_ids: reversed });
-    assert.equal(error, null, `reordering failed: ${error?.message}`);
-
-    const after = await itemOrder(categoryId);
-    assert.deepEqual(after.map((i) => i.id), reversed, "the stored order is not the one that was asked for");
-    const positions = after.map((i) => i.sort_order);
-    assert.equal(new Set(positions).size, positions.length, "two dishes share a position, so the order is not stable");
-
-    // Put it back, so the shop's menu is as it was.
     const restored = before.map((i) => i.id);
-    await client.rpc("arrange_menu_items", { p_category: categoryId, p_ids: restored });
+    // `finally`, not two statements at the end: this writes to the shop's real staging menu, and a
+    // failing assertion between the two used to leave it reversed for every later test and for
+    // anyone looking at the staff page. The failure this test exists to catch must not itself
+    // change staging.
+    try {
+      const { error } = await client.rpc("arrange_menu_items", { p_category: categoryId, p_ids: reversed });
+      assert.equal(error, null, `reordering failed: ${error?.message}`);
+
+      const after = await itemOrder(categoryId);
+      assert.deepEqual(after.map((i) => i.id), reversed, "the stored order is not the one that was asked for");
+      const positions = after.map((i) => i.sort_order);
+      assert.equal(new Set(positions).size, positions.length, "two dishes share a position, so the order is not stable");
+    } finally {
+      await client.rpc("arrange_menu_items", { p_category: categoryId, p_ids: restored });
+    }
     assert.deepEqual((await itemOrder(categoryId)).map((i) => i.id), restored, "the menu was left reordered");
   });
 
@@ -204,10 +209,13 @@ describe("rearranging the menu", () => {
     const before = await order();
     if (before.length < 2) return;
     const reversed = [...before].reverse().map((c) => c.id);
-    const { error } = await client.rpc("arrange_menu_categories", { p_ids: reversed });
-    assert.equal(error, null, `reordering failed: ${error?.message}`);
-    assert.deepEqual((await order()).map((c) => c.id), reversed);
-    await client.rpc("arrange_menu_categories", { p_ids: before.map((c) => c.id) });
+    try {
+      const { error } = await client.rpc("arrange_menu_categories", { p_ids: reversed });
+      assert.equal(error, null, `reordering failed: ${error?.message}`);
+      assert.deepEqual((await order()).map((c) => c.id), reversed);
+    } finally {
+      await client.rpc("arrange_menu_categories", { p_ids: before.map((c) => c.id) });
+    }
     assert.deepEqual((await order()).map((c) => c.id), before.map((c) => c.id), "the categories were left reordered");
   });
 });

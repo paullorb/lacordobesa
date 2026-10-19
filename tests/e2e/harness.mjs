@@ -17,7 +17,7 @@
  */
 import { chromium, firefox, webkit, devices } from "playwright";
 import { createHash } from "node:crypto";
-import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -199,12 +199,56 @@ let staffState = null;
  * failing with "staff sign-in failed" and an empty reason, which looks like a broken login form
  * rather than like a quota. Keeping the state on disk means one sign-in for the whole run.
  *
- * Keyed on the origin, so a run against staging and a run against another environment never share a
- * session, and short-lived: a stale session would fail as a redirect to /login, which is a confusing
- * way to find out. Ten minutes is longer than a full run and far inside the token's own lifetime.
+ * Keyed on the origin **and the staff identity**, so a run against staging and a run against
+ * another environment never share a session, and neither do two runs as different users: an
+ * origin-only key handed an admin's cookies to a run configured for a non-admin account, which
+ * makes admin-only coverage pass for the wrong reason. Short-lived too: a stale session would fail
+ * as a redirect to /login, which is a confusing way to find out. Ten minutes is longer than a full
+ * run and far inside the token's own lifetime.
  */
-const STAFF_STATE_FILE = path.join(os.tmpdir(), `lacordobesa-staff-${createHash("sha256").update(BASE).digest("hex").slice(0, 12)}.json`);
+const STAFF_STATE_KEY = createHash("sha256")
+  .update(`${BASE}\n${(process.env.STAFF_USER ?? "").trim().toLowerCase()}`)
+  .digest("hex")
+  .slice(0, 12);
+const STAFF_STATE_FILE = path.join(os.tmpdir(), `lacordobesa-staff-${STAFF_STATE_KEY}.json`);
+const STAFF_STATE_LOCK = `${STAFF_STATE_FILE}.lock`;
 const STAFF_STATE_TTL_MS = 10 * 60_000;
+
+/**
+ * One process signs in, the others wait for its file.
+ *
+ * `package.json` runs the suite with `--test-concurrency=2`, so on a cold cache two staff-bearing
+ * files can both miss and both start authenticating. Letting the last write win protects the
+ * result but not the request, and the rate limit is on the request: that is the flake this cache
+ * exists to remove. `mkdir` is atomic on every platform the suite runs on, so exactly one process
+ * gets the lock and the rest poll for the state it writes.
+ */
+const takeSignInLock = () => {
+  try {
+    mkdirSync(STAFF_STATE_LOCK);
+    return true;
+  } catch {
+    // A lock left behind by a killed process must not stall the next run for ever.
+    try {
+      if (Date.now() - statSync(STAFF_STATE_LOCK).mtimeMs > 2 * 60_000) {
+        rmSync(STAFF_STATE_LOCK, { force: true, recursive: true });
+        mkdirSync(STAFF_STATE_LOCK);
+        return true;
+      }
+    } catch {
+      /* someone else won the race to clear it */
+    }
+    return false;
+  }
+};
+
+const releaseSignInLock = () => {
+  try {
+    rmSync(STAFF_STATE_LOCK, { force: true, recursive: true });
+  } catch {
+    /* nothing to do about it */
+  }
+};
 
 const freshStateOnDisk = () => {
   try {
@@ -224,6 +268,28 @@ export async function staffStorageState() {
 
   staffState = freshStateOnDisk();
   if (staffState) return staffState;
+
+  // Whoever does not get the lock waits for the file rather than signing in as well.
+  if (!takeSignInLock()) {
+    for (let waited = 0; waited < 120_000; waited += 500) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      staffState = freshStateOnDisk();
+      if (staffState) return staffState;
+    }
+    // The holder died without writing. Fall through and sign in rather than fail the file.
+    releaseSignInLock();
+  }
+
+  try {
+    return await signInAndCache();
+  } finally {
+    releaseSignInLock();
+  }
+}
+
+/** The sign-in itself, run by the one process holding the lock. */
+async function signInAndCache() {
+  const { user, pass } = staffCredentials();
 
   // Auth is the one thing here with a rate limit, so a refusal is worth one patient retry rather
   // than failing the file that happened to go first.

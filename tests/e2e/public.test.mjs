@@ -110,12 +110,14 @@ describe("the reservation calendar", () => {
   test("picking a day moves the wizard on and offers times", { skip }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        // Deliberately not the *first* open day, which is today. Today runs out of bookable slots
-        // during the evening: the lead time is two hours and the last seating is an hour before
-        // close, so from about 19:30 Frankfurt time today offers nothing, correctly. Asserting that
-        // today offers times therefore fails on any run late in the day, which is what happened on
-        // main at 19:00. The next open day has a full day of slots whatever the hour.
-        const open = page.locator(".day:not(:disabled):not(.is-today)").first();
+        // The day the form itself preselected, not the first one that merely looks clickable.
+        // `CalendarDay` disables regular closed weekdays only, so `:not(:disabled)` also offers
+        // exceptional closures and days whose seats are all taken: clicking one of those never
+        // reaches the time step and the test times out on `.slots.times .slot`. The preselected
+        // day is the one `getFirstAvailableDay` already found availability for, which also keeps
+        // today out of it whenever today has run out, as it does from about 19:30 Frankfurt time.
+        const open = page.locator('.day[aria-pressed="true"]').first();
+        await open.waitFor({ timeout: 20_000 });
         await open.scrollIntoViewIfNeeded();
         await open.click();
         await page.locator(".slots.times .slot").first().waitFor({ timeout: 20_000 });

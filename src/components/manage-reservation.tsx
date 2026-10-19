@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { getAvailability, type Slot } from "@/app/reservierung/actions";
+import { getAvailability, type Slot, type UnavailableReason } from "@/app/reservierung/actions";
 import { cancelReservation, moveReservation, type GuestReservation, type ManageState } from "@/app/reservierung/actions";
 import { fmtDate } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
@@ -28,6 +28,11 @@ export function ManageReservation({
 
   const [date, setDate] = useState("");
   const [daySlots, setDaySlots] = useState<Slot[]>([]);
+  // Why a day offers nothing, not just that it does. `getAvailability` answers "paused" here even
+  // though the home page hides its form, because this page stays reachable while reservations are
+  // off; without the reason every date read as "nothing free for your party", which sends the
+  // guest hunting through dates that cannot work either.
+  const [reason, setReason] = useState<UnavailableReason | null>(null);
   const [time, setTime] = useState("");
   // The party the guest is moving to, which may differ from the one booked. Kept as typed, so the
   // field can be cleared mid-edit; the slot filter reads it as a number.
@@ -48,9 +53,11 @@ export function ManageReservation({
     setDate(value);
     setTime("");
     setDaySlots([]);
+    setReason(null);
     startLoading(async () => {
       const result = await getAvailability(value, token);
       setDaySlots(result.slots);
+      setReason(result.reason);
     });
   }
 
@@ -140,9 +147,11 @@ export function ManageReservation({
                       </div>
                     ) : (
                       <p className="manage-hint">
-                        {t.nothingFree(
-                          `${partySize} ${partySize === 1 ? getDictionary(locale).reservation.person : getDictionary(locale).reservation.people}`,
-                        )}
+                        {reason === "paused"
+                          ? getDictionary(locale).reservation.unavailable.paused
+                          : t.nothingFree(
+                              `${partySize} ${partySize === 1 ? getDictionary(locale).reservation.person : getDictionary(locale).reservation.people}`,
+                            )}
                       </p>
                     )}
                   </>
