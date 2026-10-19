@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { StaffLoading } from "@/components/staff/card-bits";
+import { Disclosure, StaffLoadError, StaffLoading } from "@/components/staff/card-bits";
 import { PreorderCard } from "@/components/staff/preorder-card";
 import { StaffPreorderForm } from "@/components/staff/staff-preorder-form";
 import type { PreorderWithLines } from "@/lib/preorders";
@@ -36,13 +36,9 @@ async function Preorders() {
       .order("sort_order"),
   ]);
 
-  // Migration 20261012094815 may not be deployed yet; PostgREST answers with 42P01 for a missing table.
   if (error) {
-    return (
-      <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Vorbestellungen sind erst verfügbar, sobald die Datenbank-Migration 20261012094815 eingespielt ist.
-      </p>
-    );
+    console.error("staff/vorbestellungen", error);
+    return <StaffLoadError />;
   }
 
   const orders = (data ?? []) as PreorderWithLines[];
@@ -58,10 +54,12 @@ async function Preorders() {
     <div className="grid gap-6">
       <div>
         <h1 className="font-serif text-3xl">Vorbestellungen</h1>
-        <p className="text-sm text-muted">
-          Alles ab {fmtDateDE(today)}. „Bestätigen“ sagt dem Gast zu, „Bereit“ heißt abholbereit, „Abgeholt“ schließt
-          die Bestellung ab. Bezahlt wird bei der Abholung.
-        </p>
+        <p className="text-sm text-muted">Alle Abholungen ab {fmtDateDE(today)}, bezahlt wird bei der Abholung.</p>
+        <Disclosure summary="So funktioniert's">
+          <p className="text-sm text-muted">
+            „Bestätigen“ sagt dem Gast zu, „Bereit“ heißt abholbereit, „Abgeholt“ schließt die Bestellung ab.
+          </p>
+        </Disclosure>
       </div>
 
       <details className="card">

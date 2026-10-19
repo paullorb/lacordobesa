@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowIcon } from "@/components/icons";
-import { StaffLoading } from "@/components/staff/card-bits";
+import { StaffLoadError, StaffLoading } from "@/components/staff/card-bits";
 import { MonthCalendar } from "@/components/staff/month-calendar";
 import { StaffReservationForm } from "@/components/staff/staff-reservation-form";
 import { ReservationCard } from "@/components/staff/reservation-card";
@@ -32,7 +32,11 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
 
   let q = supabase.from("reservations").select("*").eq("date", date).order("start_time");
   if (!showCancelled) q = q.neq("status", "cancelled");
-  const [{ data: rows }, cal, settings] = await Promise.all([q, loadCalendarMonth(supabase, month), getReservationSettings()]);
+  const [{ data: rows, error }, cal, settings] = await Promise.all([q, loadCalendarMonth(supabase, month), getReservationSettings()]);
+  if (error) {
+    console.error("staff/reservierungen", error);
+    return <StaffLoadError />;
+  }
   const dayHref = (d: string) => `/staff/reservierungen?date=${d}${showCancelled ? "&alle=1" : ""}`;
 
   return (

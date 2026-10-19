@@ -1,8 +1,9 @@
 import { resendConfirmation, setReservationStatus, saveStaffNotes } from "@/app/staff/actions";
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
-import { StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
+import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
+import { CopyButton } from "@/components/staff/copy-button";
 import { fmtTime } from "@/lib/data";
-import { fmtDate, fmtDateDE } from "@/lib/dates";
+import { fmtDate, fmtDateDE, hasStarted } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { manageUrl } from "@/lib/site";
 import { RESERVATION_STATUS_LABEL } from "@/lib/statuses";
@@ -11,26 +12,26 @@ import type { Tables } from "@/lib/database.types";
 export function ReservationCard({ r, showDate = false }: { r: Tables<"reservations">; showDate?: boolean }) {
   // The guest's own language, for the link and the WhatsApp text they get back.
   const locale = isLocale(r.locale) ? r.locale : DEFAULT_LOCALE;
-  // manage_token arrives with migration 20261012093558; before that there is no guest link to share.
-  const guestLink = r.manage_token ? manageUrl(r.manage_token, locale) : null;
+  const guestLink = manageUrl(r.manage_token, locale);
   const confirmText = (
     locale === "en"
       ? [
           `¡Hola ${r.name}! Your reservation at La Cordobesa on ${fmtDate(r.date, "en", { weekday: undefined })} at ${fmtTime(r.start_time)} for ${r.party_size} ${r.party_size === 1 ? "person" : "people"} is confirmed. ¡Hasta pronto!`,
-          guestLink && `If you need to cancel or change the time: ${guestLink}`,
+          `If you need to cancel or change the time: ${guestLink}`,
         ]
       : locale === "es"
       ? [
           `¡Hola ${r.name}! Tu reserva en La Cordobesa el ${fmtDate(r.date, "es", { weekday: undefined })} a las ${fmtTime(r.start_time)} para ${r.party_size} ${r.party_size === 1 ? "persona" : "personas"} está confirmada. ¡Hasta pronto!`,
-          guestLink && `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
+          `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
         ]
       : [
           `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
-          guestLink && `Falls du absagen oder verschieben musst: ${guestLink}`,
+          `Falls du absagen oder verschieben musst: ${guestLink}`,
         ]
-  )
-    .filter(Boolean)
-    .join("\n\n");
+  ).join("\n\n");
+  const isLive = r.status === "pending" || r.status === "confirmed";
+  // A confirmed booking is cancelled until its start and marked how it went from then on.
+  const started = r.status === "confirmed" && hasStarted(r.date, r.start_time);
 
   return (
     <article className="card grid gap-3">
@@ -75,33 +76,41 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           </div>
           {r.notes && <p className="mt-2 rounded bg-cream px-3 py-2 text-sm">„{r.notes}“</p>}
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <WhatsAppButton phone={r.phone} text={confirmText} />
+        <div className="flex flex-wrap items-start gap-1.5">
+          {isLive && !started && <WhatsAppButton phone={r.phone} text={confirmText} />}
           {r.status === "pending" && (
             <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Bestätigen" primary />
           )}
-          {r.status === "confirmed" && (
-            <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" />
+          {started && (
+            <>
+              <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" primary />
+              <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
+            </>
           )}
-          {r.status === "confirmed" && (
-            <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
-          )}
-          {(r.status === "pending" || r.status === "confirmed") && (
+          {isLive && !started && (
             <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
           )}
-          {(r.status === "cancelled" || r.status === "no_show" || r.status === "completed") && (
-            <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Wieder öffnen" />
+          {!isLive && (
+            <MoreActions>
+              <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Wieder öffnen" />
+            </MoreActions>
           )}
         </div>
       </div>
-      {r.status === "confirmed" && <MailState r={r} />}
-      {guestLink && (r.status === "pending" || r.status === "confirmed") && (
-        <p className="text-xs text-muted">
-          Gäste-Link zum Absagen/Verschieben:{" "}
-          <a href={guestLink} className="break-all underline hover:text-blue-dark" target="_blank" rel="noreferrer">
-            {guestLink}
+      {r.status === "confirmed" && !started && <MailState r={r} />}
+      {isLive && !started && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+          <span className="font-bold">Gäste-Link</span>
+          <CopyButton text={guestLink} label="Link kopieren" />
+          <a
+            href={guestLink}
+            className="inline-flex min-h-10 items-center underline hover:text-blue-dark"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Öffnen
           </a>
-        </p>
+        </div>
       )}
       <StaffNotesForm
         action={saveStaffNotes}
@@ -118,8 +127,6 @@ function MailState({ r }: { r: Tables<"reservations"> }) {
   if (!r.email) {
     return <p className="text-xs text-muted">Keine E-Mail hinterlegt, bitte per Telefon oder WhatsApp bestätigen.</p>;
   }
-  // confirmation_sent_at arrives with migration 20261012094449; without it there is nothing to report.
-  if (!("confirmation_sent_at" in r)) return null;
   if (r.confirmation_sent_at) {
     return (
       <p className="text-xs text-emerald-700">
