@@ -7,7 +7,7 @@ import { requireStaff } from "@/lib/auth";
 import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
 import { effectiveReservationSettings } from "@/lib/settings-merge";
 
-export const metadata = { title: "Einstellungen" };
+export const metadata = { title: "Ajustes" };
 
 export default function SettingsPage() {
   return (
@@ -27,49 +27,49 @@ async function Settings() {
 
   return (
     <div className="grid gap-6">
-      <h1 className="font-serif text-3xl">Einstellungen</h1>
+      <h1 className="font-serif text-3xl">Ajustes</h1>
       <ActionForm action={saveSettings} className="grid gap-6">
         <section className="card grid gap-3">
-          <h2 className="font-semibold">Website</h2>
+          <h2 className="font-semibold">Sitio web</h2>
           <div>
-            <label htmlFor="announcement">Hinweiszeile ganz oben (leer = ausblenden)</label>
+            <label htmlFor="announcement">Aviso en la parte superior (vacío para ocultar)</label>
             <input id="announcement" name="announcement" defaultValue={announcement} />
           </div>
         </section>
 
         <section className="card grid gap-4">
-          <h2 className="font-semibold">Reservierungen</h2>
+          <h2 className="font-semibold">Reservas</h2>
           <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
-            <input type="checkbox" name="enabled" defaultChecked={r.enabled} /> Online-Reservierungen annehmen
+            <input type="checkbox" name="enabled" defaultChecked={r.enabled} /> Aceptar reservas en línea
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field name="capacity_seats" label="Sitzplätze gesamt" value={r.capacity_seats} />
+            <Field name="capacity_seats" label="Capacidad total" value={r.capacity_seats} />
             <Field
               name="max_party_size"
-              label="Max. Personen online"
+              label="Máximo de personas por reserva en línea"
               value={r.max_party_size}
-              hint="Größere Gruppen werden ans Telefon verwiesen."
+              hint="Los grupos más grandes deben reservar por teléfono."
             />
           </div>
         </section>
 
         <section className="card grid gap-3">
-          <h2 className="font-semibold">Vorbestellungen</h2>
+          <h2 className="font-semibold">Pedidos anticipados</h2>
           <label className="!mb-0 flex items-center gap-2 text-sm normal-case tracking-normal">
-            <input type="checkbox" name="preorders_enabled" defaultChecked={pre.enabled} /> Vorbestellungen über die
-            Website annehmen
+            <input type="checkbox" name="preorders_enabled" defaultChecked={pre.enabled} /> Aceptar pedidos anticipados
+            desde el sitio web
           </label>
-          <p className="text-xs text-muted">Welche Gerichte vorbestellbar sind, stellst du unter „Karte“ pro Gericht ein.</p>
+          <p className="text-xs text-muted">Elegí qué platos se pueden pedir por adelantado en «Menú».</p>
         </section>
 
         <div>
-          <SubmitButton>Speichern</SubmitButton>
+          <SubmitButton>Guardar</SubmitButton>
         </div>
       </ActionForm>
       {isAdmin && (
         <p className="text-sm">
           <Link href="/staff/team" className="underline underline-offset-2">
-            Team-Zugänge verwalten
+            Administrar accesos del equipo
           </Link>
         </p>
       )}

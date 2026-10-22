@@ -9,11 +9,11 @@ export function LoginForm({ next }: { next: string }) {
     <form action={action} className="grid gap-3">
       <input type="hidden" name="next" value={next} />
       <div>
-        <label htmlFor="username">Name</label>
+        <label htmlFor="username">Nombre de usuario</label>
         <input id="username" name="username" autoComplete="username" autoCapitalize="none" spellCheck={false} required />
       </div>
       <div>
-        <label htmlFor="password">Passwort</label>
+        <label htmlFor="password">Contraseña</label>
         <input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
       {state && !state.ok && (
@@ -22,7 +22,7 @@ export function LoginForm({ next }: { next: string }) {
         </p>
       )}
       <button className="btn-primary mt-2" disabled={pending}>
-        {pending ? "Anmelden …" : "Anmelden"}
+        {pending ? "Ingresando …" : "Ingresar"}
       </button>
     </form>
   );

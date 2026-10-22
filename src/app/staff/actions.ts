@@ -47,11 +47,11 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
     email: staffEmail(str(formData, "username")),
     password: String(formData.get("password") ?? ""),
   });
-  if (error) return { ok: false, error: "Name oder Passwort stimmen nicht." };
+  if (error) return { ok: false, error: "El nombre de usuario o la contraseña no coinciden." };
   const { data: isStaff } = await supabase.rpc("is_staff");
   if (!isStaff) {
     await supabase.auth.signOut();
-    return { ok: false, error: "Dieser Zugang ist nicht für das Team freigeschaltet." };
+    return { ok: false, error: "Esta cuenta no tiene acceso al equipo." };
   }
   const next = str(formData, "next");
   redirect(next.startsWith("/staff") ? next : "/staff");
@@ -169,9 +169,9 @@ async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">
 export async function resendConfirmation(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const { data: r } = await supabase.from("reservations").select("*").eq("id", str(formData, "id")).maybeSingle();
-  if (!r) return { ok: false, error: "Diese Reservierung gibt es nicht mehr." };
-  if (!r.email) return { ok: false, error: "Für diese Reservierung ist keine E-Mail-Adresse hinterlegt." };
-  if (!mailConfigured()) return { ok: false, error: "E-Mail-Versand ist nicht konfiguriert (RESEND_API_KEY und MAIL_FROM fehlen)." };
+  if (!r) return { ok: false, error: "Esta reserva ya no existe." };
+  if (!r.email) return { ok: false, error: "Esta reserva no tiene un correo electrónico registrado." };
+  if (!mailConfigured()) return { ok: false, error: "El envío de correos no está configurado (faltan RESEND_API_KEY y MAIL_FROM)." };
 
   const result = await sendMail({
     to: r.email,
@@ -185,7 +185,7 @@ export async function resendConfirmation(_prev: ActionResult, formData: FormData
     }),
   });
   if (!result.ok) {
-    return { ok: false, error: `Die E-Mail konnte nicht verschickt werden. ${result.detail ?? ""}`.trim() };
+    return { ok: false, error: `No se pudo enviar el correo. ${result.detail ?? ""}`.trim() };
   }
   await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
   refresh();
@@ -218,7 +218,7 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   const party_size = num(formData, "party_size");
 
   if (!name || !date || !time || party_size < 1) {
-    return { ok: false, error: "Name, Datum, Uhrzeit und Personen sind Pflicht." };
+    return { ok: false, error: "Nombre, fecha, hora y cantidad de personas son obligatorios." };
   }
   // The same caps the table and the public RPC enforce. Without them an over-long note comes back
   // as a raw Postgres constraint error, which is not something to hand a staff member mid-call.
@@ -228,10 +228,10 @@ export async function createReservationManually(_prev: ActionResult, formData: F
     email.length > FIELD_LIMITS.email ||
     notes.length > FIELD_LIMITS.notes
   ) {
-    return { ok: false, error: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig." };
+    return { ok: false, error: "Un campo es demasiado largo. Acortalo un poco." };
   }
   if (!isISODate(date) || !isTime(time)) {
-    return { ok: false, error: "Datum oder Uhrzeit sind ungültig." };
+    return { ok: false, error: "La fecha o la hora no son válidas." };
   }
 
   const { error } = await supabase.from("reservations").insert({
@@ -247,7 +247,7 @@ export async function createReservationManually(_prev: ActionResult, formData: F
   });
   if (error) {
     console.error("createReservationManually", error);
-    return { ok: false, error: "Die Reservierung konnte nicht gespeichert werden. Bitte versuch es noch einmal." };
+    return { ok: false, error: "No se pudo guardar la reserva. Intentá de nuevo." };
   }
   refresh();
   return { ok: true };
@@ -318,14 +318,14 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
     if (Number.isInteger(n) && n > 0) quantities.set(key.slice(4), n);
   }
 
-  if (!name || !date || !time) return { ok: false, error: "Name, Abholtag und Uhrzeit sind Pflicht." };
-  if (quantities.size === 0) return { ok: false, error: "Bitte mindestens ein Gericht mit Menge eintragen." };
+  if (!name || !date || !time) return { ok: false, error: "Nombre, fecha y hora de retiro son obligatorios." };
+  if (quantities.size === 0) return { ok: false, error: "Agregá al menos un plato con su cantidad." };
   if (name.length > FIELD_LIMITS.name || phone.length > FIELD_LIMITS.phone || notes.length > FIELD_LIMITS.notes) {
-    return { ok: false, error: "Eine Eingabe ist zu lang. Bitte kürze sie ein wenig." };
+    return { ok: false, error: "Un campo es demasiado largo. Acortalo un poco." };
   }
-  if (!isISODate(date) || !isTime(time)) return { ok: false, error: "Datum oder Uhrzeit sind ungültig." };
+  if (!isISODate(date) || !isTime(time)) return { ok: false, error: "La fecha o la hora no son válidas." };
   if ([...quantities.values()].some((n) => n > MAX_PREORDER_QUANTITY)) {
-    return { ok: false, error: `Höchstens ${MAX_PREORDER_QUANTITY} pro Gericht.` };
+    return { ok: false, error: `Máximo ${MAX_PREORDER_QUANTITY} por plato.` };
   }
 
   // One database function, one transaction: the order and all its lines commit together or not at all.
@@ -343,8 +343,8 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
     return {
       ok: false,
       error: error.message.includes("item_unavailable")
-        ? "Ein Gericht gibt es nicht mehr."
-        : "Die Vorbestellung konnte nicht gespeichert werden. Bitte versuch es noch einmal.",
+        ? "Uno de los platos ya no está disponible."
+        : "No se pudo guardar el pedido. Intentá de nuevo.",
     };
   }
   refresh();
@@ -390,9 +390,9 @@ export async function saveMenuItem(_prev: ActionResult, formData: FormData): Pro
     // preorder_unit is not edited here: new dishes take the column default ("Stück"), existing ones keep theirs.
     is_preorderable: bool(formData, "is_preorderable"),
   };
-  if (!row.name) return { ok: false, error: "Name ist Pflicht." };
+  if (!row.name) return { ok: false, error: "El nombre es obligatorio." };
   const categoryId = str(formData, "category_id");
-  if (!id && !categoryId) return { ok: false, error: "Name und Kategorie sind Pflicht." };
+  if (!id && !categoryId) return { ok: false, error: "El nombre y la categoría son obligatorios." };
   const { error } = id
     ? await supabase.from("menu_items").update(row).eq("id", id)
     : await supabase.from("menu_items").insert({ ...row, category_id: categoryId, sort_order: num(formData, "sort_order") });
@@ -413,7 +413,7 @@ const isIdList = (ids: unknown): ids is string[] =>
  *  rather than all of them. */
 export async function arrangeMenuItems(categoryId: string, ids: string[]): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  if (typeof categoryId !== "string" || !isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
+  if (typeof categoryId !== "string" || !isIdList(ids)) return { ok: false, error: "El orden no es válido." };
   // One statement, in the database (migration 20261015061507). This used to read the current order
   // and then fire an update per moved row through Promise.all: one of them failing, or two people
   // dragging at once, committed part of the new order and left the rest, and returning an error
@@ -427,7 +427,7 @@ export async function arrangeMenuItems(categoryId: string, ids: string[]): Promi
 /** The order of the categories, top to bottom. */
 export async function arrangeCategories(ids: string[]): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  if (!isIdList(ids)) return { ok: false, error: "Ungültige Reihenfolge." };
+  if (!isIdList(ids)) return { ok: false, error: "El orden no es válido." };
   // Atomic, for the same reason as arrangeMenuItems above.
   const { error } = await supabase.rpc("arrange_menu_categories", { p_ids: ids });
   updateTag(TAG.content);
@@ -438,7 +438,7 @@ export async function arrangeCategories(ids: string[]): Promise<ActionResult> {
 /** Puts a dish on the home page, or takes it off. */
 export async function setMenuItemFeatured(id: string, featured: boolean): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  if (typeof id !== "string" || typeof featured !== "boolean") return { ok: false, error: "Ungültige Anfrage." };
+  if (typeof id !== "string" || typeof featured !== "boolean") return { ok: false, error: "La solicitud no es válida." };
   const { error } = await supabase.from("menu_items").update({ is_featured: featured }).eq("id", id);
   updateTag(TAG.content);
   refresh();
@@ -466,7 +466,7 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
   const label = str(formData, "label");
-  if (!label) return { ok: false, error: "Name ist Pflicht." };
+  if (!label) return { ok: false, error: "El nombre es obligatorio." };
   const row = {
     label,
     label_secondary: str(formData, "label_secondary") || null,
@@ -487,7 +487,7 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/(^-|-$)/g, "") || `kategorie-${Date.now()}`,
       });
-  if (error) return { ok: false, error: error.code === "23505" ? "Eine Kategorie mit diesem Namen gibt es schon." : error.message };
+  if (error) return { ok: false, error: error.code === "23505" ? "Ya existe una categoría con ese nombre." : error.message };
   updateTag(TAG.content);
   refresh();
   return { ok: true };
@@ -512,7 +512,7 @@ export async function saveSpecial(_prev: ActionResult, formData: FormData): Prom
     ends_on: str(formData, "ends_on") || null,
     is_active: bool(formData, "is_active"),
   };
-  if (!row.title || !row.starts_on) return { ok: false, error: "Titel und Startdatum sind Pflicht." };
+  if (!row.title || !row.starts_on) return { ok: false, error: "El título y la fecha de inicio son obligatorios." };
   const { error } = id ? await supabase.from("specials").update(row).eq("id", id) : await supabase.from("specials").insert(row);
   if (error) return { ok: false, error: error.message };
   updateTag(TAG.content);
@@ -539,7 +539,7 @@ export async function confirmBroadcastOptin(formData: FormData) {
     .eq("id", str(formData, "id"))
     .is("confirmed_at", null)
     .is("unsubscribed_at", null);
-  if (error) throw new Error(`Die Anmeldung konnte nicht bestätigt werden: ${error.message}`);
+  if (error) throw new Error(`No se pudo confirmar la inscripción: ${error.message}`);
   refresh();
 }
 
@@ -557,7 +557,7 @@ export async function saveOpeningHours(_prev: ActionResult, formData: FormData):
   });
   for (const r of rows) {
     if (!r.is_closed && (!r.opens || !r.closes || r.opens >= r.closes)) {
-      return { ok: false, error: "Bitte für jeden geöffneten Tag gültige Zeiten eintragen (Öffnen vor Schließen)." };
+      return { ok: false, error: "Ingresá horarios válidos para cada día abierto (la apertura debe ser antes del cierre)." };
     }
   }
   const { error } = await supabase.from("opening_hours").upsert(rows);
@@ -576,11 +576,11 @@ export async function addClosure(_prev: ActionResult, formData: FormData): Promi
   // isISODate(), not a shape regex: "2026-02-31" matches /^\d{4}-\d{2}-\d{2}$/, so the first row
   // would carry that literal date, Postgres would reject it, and the staff member would get
   // "date/time field value out of range" instead of being told the date is wrong.
-  if (!isISODate(from) || !isISODate(to)) return { ok: false, error: "Bitte gib ein gültiges Datum an." };
-  if (to < from) return { ok: false, error: "„Bis“ liegt vor „Von“." };
+  if (!isISODate(from) || !isISODate(to)) return { ok: false, error: "Ingresá una fecha válida." };
+  if (to < from) return { ok: false, error: "La fecha final es anterior a la inicial." };
   const rows: { date: string; reason: string | null }[] = [];
   for (let d = from; d <= to && rows.length < 120; d = addDays(d, 1)) rows.push({ date: d, reason });
-  if (rows.length >= 120) return { ok: false, error: "Bitte höchstens 120 Tage am Stück eintragen." };
+  if (rows.length >= 120) return { ok: false, error: "Ingresá un máximo de 120 días seguidos." };
   // Upsert so re-entering an overlapping range just updates the reason.
   const { error } = await supabase.from("closures").upsert(rows, { onConflict: "date" });
   if (error) return { ok: false, error: error.message };
@@ -670,12 +670,12 @@ export async function saveReviewScores(_prev: ActionResult, formData: FormData):
     const rating = parseRatingValue(value);
     const scaleNum = parseRatingValue(scale);
     if (rating === null || scaleNum === null || scaleNum <= 0 || rating < 0 || rating > scaleNum) {
-      return { ok: false, error: `${p.name}: Bitte eine Bewertung zwischen 0 und ${scale} eintragen, z. B. 4,6.` };
+      return { ok: false, error: `${p.name}: Ingresá una calificación entre 0 y ${scale}, por ejemplo 4,6.` };
     }
     const countText = str(formData, `${p.id}_count`);
     const count = countText ? Number(countText) : null;
     if (count !== null && (!Number.isInteger(count) || count < 1 || count > 1_000_000)) {
-      return { ok: false, error: `${p.name}: Die Anzahl der Bewertungen muss eine ganze Zahl sein (oder leer).` };
+      return { ok: false, error: `${p.name}: La cantidad de reseñas debe ser un número entero (o quedar vacía).` };
     }
     const old = before[p.id];
     const unchanged = old && old.value === value && old.scale === scale && old.count === count;
@@ -702,18 +702,18 @@ export async function uploadGalleryImage(_prev: ActionResult, formData: FormData
   const { supabase } = await requireStaff();
   const file = formData.get("file");
   const category = str(formData, "category");
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Bitte wähle ein Bild aus." };
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Elegí una imagen." };
   // The declared type picks the extension and the stored content type, so it is checked against the
   // bytes rather than trusted: a browser (or anything else) can label a file however it likes.
   if (!GALLERY_MIME_TYPES.includes(file.type) || (await sniffImageType(file)) !== file.type) {
-    return { ok: false, error: "Nur JPG, PNG oder WebP sind erlaubt." };
+    return { ok: false, error: "Solo se permiten JPG, PNG o WebP." };
   }
-  if (file.size > GALLERY_MAX_BYTES) return { ok: false, error: "Das Bild ist größer als 5 MB." };
-  if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
+  if (file.size > GALLERY_MAX_BYTES) return { ok: false, error: "La imagen supera los 5 MB." };
+  if (!isGalleryCategory(category)) return { ok: false, error: "Elegí una categoría." };
 
   const path = `${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
   const { error: uploadError } = await supabase.storage.from("gallery").upload(path, file, { contentType: file.type });
-  if (uploadError) return { ok: false, error: "Das Bild konnte nicht hochgeladen werden." };
+  if (uploadError) return { ok: false, error: "No se pudo subir la imagen." };
 
   const { error } = await supabase.from("gallery_items").insert({
     image_url: supabase.storage.from("gallery").getPublicUrl(path).data.publicUrl,
@@ -735,7 +735,7 @@ export async function uploadGalleryImage(_prev: ActionResult, formData: FormData
 export async function saveGalleryItem(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const category = str(formData, "category");
-  if (!isGalleryCategory(category)) return { ok: false, error: "Bitte wähle eine Kategorie." };
+  if (!isGalleryCategory(category)) return { ok: false, error: "Elegí una categoría." };
   const { error } = await supabase
     .from("gallery_items")
     .update({
@@ -790,9 +790,9 @@ export async function createStaffAccount(_prev: ActionResult, formData: FormData
   const username = str(formData, "username").toLowerCase();
   const password = String(formData.get("password") ?? "");
   if (!USERNAME.test(username)) {
-    return { ok: false, error: "Name: 2 bis 32 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt, Strich." };
+    return { ok: false, error: "Nombre: de 2 a 32 caracteres; solo minúsculas, números, punto y guion." };
   }
-  if (password.length < MIN_PASSWORD) return { ok: false, error: `Passwort: mindestens ${MIN_PASSWORD} Zeichen.` };
+  if (password.length < MIN_PASSWORD) return { ok: false, error: `Contraseña: mínimo ${MIN_PASSWORD} caracteres.` };
 
   const admin = createPrivilegedClient();
   const { data, error } = await admin.auth.admin.createUser({
@@ -802,12 +802,12 @@ export async function createStaffAccount(_prev: ActionResult, formData: FormData
   });
   if (error || !data.user) {
     const taken = error?.message.toLowerCase().includes("already");
-    return { ok: false, error: taken ? "Diesen Namen gibt es schon." : "Der Zugang konnte nicht angelegt werden." };
+    return { ok: false, error: taken ? "Ese nombre de usuario ya existe." : "No se pudo crear la cuenta." };
   }
   const { error: staffError } = await admin.from("staff").insert({ user_id: data.user.id, role: "staff" });
   if (staffError) {
     await admin.auth.admin.deleteUser(data.user.id);
-    return { ok: false, error: "Der Zugang konnte nicht angelegt werden." };
+    return { ok: false, error: "No se pudo crear la cuenta." };
   }
   refresh();
   return { ok: true };
@@ -817,15 +817,15 @@ export async function resetStaffPassword(_prev: ActionResult, formData: FormData
   const { user } = await requireAdmin();
   const id = str(formData, "user_id");
   const password = String(formData.get("password") ?? "");
-  if (password.length < MIN_PASSWORD) return { ok: false, error: `Passwort: mindestens ${MIN_PASSWORD} Zeichen.` };
+  if (password.length < MIN_PASSWORD) return { ok: false, error: `Contraseña: mínimo ${MIN_PASSWORD} caracteres.` };
   const admin = createPrivilegedClient();
   // Only team accounts, never some other auth user that happens to share the project.
   const { data: member } = await admin.from("staff").select("role").eq("user_id", id).maybeSingle();
-  if (!member) return { ok: false, error: "Diesen Zugang gibt es nicht." };
+  if (!member) return { ok: false, error: "Esta cuenta no existe." };
   // Staff accounts and one's own, never another admin's: the same line deleteStaffAccount draws.
-  if (member.role !== "staff" && id !== user.id) return { ok: false, error: "Das Passwort eines anderen Admin-Zugangs wird hier nicht geändert." };
+  if (member.role !== "staff" && id !== user.id) return { ok: false, error: "No se puede cambiar la contraseña de otro administrador acá." };
   const { error } = await admin.auth.admin.updateUserById(id, { password });
-  if (error) return { ok: false, error: "Das Passwort konnte nicht geändert werden." };
+  if (error) return { ok: false, error: "No se pudo cambiar la contraseña." };
   return { ok: true };
 }
 

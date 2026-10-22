@@ -4,9 +4,9 @@ import { PreorderCard } from "@/components/staff/preorder-card";
 import { StaffPreorderForm } from "@/components/staff/staff-preorder-form";
 import type { PreorderWithLines } from "@/lib/preorders";
 import { requireStaff } from "@/lib/auth";
-import { fmtDateDE, todayISO } from "@/lib/dates";
+import { fmtStaffDate, todayISO } from "@/lib/dates";
 
-export const metadata = { title: "Vorbestellungen" };
+export const metadata = { title: "Pedidos anticipados" };
 
 export default function PreordersPage() {
   return (
@@ -45,7 +45,7 @@ async function Preorders() {
   // In menu order: category first, then the dish's place inside it.
   const items = (dishes ?? [])
     .toSorted((a, b) => (a.menu_categories?.sort_order ?? 0) - (b.menu_categories?.sort_order ?? 0))
-    .map((d) => ({ id: d.id, name: d.name, step: d.preorder_step, unit: d.preorder_unit, category: d.menu_categories?.label ?? "Weitere", slug: d.menu_categories?.slug ?? "" }));
+    .map((d) => ({ id: d.id, name: d.name, step: d.preorder_step, unit: d.preorder_unit, category: d.menu_categories?.label ?? "Otros", slug: d.menu_categories?.slug ?? "" }));
   const openOrders = orders.filter((o) => o.status === "pending");
   const upcoming = orders.filter((o) => o.status === "confirmed" || o.status === "ready");
   const done = orders.filter((o) => o.status === "collected" || o.status === "cancelled");
@@ -53,31 +53,31 @@ async function Preorders() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Vorbestellungen</h1>
-        <p className="text-sm text-muted">Alle Abholungen ab {fmtDateDE(today)}, bezahlt wird bei der Abholung.</p>
-        <Disclosure summary="So funktioniert's">
+        <h1 className="font-serif text-3xl">Pedidos anticipados</h1>
+        <p className="text-sm text-muted">Pedidos para retirar desde el {fmtStaffDate(today)}. Se paga al retirar.</p>
+        <Disclosure summary="Cómo funciona">
           <p className="text-sm text-muted">
-            „Bestätigen“ sagt dem Gast zu, „Bereit“ heißt abholbereit, „Abgeholt“ schließt die Bestellung ab.
+            «Confirmar» acepta el pedido; «Listo» indica que puede retirarse; «Retirado» lo cierra.
           </p>
         </Disclosure>
       </div>
 
       <details className="card">
-        <summary className="cursor-pointer font-semibold">Vorbestellung eintragen (Telefon / vor Ort)</summary>
+        <summary className="cursor-pointer font-semibold">Añadir un pedido (por teléfono o en el local)</summary>
         {items.length > 0 ? (
           <StaffPreorderForm items={items} today={today} />
         ) : (
           <p className="mt-3 text-sm text-muted">
-            Noch kein Gericht ist vorbestellbar. Unter „Karte“ beim Gericht „vorbestellbar“ ankreuzen.
+            Todavía no hay platos disponibles para pedidos anticipados. Activá «Pedido anticipado» para un plato en «Menú».
           </p>
         )}
       </details>
 
-      <Section title={`Offen (${openOrders.length})`} orders={openOrders} highlight empty="Keine offenen Vorbestellungen." />
-      <Section title={`In Arbeit (${upcoming.length})`} orders={upcoming} empty="Nichts in Arbeit." />
+      <Section title={`Pendientes (${openOrders.length})`} orders={openOrders} highlight empty="No hay pedidos pendientes." />
+      <Section title={`En curso (${upcoming.length})`} orders={upcoming} empty="No hay pedidos en curso." />
       {done.length > 0 && (
         <details>
-          <summary className="cursor-pointer text-sm font-semibold">Abgeschlossen und storniert ({done.length})</summary>
+          <summary className="cursor-pointer text-sm font-semibold">Retirados y cancelados ({done.length})</summary>
           <div className="mt-3 grid gap-3">
             {done.map((o) => (
               <PreorderCard key={o.id} order={o} />

@@ -103,13 +103,13 @@ export const APPS = {
     /** Not under /staff: the session proxy guards that prefix, and a browser fetches the manifest
      *  without cookies, so it would be handed the login page instead of JSON. */
     path: "/staff.webmanifest",
-    name: `${BRAND.name} · Team`,
-    shortName: "Cordobesa Team",
-    description: "Reservierungen, Karte und Öffnungszeiten verwalten.",
+    name: `${BRAND.name} · Equipo`,
+    shortName: "Cordobesa Equipo",
+    description: "Gestioná reservas, menú y horarios.",
     id: "/staff",
     startUrl: "/staff",
     scope: "/staff",
-    lang: "de",
+    lang: "es-AR",
     themeColor: BRAND.ink,
     backgroundColor: BRAND.cream,
     icons: [

@@ -7,7 +7,7 @@ import { staffDisplayName } from "@/lib/staff";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { requireAdmin } from "@/lib/auth";
 
-export const metadata = { title: "Team" };
+export const metadata = { title: "Equipo" };
 
 export default function TeamPage() {
   return (
@@ -30,16 +30,16 @@ async function Team() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Team-Zugänge</h1>
+        <h1 className="font-serif text-3xl">Accesos del equipo</h1>
         <p className="mt-1 text-sm">
           <Link href="/staff/einstellungen" className="underline underline-offset-2">
-            Zurück zu Einstellungen
+            Volver a ajustes
           </Link>
         </p>
       </div>
       <section className="card grid gap-4">
         <p className="text-sm text-muted">
-          Neue Zugänge sind normale Team-Konten: sie sehen alles außer den Besucherzahlen und dieser Liste.
+          Las cuentas nuevas son del equipo: pueden ver todo excepto las estadísticas de visitantes y esta lista.
         </p>
         <ul className="grid gap-2">
           {(members ?? []).map((m) => (
@@ -47,42 +47,42 @@ async function Team() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>
                   <strong>{staffDisplayName(emailOf.get(m.user_id))}</strong>
-                  <span className="ml-2 text-xs text-muted">{m.role === "admin" ? "Admin" : "Team"}</span>
-                  {m.user_id === user.id && <span className="ml-2 text-xs text-muted">(du)</span>}
+                  <span className="ml-2 text-xs text-muted">{m.role === "admin" ? "Admin" : "Equipo"}</span>
+                  {m.user_id === user.id && <span className="ml-2 text-xs text-muted">(vos)</span>}
                 </span>
                 {m.role === "staff" && (
                   <form action={deleteStaffAccount}>
                     <input type="hidden" name="user_id" value={m.user_id} />
-                    <ConfirmSubmit message="Diesen Zugang wirklich löschen?" className="btn-ghost text-red-700">
-                      Löschen
+                    <ConfirmSubmit message="¿Seguro que querés eliminar este acceso?" className="btn-ghost text-red-700">
+                      Eliminar
                     </ConfirmSubmit>
                   </form>
                 )}
               </div>
               {m.role === "staff" && (
                 <details>
-                  <summary className="cursor-pointer text-xs text-muted">Neues Passwort setzen</summary>
-                  <ActionForm action={resetStaffPassword} className="mt-2 flex flex-wrap items-end gap-2" successText="Passwort geändert.">
+                  <summary className="cursor-pointer text-xs text-muted">Cambiar contraseña</summary>
+                  <ActionForm action={resetStaffPassword} className="mt-2 flex flex-wrap items-end gap-2" successText="Contraseña cambiada.">
                     <input type="hidden" name="user_id" value={m.user_id} />
-                    <input name="password" type="text" minLength={10} required autoComplete="off" aria-label="Neues Passwort" className="min-w-0 flex-1" />
-                    <SubmitButton>Setzen</SubmitButton>
+                    <input name="password" type="text" minLength={10} required autoComplete="off" aria-label="Nueva contraseña" className="min-w-0 flex-1" />
+                    <SubmitButton>Guardar</SubmitButton>
                   </ActionForm>
                 </details>
               )}
             </li>
           ))}
         </ul>
-        <ActionForm action={createStaffAccount} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]" successText="Zugang angelegt.">
+        <ActionForm action={createStaffAccount} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]" successText="Acceso creado.">
           <div>
-            <label htmlFor="new-username">Name zum Anmelden</label>
+            <label htmlFor="new-username">Nombre de usuario</label>
             <input id="new-username" name="username" required pattern="[a-z0-9][a-z0-9._\-]{1,31}" autoComplete="off" placeholder="maria" />
           </div>
           <div>
-            <label htmlFor="new-password">Passwort</label>
+            <label htmlFor="new-password">Contraseña</label>
             <input id="new-password" name="password" type="text" minLength={10} required autoComplete="off" />
           </div>
           <div className="self-end">
-            <SubmitButton pendingText="Anlegen …">Anlegen</SubmitButton>
+            <SubmitButton pendingText="Creando …">Crear</SubmitButton>
           </div>
         </ActionForm>
       </section>

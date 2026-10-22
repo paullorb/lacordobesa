@@ -3,7 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { uploadGalleryImage } from "@/app/staff/actions";
 import { SubmitButton } from "@/components/staff/form-bits";
-import { GALLERY_CATEGORIES } from "@/lib/gallery";
+import { GALLERY_CATEGORIES, STAFF_GALLERY_LABELS } from "@/lib/gallery";
 
 const MAX_EDGE = 1800;
 
@@ -61,7 +61,7 @@ export function GalleryUpload() {
       }}
     >
       <div className="sm:col-span-2">
-        <label htmlFor="g-file">Bild (JPG, PNG oder WebP)</label>
+        <label htmlFor="g-file">Foto (JPG, PNG o WebP)</label>
         <input
           id="g-file"
           type="file"
@@ -69,35 +69,35 @@ export function GalleryUpload() {
           required
           onChange={(e) => onFile(e.target.files?.[0])}
         />
-        {busy && <p className="mt-1 text-xs text-muted">Bild wird vorbereitet …</p>}
+        {busy && <p className="mt-1 text-xs text-muted">Preparando la foto …</p>}
         {preview && (
           // eslint-disable-next-line @next/next/no-img-element -- local blob preview, nothing to optimise
-          <img src={preview} alt="Vorschau" className="mt-2 max-h-48 rounded-md" />
+          <img src={preview} alt="Vista previa" className="mt-2 max-h-48 rounded-md" />
         )}
       </div>
       <div>
-        <label htmlFor="g-category">Kategorie</label>
+        <label htmlFor="g-category">Categoría</label>
         <select id="g-category" name="category" defaultValue="food">
           {GALLERY_CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
-              {c.label}
+              {STAFF_GALLERY_LABELS[c.value]}
             </option>
           ))}
         </select>
       </div>
       <div>
-        <label htmlFor="g-caption">Bildunterschrift</label>
-        <input id="g-caption" name="caption" maxLength={160} placeholder="Frisch aus dem Ofen" />
+        <label htmlFor="g-caption">Texto de la foto</label>
+        <input id="g-caption" name="caption" maxLength={160} placeholder="Recién salido del horno" />
       </div>
       <div className="sm:col-span-2">
-        <SubmitButton pendingText="Wird hochgeladen …">Hochladen</SubmitButton>
+        <SubmitButton pendingText="Subiendo …">Subir foto</SubmitButton>
       </div>
       {state && !state.ok && (
         <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2" role="alert">
           {state.error}
         </p>
       )}
-      {state?.ok && <p className="text-sm text-emerald-700 sm:col-span-2">Bild veröffentlicht.</p>}
+      {state?.ok && <p className="text-sm text-emerald-700 sm:col-span-2">Foto publicada.</p>}
     </form>
   );
 }

@@ -96,19 +96,19 @@ describe("byWeekday", () => {
     const stats = reservationStats([], TODAY);
     assert.deepEqual(
       stats.byWeekday.map((b) => b.label),
-      ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+      ["lu", "ma", "mi", "ju", "vi", "sá", "do"],
     );
   });
 
   test("puts a Thursday booking under Do", () => {
     const stats = reservationStats([row({ date: "2026-10-15", party_size: 6 })], TODAY);
-    assert.equal(stats.byWeekday.find((b) => b.label === "Do")?.value, 6);
-    assert.equal(stats.byWeekday.find((b) => b.label === "Mo")?.value, 0);
+    assert.equal(stats.byWeekday.find((b) => b.label === "ju")?.value, 6);
+    assert.equal(stats.byWeekday.find((b) => b.label === "lu")?.value, 0);
   });
 
   test("puts a Sunday booking under So, not under Mo", () => {
     const stats = reservationStats([row({ date: "2026-10-11", party_size: 6 })], TODAY);
-    assert.equal(stats.byWeekday.find((b) => b.label === "So")?.value, 6);
+    assert.equal(stats.byWeekday.find((b) => b.label === "do")?.value, 6);
   });
 });
 

@@ -6,6 +6,10 @@ export const GALLERY_CATEGORIES = [
 
 export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number]["value"];
 
+export const STAFF_GALLERY_LABELS: Record<GalleryCategory, string> = {
+  venue: "Local", food: "Comida", events: "Eventos",
+};
+
 export const isGalleryCategory = (v: string): v is GalleryCategory => GALLERY_CATEGORIES.some((c) => c.value === v);
 
 export const GALLERY_MAX_BYTES = 5 * 1024 * 1024;

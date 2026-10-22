@@ -14,9 +14,9 @@ import {
   type Row,
 } from "@/lib/analytics-view";
 import { requireAdmin } from "@/lib/auth";
-import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
+import { addDays, fmtStaffDate, todayISO } from "@/lib/dates";
 
-export const metadata = { title: "Besucher" };
+export const metadata = { title: "Visitantes" };
 
 const WINDOW_DAYS = 30;
 
@@ -96,11 +96,11 @@ async function Visitors() {
   );
 
   const funnel = [
-    { label: "Tag gewählt", value: count(steps, "2") },
-    { label: "Uhrzeit gewählt", value: count(steps, "3") },
-    { label: "Personen gewählt", value: count(steps, "4") },
-    { label: "Abgeschickt", value: reservationSubmits },
-    { label: "Angekommen", value: reservationDone },
+    { label: "Día elegido", value: count(steps, "2") },
+    { label: "Hora elegida", value: count(steps, "3") },
+    { label: "Personas elegidas", value: count(steps, "4") },
+    { label: "Enviados", value: reservationSubmits },
+    { label: "Recibidos", value: reservationDone },
   ];
 
   const formLines = [
@@ -113,10 +113,10 @@ async function Visitors() {
     form,
     label:
       {
-        reservation: "Reservierung",
-        waitlist: "Warteliste",
-        preorder: "Vorbestellung",
-        inquiry: "Feier-Anfrage",
+        reservation: "Reserva",
+        waitlist: "Lista de espera",
+        preorder: "Pedido anticipado",
+        inquiry: "Consulta para eventos",
         specials: "Specials",
       }[form] ?? form,
     submitted: count(submits, form),
@@ -125,9 +125,9 @@ async function Visitors() {
   }));
 
   const clickLabel: Record<string, string> = {
-    phone: "Anruf",
+    phone: "Llamada",
     whatsapp: "WhatsApp",
-    email: "E-Mail",
+    email: "Correo",
     maps: "Google Maps",
     instagram: "Instagram",
   };
@@ -135,68 +135,66 @@ async function Visitors() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Besucher</h1>
+        <h1 className="font-serif text-3xl">Visitantes</h1>
         <p className="text-sm text-muted">
-          Die letzten {WINDOW_DAYS} Tage, also ab {fmtDateDE(from)}. Gezählt
-          werden Aufrufe und Klicks, nicht Personen: Es gibt bewusst keine
-          Kennung, deshalb lässt sich nicht sagen, ob jemand zweimal da war.
-          Bots und Browser mit „Do Not Track“ zählen nicht mit, die Zahlen
-          liegen also eher etwas unter der Wirklichkeit.
+          Los últimos {WINDOW_DAYS} días, desde el {fmtStaffDate(from)}. Contamos visitas y clics, no personas:
+          no identificamos visitantes, así que una misma persona puede contarse varias veces. Los bots y los navegadores
+          con “Do Not Track” no se cuentan; las cifras pueden ser algo menores que la realidad.
         </p>
       </div>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Seitenaufrufe" value={views} />
+        <Tile label="Visitas a páginas" value={views} />
         <Tile
-          label="Reservierungen abgeschickt"
+          label="Reservas enviadas"
           value={reservationSubmits}
-          hint={`${reservationDone} angekommen, ${reservationFailed} mit Fehler`}
+          hint={`${reservationDone} recibidas, ${reservationFailed} con error`}
         />
-        <Tile label="Klicks auf Anruf oder WhatsApp" value={contactClicks} />
+        <Tile label="Clics en teléfono o WhatsApp" value={contactClicks} />
         <Tile
-          label="Fotos geöffnet"
+          label="Fotos abiertas"
           value={sum(gallery.rows)}
-          hint={`Karte geladen: ${sum(maps.rows)}`}
+          hint={`Mapa cargado: ${sum(maps.rows)}`}
         />
       </section>
 
       <section className="card">
         <BarList
-          caption="Seitenaufrufe pro Tag (letzte 14 Tage)"
-          valueLabel="Aufrufe"
+          caption="Visitas por día (últimos 14 días)"
+          valueLabel="Visitas"
           bars={dailyBars(days.rows, addDays(to, -13), to)}
         />
       </section>
 
       <section className="card grid gap-6 lg:grid-cols-2">
         <BarList
-          caption="Beliebteste Seiten"
-          valueLabel="Aufrufe"
+          caption="Páginas más vistas"
+          valueLabel="Visitas"
           bars={toBars(pages.rows, pageLabel)}
         />
         <BarList
-          caption="Woher die Besucher kommen"
-          valueLabel="Aufrufe"
+          caption="Origen de las visitas"
+          valueLabel="Visitas"
           bars={toBars(referrers.rows, (k) =>
-            k === "other" ? "Andere Seiten" : k || "Direkt oder unbekannt",
+            k === "other" ? "Otros sitios" : k || "Directo o desconocido",
           )}
         />
       </section>
 
       <section className="card grid gap-6 lg:grid-cols-3">
         <BarList
-          caption="Geräte"
-          valueLabel="Aufrufe"
+          caption="Dispositivos"
+          valueLabel="Visitas"
           bars={toBars(devices.rows, deviceLabel)}
         />
         <BarList
-          caption="Browser"
-          valueLabel="Aufrufe"
+          caption="Navegadores"
+          valueLabel="Visitas"
           bars={toBars(browsers.rows, browserLabel)}
         />
         <BarList
-          caption="Sprache des Browsers"
-          valueLabel="Aufrufe"
+          caption="Idioma del navegador"
+          valueLabel="Visitas"
           bars={toBars(langs.rows, langLabel)}
         />
       </section>
@@ -204,18 +202,18 @@ async function Visitors() {
       <section className="card grid gap-6 lg:grid-cols-2">
         <div className="grid content-start gap-2">
           <BarList
-            caption="Reservierung: wie weit kommen die Gäste?"
-            valueLabel="Zähler"
+            caption="Reserva: avance de los visitantes"
+            valueLabel="Recuento"
             bars={funnel}
           />
           <p className="text-xs text-muted">
-            Wer einen Schritt zurückgeht und wieder vor, wird erneut gezählt.
-            Gedacht zum Vergleichen der Stufen, nicht als exakte Anzahl Gäste.
+            Si alguien vuelve a un paso anterior y avanza otra vez, se cuenta de nuevo. Sirve para comparar pasos,
+            no como número exacto de personas.
           </p>
         </div>
         <BarList
-          caption="Kontakt-Klicks"
-          valueLabel="Klicks"
+          caption="Clics de contacto"
+          valueLabel="Clics"
           bars={toBars(clicks.rows, (k) => clickLabel[k] ?? k)}
         />
       </section>
@@ -225,19 +223,19 @@ async function Visitors() {
           four columns made the whole page 395px wide inside a 390px phone, which is the same
           failure the staff menu editor had (tests/README.md). */}
       <section className="card grid min-w-0 gap-2">
-        <h2 className="text-sm font-semibold">Formulare</h2>
+        <h2 className="text-sm font-semibold">Formularios</h2>
         <div className="min-w-0 overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted">
-                <th className="py-1 pr-3 font-semibold">Formular</th>
+                <th className="py-1 pr-3 font-semibold">Formulario</th>
                 <th className="py-1 pr-3 text-right font-semibold">
-                  Abgeschickt
+                  Enviados
                 </th>
                 <th className="py-1 pr-3 text-right font-semibold">
-                  Angekommen
+                  Recibidos
                 </th>
-                <th className="py-1 text-right font-semibold">Fehler</th>
+                <th className="py-1 text-right font-semibold">Errores</th>
               </tr>
             </thead>
             <tbody>
@@ -259,21 +257,20 @@ async function Visitors() {
       </section>
 
       <section className="card grid min-w-0 gap-2">
-        <h2 className="text-sm font-semibold">Ladezeit (Web Vitals)</h2>
+        <h2 className="text-sm font-semibold">Rendimiento (Web Vitals)</h2>
         <p className="text-xs text-muted">
-          Wie viele Aufrufe die Schwelle „gut“ des Browsers erreichen. LCP: wann
-          der Hauptinhalt steht. CLS: wie stark die Seite springt. INP: wie
-          schnell sie auf Tippen reagiert.
+          Cuántas visitas alcanzan el nivel “bueno” del navegador. LCP: cuándo aparece el contenido principal.
+          CLS: cuánto se desplaza la página. INP: qué tan rápido responde a los toques.
         </p>
         <div className="min-w-0 overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted">
-                <th className="py-1 pr-3 font-semibold">Messwert</th>
-                <th className="py-1 pr-3 text-right font-semibold">Gut</th>
-                <th className="py-1 pr-3 text-right font-semibold">Mittel</th>
-                <th className="py-1 pr-3 text-right font-semibold">Schlecht</th>
-                <th className="py-1 text-right font-semibold">Anteil gut</th>
+                <th className="py-1 pr-3 font-semibold">Medida</th>
+                <th className="py-1 pr-3 text-right font-semibold">Bueno</th>
+                <th className="py-1 pr-3 text-right font-semibold">Medio</th>
+                <th className="py-1 pr-3 text-right font-semibold">Malo</th>
+                <th className="py-1 text-right font-semibold">Porcentaje bueno</th>
               </tr>
             </thead>
             <tbody>
@@ -293,7 +290,7 @@ async function Visitors() {
                   </td>
                   <td className="py-1 text-right tabular-nums">
                     {v.goodPercent === null
-                      ? "keine Daten"
+                      ? "sin datos"
                       : `${v.goodPercent} %`}
                   </td>
                 </tr>

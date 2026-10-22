@@ -18,8 +18,8 @@ export function SignOutButton({ name }: { name: string }) {
       <button
         type="button"
         className="flex min-h-10 items-center gap-2 rounded-full px-2.5 text-xs text-muted hover:bg-mint hover:text-ink"
-        aria-label={`Abmelden (${name})`}
-        title="Abmelden"
+        aria-label={`Cerrar sesión (${name})`}
+        title="Cerrar sesión"
         onClick={() => dialog.current?.showModal()}
       >
         <span className="hidden sm:inline">{name}</span>
@@ -37,15 +37,15 @@ export function SignOutButton({ name }: { name: string }) {
         <form action={signOut} className="grid gap-4">
           <div>
             <h2 id="signout-title" className="font-serif text-xl">
-              Abmelden?
+              ¿Cerrar sesión?
             </h2>
-            <p className="mt-1 text-sm text-muted">{name}, du musst dich danach neu anmelden.</p>
+            <p className="mt-1 text-sm text-muted">{name}, después tendrás que volver a iniciar sesión.</p>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
             <button type="button" className="btn-ghost" autoFocus onClick={() => dialog.current?.close()}>
-              Abbrechen
+              Cancelar
             </button>
-            <SubmitButton pendingText="Abmelden …">Abmelden</SubmitButton>
+            <SubmitButton pendingText="Cerrando sesión …">Cerrar sesión</SubmitButton>
           </div>
         </form>
       </dialog>

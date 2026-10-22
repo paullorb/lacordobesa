@@ -6,29 +6,29 @@ import type { Bar } from "@/lib/staff-stats";
 export type Row = { bucket: string; total: number };
 
 const PAGE_LABEL: Record<string, string> = {
-  "/": "Startseite",
-  "/karte": "Karte",
-  "/gallery": "Galerie",
-  "/vorbestellen": "Vorbestellen",
-  "/catering": "Feiern und Catering",
-  "/datenschutz": "Datenschutz",
-  "/impressum": "Impressum",
-  "/reservierung/*": "Reservierung verwalten",
-  "/vorbestellung/*": "Vorbestellung verwalten",
-  "/abmelden/*": "Specials abmelden",
-  "/other": "Sonstige Seiten",
+  "/": "Inicio",
+  "/karte": "Carta",
+  "/gallery": "Galería",
+  "/vorbestellen": "Pedir por adelantado",
+  "/catering": "Eventos y catering",
+  "/datenschutz": "Privacidad",
+  "/impressum": "Aviso legal",
+  "/reservierung/*": "Gestionar reserva",
+  "/vorbestellung/*": "Gestionar pedido",
+  "/abmelden/*": "Cancelar novedades",
+  "/other": "Otras páginas",
 };
 
 /** A readable name for a stored path; the Spanish and English pages carry the same name with " (ES)" or " (EN)". */
 export function pageLabel(path: string): string {
   for (const tag of ["es", "en"]) {
-    if (path === `/${tag}`) return `Startseite (${tag.toUpperCase()})`;
+    if (path === `/${tag}`) return `Inicio (${tag.toUpperCase()})`;
     if (path.startsWith(`/${tag}/`)) return `${PAGE_LABEL[path.slice(3)] ?? path} (${tag.toUpperCase()})`;
   }
   return PAGE_LABEL[path] ?? path;
 }
 
-const DEVICE_LABEL: Record<string, string> = { phone: "Handy", tablet: "Tablet", desktop: "Desktop", "": "Unbekannt" };
+const DEVICE_LABEL: Record<string, string> = { phone: "Celular", tablet: "Tablet", desktop: "Desktop", "": "Desconocido" };
 const BROWSER_LABEL: Record<string, string> = {
   instagram: "Instagram-App",
   facebook: "Facebook-App",
@@ -38,9 +38,9 @@ const BROWSER_LABEL: Record<string, string> = {
   firefox: "Firefox",
   chrome: "Chrome",
   safari: "Safari",
-  other: "Andere",
+  other: "Otros",
 };
-const LANG_LABEL: Record<string, string> = { de: "Deutsch", es: "Spanisch", en: "Englisch", other: "Andere" };
+const LANG_LABEL: Record<string, string> = { de: "Alemán", es: "Español", en: "Inglés", other: "Otros" };
 
 export const deviceLabel = (k: string) => DEVICE_LABEL[k] ?? k;
 export const browserLabel = (k: string) => BROWSER_LABEL[k] ?? k;
@@ -48,13 +48,13 @@ export const langLabel = (k: string) => LANG_LABEL[k] ?? k;
 
 export const sum = (rows: Row[]) => rows.reduce((n, r) => n + r.total, 0);
 
-/** Rows to bars, biggest first, with the tail folded into "Weitere" so a long list of referrers
+/** Rows to bars, biggest first, with the tail folded into "Otros" so a long list of referrers
  *  stays readable. An empty key (no referrer) is the direct visit. */
 export function toBars(rows: Row[], label: (key: string) => string, limit = 8): Bar[] {
   const sorted = [...rows].sort((a, b) => b.total - a.total);
   const head = sorted.slice(0, limit).map((r) => ({ label: label(r.bucket), value: r.total }));
   const rest = sum(sorted.slice(limit));
-  return rest > 0 ? [...head, { label: "Weitere", value: rest }] : head;
+  return rest > 0 ? [...head, { label: "Otros", value: rest }] : head;
 }
 
 /** One bar per calendar day, zeros included, so a quiet day shows as a short bar and not as a

@@ -3,7 +3,7 @@ import { savePreorderNotes, setPreorderStatus } from "@/app/staff/actions";
 import { MenuIcon } from "@/components/icons";
 import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
-import { fmtDate, fmtDateDE } from "@/lib/dates";
+import { fmtDate, fmtStaffDate } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { preorderUrl } from "@/lib/site";
 import { isPreparation, PREPARATION_STAFF_LABEL } from "@/lib/preorder-preparation";
@@ -53,7 +53,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
           ...lines.map((l) => `• ${l.quantity} × ${l.label}`),
           ...(preparation ? [preparationText[preparation]] : []),
           "",
-          `Abholung am ${fmtDateDE(o.pickup_date, { weekday: undefined })} um ${fmtTime(o.pickup_time)} Uhr. Bezahlt wird bei der Abholung.`,
+          `Abholung am ${fmtDate(o.pickup_date, "de", { weekday: undefined })} um ${fmtTime(o.pickup_time)} Uhr. Bezahlt wird bei der Abholung.`,
           "",
           `Status jederzeit hier: ${guestLink}`,
           "",
@@ -69,21 +69,21 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             <strong className="font-serif text-xl">{fmtTime(o.pickup_time)}</strong>
             <span className={`status status-${o.status}`}>{PREORDER_STATUS_LABEL[o.status]}</span>
             {preparation && (
-              <span className={`status ${preparation === "frozen" ? "bg-sky-100 text-sky-800" : "bg-amber-50 text-amber-800"}`} title="Zubereitung der Empanadas">
+              <span className={`status ${preparation === "frozen" ? "bg-sky-100 text-sky-800" : "bg-amber-50 text-amber-800"}`} title="Preparación de las empanadas">
                 {PREPARATION_STAFF_LABEL[preparation]}
               </span>
             )}
-            {o.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
+            {o.source === "staff" && <span className="status bg-gray-100 text-gray-600">Teléfono / local</span>}
             {locale !== DEFAULT_LOCALE && (
               <span
                 className="status bg-amber-50 text-amber-800"
-                title={`Auf ${locale === "es" ? "Spanisch" : "Englisch"} bestellt: der Link ist ${locale === "es" ? "spanisch" : "englisch"}`}
+                title={`Pedido en ${locale === "es" ? "español" : "inglés"}: el enlace está en ${locale === "es" ? "español" : "inglés"}`}
               >
                 {locale.toUpperCase()}
               </span>
             )}
           </div>
-          <div className="text-xs text-muted">{fmtDateDE(o.pickup_date)}</div>
+          <div className="text-xs text-muted">{fmtStaffDate(o.pickup_date)}</div>
           <div className="mt-1 font-semibold">{o.name}</div>
           <div className="text-sm text-muted">
             <a href={`tel:${o.phone}`} className="hover:text-blue-dark">
@@ -102,20 +102,20 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
         <div className="flex flex-wrap items-start gap-1.5">
           {isLive && <WhatsAppButton phone={o.phone} text={confirmText} />}
           {o.status === "pending" && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Bestätigen" primary />
+            <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Confirmar" primary />
           )}
           {o.status === "confirmed" && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="ready" label="Bereit" primary />
+            <StatusButton action={setPreorderStatus} id={o.id} status="ready" label="Listo" primary />
           )}
           {o.status === "ready" && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="collected" label="Abgeholt" primary />
+            <StatusButton action={setPreorderStatus} id={o.id} status="collected" label="Retirado" primary />
           )}
           {isLive && (
-            <StatusButton action={setPreorderStatus} id={o.id} status="cancelled" label="Stornieren" danger />
+            <StatusButton action={setPreorderStatus} id={o.id} status="cancelled" label="Cancelar" danger />
           )}
           {!isLive && (
             <MoreActions>
-              <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Wieder öffnen" />
+              <StatusButton action={setPreorderStatus} id={o.id} status="confirmed" label="Reabrir" />
             </MoreActions>
           )}
         </div>
@@ -126,7 +126,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
           <li key={l.id} className="flex justify-between gap-3">
             <span className="flex items-center gap-1.5">
               <MenuIcon slug={l.menu_items?.menu_categories?.slug ?? ""} size={16} className="shrink-0 text-blue-dark" />
-              <strong>{l.quantity} ×</strong> {l.label} <span className="text-xs text-muted">pro {l.unit_label}</span>
+              <strong>{l.quantity} ×</strong> {l.label} <span className="text-xs text-muted">por {l.unit_label}</span>
             </span>
             {l.price_label && <span className="whitespace-nowrap text-xs text-muted">{l.price_label}</span>}
           </li>
@@ -138,7 +138,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
         action={savePreorderNotes}
         id={o.id}
         value={o.staff_notes}
-        placeholder="Interne Notiz (Backplan, Hinweise …)"
+        placeholder="Nota interna (horneado, indicaciones …)"
       />
     </article>
   );

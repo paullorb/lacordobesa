@@ -8,9 +8,9 @@ import { ReservationCard } from "@/components/staff/reservation-card";
 import { loadCalendarMonth, monthParam } from "@/lib/staff-calendar";
 import { requireStaff } from "@/lib/auth";
 import { getReservationSettings } from "@/lib/data";
-import { addDays, fmtDateDE, isISODate, todayISO } from "@/lib/dates";
+import { addDays, fmtStaffDate, isISODate, todayISO } from "@/lib/dates";
 
-export const metadata = { title: "Reservierungen" };
+export const metadata = { title: "Reservas" };
 
 export default function ReservationsPage(props: PageProps<"/staff/reservierungen">) {
   return (
@@ -41,7 +41,7 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
 
   return (
     <div className="grid gap-6">
-      <h1 className="font-serif text-3xl">Reservierungen</h1>
+      <h1 className="font-serif text-3xl">Reservas</h1>
 
       <MonthCalendar
         month={month}
@@ -55,21 +55,21 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Link href={dayHref(addDays(date, -1))} className="btn-ghost" aria-label="Vorheriger Tag">
+          <Link href={dayHref(addDays(date, -1))} className="btn-ghost" aria-label="Día anterior">
             <ArrowIcon direction="left" size={18} />
           </Link>
-          <h2 className="font-serif text-2xl">{fmtDateDE(date, { weekday: "long" })}</h2>
-          <Link href={dayHref(addDays(date, 1))} className="btn-ghost" aria-label="Nächster Tag">
+          <h2 className="font-serif text-2xl">{fmtStaffDate(date, { weekday: "long" })}</h2>
+          <Link href={dayHref(addDays(date, 1))} className="btn-ghost" aria-label="Día siguiente">
             <ArrowIcon direction="right" size={18} />
           </Link>
           {date !== today && (
             <Link href="/staff/reservierungen" className="text-xs text-muted underline">
-              Heute
+              Hoy
             </Link>
           )}
         </div>
         <Link href={`?date=${date}${showCancelled ? "" : "&alle=1"}`} className="text-xs text-muted underline">
-          {showCancelled ? "Stornierte ausblenden" : "Stornierte anzeigen"}
+          {showCancelled ? "Ocultar canceladas" : "Mostrar canceladas"}
         </Link>
       </div>
 
@@ -80,11 +80,11 @@ async function Reservations({ searchParams }: Pick<PageProps<"/staff/reservierun
           ))}
         </div>
       ) : (
-        <p className="card text-sm text-muted">Keine Reservierungen an diesem Tag.</p>
+        <p className="card text-sm text-muted">No hay reservas para este día.</p>
       )}
 
       <details className="card">
-        <summary className="cursor-pointer font-semibold">Reservierung manuell eintragen (Telefon / vor Ort)</summary>
+        <summary className="cursor-pointer font-semibold">Añadir una reserva manualmente (por teléfono o en el local)</summary>
         <StaffReservationForm date={date} maxPartySize={settings.max_party_size} />
       </details>
     </div>

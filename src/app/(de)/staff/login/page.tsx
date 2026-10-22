@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/app/staff/login/login-form";
 
-export const metadata = { title: "Anmelden" };
+export const metadata = { title: "Iniciar sesión" };
 
 export default function LoginPage(props: PageProps<"/staff/login">) {
   return (
     <div className="mx-auto mt-10 max-w-sm">
       <div className="card">
-        <h1 className="mb-1 font-serif text-2xl">Anmelden</h1>
-        <p className="mb-5 text-sm text-muted">Nur für das Team. Zugänge werden von La Cordobesa vergeben.</p>
+        <h1 className="mb-1 font-serif text-2xl">Iniciar sesión</h1>
+        <p className="mb-5 text-sm text-muted">Acceso para el equipo de La Cordobesa.</p>
         <Suspense fallback={<LoginForm next="/staff" />}>
           <LoginWithNext searchParams={props.searchParams} />
         </Suspense>
@@ -22,9 +22,9 @@ export default function LoginPage(props: PageProps<"/staff/login">) {
  *  itself failing, and reporting the second as the first sends somebody hunting for a password
  *  problem they do not have. */
 const REASONS: Record<string, string> = {
-  "kein-zugang": "Dieser Zugang ist nicht für das Team freigeschaltet. Bitte an La Cordobesa wenden.",
+  "kein-zugang": "Esta cuenta no tiene acceso al área del equipo. Comunicate con La Cordobesa.",
   "pruefung-fehlgeschlagen":
-    "Die Zugangsprüfung hat gerade nicht funktioniert. Das liegt nicht an deinem Passwort. Bitte versuch es gleich noch einmal.",
+    "No pudimos comprobar el acceso en este momento. No es un problema con tu contraseña. Volvé a intentarlo en unos minutos.",
 };
 
 async function LoginWithNext({ searchParams }: Pick<PageProps<"/staff/login">, "searchParams">) {

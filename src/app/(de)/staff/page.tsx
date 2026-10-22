@@ -4,10 +4,10 @@ import { StaffLoading } from "@/components/staff/card-bits";
 import { ReservationCard } from "@/components/staff/reservation-card";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime } from "@/lib/data";
-import { fmtDateDE, todayISO } from "@/lib/dates";
+import { fmtStaffDate, todayISO } from "@/lib/dates";
 import { PREORDER_STATUS_LABEL } from "@/lib/statuses";
 
-export const metadata = { title: "Heute" };
+export const metadata = { title: "Hoy" };
 
 export default function DashboardPage() {
   return (
@@ -57,16 +57,16 @@ async function Dashboard() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">{fmtDateDE(today, { weekday: "long" })}</h1>
+        <h1 className="font-serif text-3xl">{fmtStaffDate(today, { weekday: "long" })}</h1>
         <p className="text-sm text-muted">
-          {todays?.length ?? 0} Reservierungen · {seats} Gäste
+          {todays?.length ?? 0} reservas · {seats} personas
         </p>
       </div>
 
       {(pendingCount ?? 0) > 0 && (
         <section className="card border-amber-200 bg-amber-50">
           <h2 className="mb-3 font-semibold">
-            {pendingCount} offene {pendingCount === 1 ? "Anfrage" : "Anfragen"} warten auf Bestätigung
+            {pendingCount} {pendingCount === 1 ? "reserva pendiente" : "reservas pendientes"} de confirmación
           </h2>
           <div className="grid gap-3">
             {upcomingPending?.map((r) => <ReservationCard key={r.id} r={r} showDate />)}
@@ -76,7 +76,7 @@ async function Dashboard() {
 
       {pickups && pickups.length > 0 && (
         <section className="card">
-          <h2 className="mb-3 font-semibold">Heute abzuholen</h2>
+          <h2 className="mb-3 font-semibold">Para retirar hoy</h2>
           <ul className="grid gap-2">
             {pickups.map((o) => {
               const items = o.preorder_lines.reduce((n, l) => n + l.quantity, 0);
@@ -88,7 +88,7 @@ async function Dashboard() {
                   >
                     <strong className="font-serif text-lg tabular-nums">{fmtTime(o.pickup_time)}</strong>
                     <span className="font-semibold">{o.name}</span>
-                    <span className="text-sm text-muted">{items} Stück</span>
+                    <span className="text-sm text-muted">{items} unidades</span>
                     <span className={`status status-${o.status}`}>{PREORDER_STATUS_LABEL[o.status]}</span>
                   </Link>
                 </li>
@@ -100,7 +100,7 @@ async function Dashboard() {
 
       {waiting && waiting.length > 0 && (
         <section className="card">
-          <h2 className="mb-3 font-semibold">Warteliste heute</h2>
+          <h2 className="mb-3 font-semibold">Lista de espera de hoy</h2>
           <ul className="grid gap-2">
             {waiting.map((w) => (
               <li key={w.id}>
@@ -110,7 +110,7 @@ async function Dashboard() {
                 >
                   <span className="font-semibold">{w.name}</span>
                   <span className="text-sm text-muted">
-                    {w.party_size} {w.party_size === 1 ? "Person" : "Personen"}
+                    {w.party_size} {w.party_size === 1 ? "persona" : "personas"}
                   </span>
                 </Link>
               </li>
@@ -120,7 +120,7 @@ async function Dashboard() {
       )}
 
       <section>
-        <h2 className="mb-3 font-semibold">Heute</h2>
+        <h2 className="mb-3 font-semibold">Hoy</h2>
         {todays && todays.length > 0 ? (
           <div className="grid gap-3">
             {todays.map((r) => (
@@ -128,13 +128,13 @@ async function Dashboard() {
             ))}
           </div>
         ) : (
-          <p className="card text-sm text-muted">Keine Reservierungen für heute.</p>
+          <p className="card text-sm text-muted">No hay reservas para hoy.</p>
         )}
       </section>
 
       <p>
         <Link href="/staff/reservierungen" className="inline-flex min-h-10 items-center text-sm text-blue-dark underline">
-          Alle Reservierungen und Kalender
+          Ver todas las reservas y el calendario
         </Link>
       </p>
     </div>

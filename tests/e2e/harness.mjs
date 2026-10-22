@@ -537,7 +537,7 @@ export const VISUALLY_HIDDEN = `(() => {
  * sound. Press again until the button has taken (it then reads "Fertig" and is aria-pressed).
  */
 export async function startArranging(page) {
-  const button = page.getByRole("button", { name: "Anordnen", exact: true });
+  const button = page.getByRole("button", { name: "Ordenar", exact: true });
   for (let attempt = 0; attempt < 20; attempt += 1) {
     if (await page.locator('main button[aria-pressed="true"]').count()) return;
     await button.click({ timeout: 2_000 }).catch(() => {});
