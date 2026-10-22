@@ -219,7 +219,7 @@ describe("the staff navigation is reachable on a phone", () => {
       staff: true,
       body: async ({ page }) => {
         const viewport = page.viewportSize().width;
-        const tabs = await page.locator('nav[aria-label="Bereiche"] a').all();
+        const tabs = await page.locator('nav[aria-label="Secciones"] a').all();
         assert.ok(tabs.length >= 6, "expected the six area tabs");
         for (const tab of tabs) {
           const box = await tab.boundingBox();
@@ -231,11 +231,11 @@ describe("the staff navigation is reachable on a phone", () => {
     });
   });
 
-  test("Einstellungen can be tapped", { skip: skipUnlessStaff() }, async () => {
+  test("Ajustes can be tapped", { skip: skipUnlessStaff() }, async () => {
     await visitOnPhone("/staff", {
       staff: true,
       body: async ({ page }) => {
-        await page.getByRole("link", { name: "Einstellungen", exact: true }).click();
+        await page.getByRole("link", { name: "Ajustes", exact: true }).click();
         await page.waitForURL(/\/staff\/einstellungen$/, { timeout: 30_000 });
       },
     });
@@ -246,14 +246,14 @@ describe("the staff navigation is reachable on a phone", () => {
       staff: true,
       body: async ({ page }) => {
         const viewport = page.viewportSize().width;
-        const links = await page.locator('nav[aria-label="Website"] a').all();
+        const links = await page.locator('nav[aria-label="Sitio web"] a').all();
         // The labels rather than a count, so that moving a tab between groups names what changed
         // instead of failing as "4 !== 5". Keep in step with the "Website" group in
         // src/app/staff/nav.tsx. Bewertungen is admin only, so it is allowed to be absent.
         const labels = await page
-          .locator('nav[aria-label="Website"] a')
-          .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((l) => l !== "Bewertungen"));
-        assert.deepEqual(labels, ["Karte", "Specials", "Galerie"], "the Website sub-navigation");
+          .locator('nav[aria-label="Sitio web"] a')
+          .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((l) => l !== "Reseñas"));
+        assert.deepEqual(labels, ["Menú", "Specials", "Galería"], "the site sub-navigation");
         for (const link of links) {
           const box = await link.boundingBox();
           assert.ok(box.x + box.width <= viewport + 1, `"${(await link.textContent()).trim()}" runs off the screen`);
