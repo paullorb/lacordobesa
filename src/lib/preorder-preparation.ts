@@ -9,8 +9,8 @@ export const isPreparation = (value: unknown): value is Preparation =>
 /** The category slug the choice applies to. request_preorder() decides by the same slug. */
 export const EMPANADA_SLUG = "empanadas";
 
-/** Staff-facing labels (the staff UI is German only). */
+/** Staff-facing labels in Spanish. */
 export const PREPARATION_STAFF_LABEL: Record<Preparation, string> = {
-  fresh: "Frisch",
-  frozen: "Tiefgekühlt",
+  fresh: "Recién horneadas",
+  frozen: "Para congelar",
 };

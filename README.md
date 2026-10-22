@@ -49,9 +49,9 @@ RPCs coerce an unknown locale to `de`, so an English booking still succeeds, it 
   `/es` says so rather than quietly showing German text under a Spanish heading (the staff Karte editor has no field for either translation any more; saving a dish leaves stored ones untouched). `description_en` works the same way
   for `/en`: empty means the German text, marked as German. Specials and category labels are deliberately not translatable: a special
   lives for a few days, and asking the team to write each one twice is how a feature stops being used.
-- **The staff app is German only**, and so are Impressum and Datenschutzerklärung: a translation would be a second
+- **The staff app is in Spanish**, while Impressum and Datenschutzerklärung remain German: a legal translation would be a second
   legally-relevant text to keep correct. A reader who arrives from `/es` or `/en` (`?von=`) gets a short note in their
-  language saying the page is German only. Guest e-mails follow the language the guest booked in.
+  language saying the legal page is German only. Guest e-mails follow the language the guest booked in.
 
 ## Stack
 

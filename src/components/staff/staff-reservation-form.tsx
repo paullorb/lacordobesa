@@ -49,15 +49,15 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
   return (
     <form action={formAction} className="mt-4 grid gap-3 sm:grid-cols-2">
       <div>
-        <label htmlFor="m-name">Name</label>
+        <label htmlFor="m-name">Nombre</label>
         <input id="m-name" name="name" maxLength={FIELD_LIMITS.name} required />
       </div>
       <div>
-        <label htmlFor="m-phone">Telefon</label>
+        <label htmlFor="m-phone">Teléfono</label>
         <input id="m-phone" name="phone" type="tel" maxLength={FIELD_LIMITS.phone} />
       </div>
       <div>
-        <label htmlFor="m-date">Datum</label>
+        <label htmlFor="m-date">Fecha</label>
         <DateField
           id="m-date"
           name="date"
@@ -72,12 +72,12 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
         />
       </div>
       <div>
-        <label htmlFor="m-time">Uhrzeit</label>
+        <label htmlFor="m-time">Hora</label>
         <TimeField id="m-time" name="time" value={time} onChange={setTime} required />
       </div>
 
       <div className="sm:col-span-2">
-        <label id="m-slots-label">Freie Zeiten {loading && <span className="font-normal normal-case">wird geladen …</span>}</label>
+        <label id="m-slots-label">Horarios disponibles {loading && <span className="font-normal normal-case">cargando …</span>}</label>
         {slots && slots.length > 0 ? (
           <div className="slots times" role="group" aria-labelledby="m-slots-label">
             {slots.map((s) => (
@@ -87,12 +87,12 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
                 className="slot"
                 aria-pressed={time === s.time}
                 // Not disabled, unlike the public wizard: a full slot is still bookable here.
-                title={s.seatsLeft > 0 ? `${s.seatsLeft} Plätze frei` : "Ausgebucht"}
+                title={s.seatsLeft > 0 ? `${s.seatsLeft} lugares libres` : "Completo"}
                 onClick={() => setTime(s.time)}
               >
                 {s.time}
                 <small className="block text-xs font-normal opacity-70">
-                  {s.seatsLeft > 0 ? `${s.seatsLeft} frei` : "voll"}
+                  {s.seatsLeft > 0 ? `${s.seatsLeft} libres` : "completo"}
                 </small>
               </button>
             ))}
@@ -101,21 +101,20 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
           !loading && (
             <p className="text-sm text-muted">
               {slots === null
-                ? "Wähle ein Datum, dann zeigen wir die freien Zeiten."
-                : "An diesem Tag gibt es keine buchbaren Zeiten, zum Beispiel weil geschlossen ist. Eintragen geht trotzdem."}
+                ? "Elegí una fecha para ver los horarios disponibles."
+                : "No hay horarios disponibles ese día, por ejemplo porque está cerrado. Podés añadir la reserva de todos modos."}
             </p>
           )
         )}
         {overbooking && (
           <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            Zu dieser Uhrzeit ist rechnerisch nicht genug Platz für {party || "diese"} Personen. Die Reservierung wird
-            trotzdem eingetragen.
+            A esa hora no quedan suficientes lugares para {party || "esas"} personas. La reserva se añadirá de todos modos.
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="m-party">Personen</label>
+        <label htmlFor="m-party">Personas</label>
         <input
           id="m-party"
           name="party_size"
@@ -126,14 +125,14 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
           onChange={(e) => setParty(e.target.value)}
           required
         />
-        <p className="mt-1 text-xs text-muted">Online sind höchstens {maxPartySize} möglich, hier nicht begrenzt.</p>
+        <p className="mt-1 text-xs text-muted">En línea se permiten hasta {maxPartySize}; aquí no hay límite.</p>
       </div>
       <div>
         <label htmlFor="m-email">E-Mail</label>
         <input id="m-email" name="email" type="email" maxLength={FIELD_LIMITS.email} />
       </div>
       <div className="sm:col-span-2">
-        <label htmlFor="m-notes">Notiz</label>
+        <label htmlFor="m-notes">Nota</label>
         <input id="m-notes" name="notes" maxLength={FIELD_LIMITS.notes} />
       </div>
 
@@ -142,10 +141,10 @@ export function StaffReservationForm({ date: initialDate, maxPartySize }: { date
           {state.error}
         </p>
       )}
-      {state?.ok && <p className="text-sm text-emerald-700 sm:col-span-2">Eingetragen.</p>}
+      {state?.ok && <p className="text-sm text-emerald-700 sm:col-span-2">Reserva añadida.</p>}
 
       <div className="sm:col-span-2">
-        <SubmitButton>Als bestätigt eintragen</SubmitButton>
+        <SubmitButton>Guardar como confirmada</SubmitButton>
       </div>
     </form>
   );

@@ -65,7 +65,7 @@ export function Disclosure({
 /** Actions that undo something or are rarely wanted, out of the way until asked for. */
 export function MoreActions({ children }: { children: React.ReactNode }) {
   return (
-    <Disclosure summary="Mehr">
+    <Disclosure summary="Más">
       <div className="mt-1 flex flex-wrap gap-1.5">{children}</div>
     </Disclosure>
   );
@@ -87,10 +87,10 @@ export function StaffNotesForm({
   placeholder: string;
 }) {
   return (
-    <Disclosure summary="Notiz" open={Boolean(value)}>
+    <Disclosure summary="Nota" open={Boolean(value)}>
       <form action={action} className="mt-1 flex gap-2">
         <input type="hidden" name="id" value={id} />
-        <input name="staff_notes" defaultValue={value ?? ""} placeholder={placeholder} aria-label="Interne Notiz" />
+        <input name="staff_notes" defaultValue={value ?? ""} placeholder={placeholder} aria-label="Nota interna" />
         <button className="btn-ghost min-h-10 shrink-0">OK</button>
       </form>
     </Disclosure>
@@ -117,12 +117,12 @@ export function WhatsAppButton({ phone, text, label = "WhatsApp" }: { phone: str
 export function StaffLoadError() {
   return (
     <p role="alert" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-      Das konnte gerade nicht geladen werden. Bitte versuch es gleich noch einmal.
+      No pudimos cargar los datos. Volvé a intentarlo en unos minutos.
     </p>
   );
 }
 
 /** The fallback every staff page used while its Suspense boundary resolves. */
 export function StaffLoading() {
-  return <p className="text-sm text-muted">Lade …</p>;
+  return <p className="text-sm text-muted">Cargando …</p>;
 }

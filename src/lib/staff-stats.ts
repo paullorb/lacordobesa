@@ -12,7 +12,7 @@ import type { Tables } from "@/lib/database.types";
 
 /** Short weekday labels, Monday first, as the team reads a week. Spelled out here rather than taken
  *  from WEEKDAYS_DE so this module stays free of the server-only data layer and can be run on its own. */
-const WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const WEEKDAY_SHORT = ["lu", "ma", "mi", "ju", "vi", "sá", "do"];
 
 export type ReservationRow = Pick<Tables<"reservations">, "date" | "party_size" | "status">;
 

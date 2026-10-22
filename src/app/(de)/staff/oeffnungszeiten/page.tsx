@@ -4,10 +4,10 @@ import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/ac
 import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
 import { DateField, TimeField } from "@/components/staff/pickers";
 import { requireStaff } from "@/lib/auth";
-import { fmtTime, WEEKDAYS_DE } from "@/lib/data";
-import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
+import { fmtTime } from "@/lib/data";
+import { addDays, fmtStaffDate, STAFF_WEEKDAYS, todayISO } from "@/lib/dates";
 
-export const metadata = { title: "Öffnungszeiten" };
+export const metadata = { title: "Horarios" };
 
 export default function HoursPage() {
   return (
@@ -40,12 +40,12 @@ async function Hours() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Öffnungszeiten</h1>
-        <p className="text-sm text-muted">Gilt für die Website und die buchbaren Reservierungszeiten.</p>
+        <h1 className="font-serif text-3xl">Horarios</h1>
+        <p className="text-sm text-muted">Se muestran en el sitio web y determinan los horarios disponibles para reservas.</p>
       </div>
 
       <section className="card">
-        <h2 className="mb-3 font-semibold">Reguläre Zeiten</h2>
+        <h2 className="mb-3 font-semibold">Horario habitual</h2>
         <ActionForm action={saveOpeningHours} className="grid gap-2">
           {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
             const h = hours?.find((x) => x.weekday === wd);
@@ -58,70 +58,70 @@ async function Hours() {
                 key={wd}
                 className="grid grid-cols-2 items-center gap-x-3 gap-y-2 border-b border-line py-2 last:border-0 sm:grid-cols-[6rem_1fr_1fr_auto] sm:gap-y-0"
               >
-                <span className="text-sm font-semibold">{WEEKDAYS_DE[wd]}</span>
+                <span className="text-sm font-semibold capitalize">{STAFF_WEEKDAYS[wd]}</span>
                 <label className="!mb-0 flex items-center justify-end gap-2 text-sm normal-case tracking-normal sm:order-last sm:justify-start">
-                  <input type="checkbox" name={`closed_${wd}`} defaultChecked={h?.is_closed ?? false} /> Ruhetag
+                  <input type="checkbox" name={`closed_${wd}`} defaultChecked={h?.is_closed ?? false} /> Cerrado
                 </label>
                 <TimeField
                   name={`opens_${wd}`}
                   defaultValue={fmtTime(h?.opens ?? null)}
-                  aria-label={`${WEEKDAYS_DE[wd]} öffnet`}
+                  aria-label={`${STAFF_WEEKDAYS[wd]}: apertura`}
                   className="min-w-0"
                 />
                 <TimeField
                   name={`closes_${wd}`}
                   defaultValue={fmtTime(h?.closes ?? null)}
-                  aria-label={`${WEEKDAYS_DE[wd]} schließt`}
+                  aria-label={`${STAFF_WEEKDAYS[wd]}: cierre`}
                   className="min-w-0"
                 />
               </div>
             );
           })}
           <div className="mt-2">
-            <SubmitButton>Öffnungszeiten speichern</SubmitButton>
+            <SubmitButton>Guardar horarios</SubmitButton>
           </div>
         </ActionForm>
       </section>
 
       <section className="card">
-        <h2 className="mb-1 font-semibold">Geschlossene Tage</h2>
+        <h2 className="mb-1 font-semibold">Días de cierre</h2>
         <p className="mb-4 text-sm text-muted">
-          Feiertage, Urlaub, Betriebsferien: ein einzelner Tag oder ein Zeitraum. An diesen Tagen sind keine Reservierungen möglich.
+          Feriados, vacaciones u otros cierres: un día o un período. No se pueden reservar mesas en esas fechas.
         </p>
         <ul className="mb-4 grid gap-2">
           {ranges.map((r) => (
             <li key={r.from} className="flex items-center justify-between gap-3 rounded-md bg-cream px-3 py-2 text-sm">
               <span>
                 <strong>
-                  {fmtDateDE(r.from)}
-                  {r.to !== r.from && ` bis ${fmtDateDE(r.to)}`}
+                  {fmtStaffDate(r.from)}
+                  {r.to !== r.from && ` hasta ${fmtStaffDate(r.to)}`}
                 </strong>
                 {r.reason && <span className="ml-2 text-muted">{r.reason}</span>}
               </span>
               <form action={deleteClosureRange}>
                 <input type="hidden" name="from" value={r.from} />
                 <input type="hidden" name="to" value={r.to} />
-                <button className="btn-ghost">Entfernen</button>
+                <button className="btn-ghost">Eliminar</button>
               </form>
             </li>
           ))}
-          {ranges.length === 0 && <li className="text-sm text-muted">Keine anstehenden Schließtage.</li>}
+          {ranges.length === 0 && <li className="text-sm text-muted">No hay cierres próximos.</li>}
         </ul>
-        <ActionForm action={addClosure} className="grid gap-3 sm:grid-cols-[auto_auto_1fr_auto]" successText="Eingetragen.">
+        <ActionForm action={addClosure} className="grid gap-3 sm:grid-cols-[auto_auto_1fr_auto]" successText="Cierre añadido.">
           <div>
-            <label htmlFor="cl-from">Von</label>
+            <label htmlFor="cl-from">Desde</label>
             <DateField id="cl-from" name="from" min={today} required />
           </div>
           <div>
-            <label htmlFor="cl-to">Bis</label>
+            <label htmlFor="cl-to">Hasta</label>
             <DateField id="cl-to" name="to" min={today} />
           </div>
           <div>
-            <label htmlFor="cl-reason">Grund</label>
-            <input id="cl-reason" name="reason" placeholder="Betriebsferien" />
+            <label htmlFor="cl-reason">Motivo</label>
+            <input id="cl-reason" name="reason" placeholder="Vacaciones" />
           </div>
           <div className="self-end">
-            <SubmitButton>Hinzufügen</SubmitButton>
+            <SubmitButton>Añadir</SubmitButton>
           </div>
         </ActionForm>
       </section>

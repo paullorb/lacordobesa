@@ -2,10 +2,10 @@ import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { BarList } from "@/components/staff/bar-list";
 import { requireStaff } from "@/lib/auth";
-import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
+import { addDays, fmtStaffDate, todayISO } from "@/lib/dates";
 import { reservationStats, topPreorderedDishes, type Rate } from "@/lib/staff-stats";
 
-export const metadata = { title: "Zahlen" };
+export const metadata = { title: "Estadísticas" };
 
 /** How far back the page looks. Long enough for a weekday pattern to mean something, short enough
  *  that one bounded query answers everything. */
@@ -42,26 +42,26 @@ async function Numbers() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Zahlen</h1>
+        <h1 className="font-serif text-3xl">Estadísticas</h1>
         <p className="text-sm text-muted">
-          Die letzten {WINDOW_DAYS} Tage, ab {fmtDateDE(from)}. „Gäste“ zählt Plätze, ohne Stornierungen und Nichterscheinen.
+          Los últimos {WINDOW_DAYS} días, desde el {fmtStaffDate(from)}. “Personas” cuenta cubiertos, sin cancelaciones ni ausencias.
         </p>
       </div>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <Tile label="Gäste heute" value={stats.coversToday} />
-        <Tile label="Gäste diese Woche" value={stats.coversWeek} />
-        <Tile label="Gäste diesen Monat" value={stats.coversMonth} />
+        <Tile label="Personas hoy" value={stats.coversToday} />
+        <Tile label="Personas esta semana" value={stats.coversWeek} />
+        <Tile label="Personas este mes" value={stats.coversMonth} />
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2">
-        <RateTile label="Nicht erschienen" rate={stats.noShow} hint="Anteil der vergangenen Reservierungen" />
-        <RateTile label="Storniert" rate={stats.cancelled} hint="Anteil der vergangenen Reservierungen" />
+        <RateTile label="No se presentaron" rate={stats.noShow} hint="Porcentaje de reservas pasadas" />
+        <RateTile label="Canceladas" rate={stats.cancelled} hint="Porcentaje de reservas pasadas" />
       </section>
 
       <section className="card grid gap-6 lg:grid-cols-2">
-        <BarList caption={`Gäste pro Wochentag (${WINDOW_DAYS} Tage)`} valueLabel="Gäste" bars={stats.byWeekday} />
-        <BarList caption="Am häufigsten vorbestellt" valueLabel="Menge" bars={dishes} />
+        <BarList caption={`Personas por día de la semana (${WINDOW_DAYS} días)`} valueLabel="Personas" bars={stats.byWeekday} />
+        <BarList caption="Platos más pedidos" valueLabel="Cantidad" bars={dishes} />
       </section>
     </div>
   );
@@ -83,12 +83,12 @@ function RateTile({ label, rate, hint }: { label: string; rate: Rate; hint: stri
     <div className="card">
       <p className="text-xs font-semibold uppercase tracking-wider text-muted">{label}</p>
       {rate.percent === null ? (
-        <p className="mt-1 text-sm text-muted">Noch keine Daten.</p>
+        <p className="mt-1 text-sm text-muted">Todavía no hay datos.</p>
       ) : (
         <>
           <p className="mt-1 font-serif text-4xl tabular-nums">{rate.percent} %</p>
           <p className="text-xs text-muted">
-            {rate.value} von {rate.of} · {hint}
+            {rate.value} de {rate.of} · {hint}
           </p>
         </>
       )}

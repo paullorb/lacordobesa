@@ -34,10 +34,10 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
                 <div key={i.id} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-1.5 ${n ? "border-ink" : "border-line"} bg-white`}>
                   <span className="text-sm">
                     {i.name}
-                    {i.step > 1 && <span className="ml-2 text-xs text-muted">{i.step}er</span>}
+                    {i.step > 1 && <span className="ml-2 text-xs text-muted">de {i.step}</span>}
                   </span>
                   <span className="flex items-center gap-1">
-                    <button type="button" className="btn-ghost !px-3" aria-label={`Weniger ${i.name}`} disabled={!n} onClick={() => set(i.id, n - i.step)}>
+                    <button type="button" className="btn-ghost !px-3" aria-label={`Menos ${i.name}`} disabled={!n} onClick={() => set(i.id, n - i.step)}>
                       −
                     </button>
                     <input
@@ -48,10 +48,10 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
                       value={n || ""}
                       placeholder="0"
                       onChange={(e) => set(i.id, Number(e.target.value) || 0)}
-                      aria-label={`Menge ${i.name}`}
+                      aria-label={`Cantidad de ${i.name}`}
                       className="!w-16 text-center tabular-nums"
                     />
-                    <button type="button" className="btn-ghost !px-3" aria-label={`Mehr ${i.name}`} onClick={() => set(i.id, n + i.step)}>
+                    <button type="button" className="btn-ghost !px-3" aria-label={`Más ${i.name}`} onClick={() => set(i.id, n + i.step)}>
                       +
                     </button>
                   </span>
@@ -63,17 +63,17 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="p-date">Abholtag</label>
+          <label htmlFor="p-date">Día de retiro</label>
           <DateField id="p-date" name="pickup_date" min={today} required />
         </div>
         <div>
-          <label htmlFor="p-time">Abholzeit</label>
+          <label htmlFor="p-time">Hora de retiro</label>
           <TimeField id="p-time" name="pickup_time" required />
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="p-preparation">Empanadas</label>
           <select id="p-preparation" name="preparation" defaultValue="">
-            <option value="">Nicht angegeben</option>
+            <option value="">Sin especificar</option>
             {PREPARATIONS.map((p) => (
               <option key={p} value={p}>
                 {PREPARATION_STAFF_LABEL[p]}
@@ -82,15 +82,15 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
           </select>
         </div>
         <div>
-          <label htmlFor="p-name">Name</label>
+          <label htmlFor="p-name">Nombre</label>
           <input id="p-name" name="name" maxLength={FIELD_LIMITS.name} required />
         </div>
         <div>
-          <label htmlFor="p-phone">Telefon</label>
+          <label htmlFor="p-phone">Teléfono</label>
           <input id="p-phone" name="phone" type="tel" maxLength={FIELD_LIMITS.phone} />
         </div>
         <div className="sm:col-span-2">
-          <label htmlFor="p-notes">Notiz</label>
+          <label htmlFor="p-notes">Nota</label>
           <input id="p-notes" name="notes" maxLength={FIELD_LIMITS.notes} />
         </div>
       </div>
@@ -100,10 +100,10 @@ export function StaffPreorderForm({ items, today }: { items: StaffPreorderItem[]
           {state.error}
         </p>
       )}
-      {state?.ok && <p className="text-sm text-emerald-700">Eingetragen.</p>}
+      {state?.ok && <p className="text-sm text-emerald-700">Pedido añadido.</p>}
 
       <div>
-        <SubmitButton>Als bestätigt eintragen</SubmitButton>
+        <SubmitButton>Guardar como confirmado</SubmitButton>
       </div>
     </form>
   );

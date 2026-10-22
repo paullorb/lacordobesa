@@ -32,7 +32,7 @@ export function effectiveReservationSettings(stored: unknown): ReservationSettin
  *  form cannot show must never make a save fail, because nobody could fix it from there. */
 export function reservationFormError(submitted: Pick<ReservationSettings, "capacity_seats" | "max_party_size">): string | null {
   if (submitted.capacity_seats < 1 || submitted.max_party_size < 1) {
-    return "Bitte sinnvolle Werte eintragen (mindestens 1 Sitzplatz und 1 Person).";
+    return "Ingresá valores válidos (al menos 1 asiento y 1 persona).";
   }
   return null;
 }

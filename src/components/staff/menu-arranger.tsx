@@ -97,13 +97,13 @@ export function MenuArranger({
             onClick={() => setArranging((on) => !on)}
             className={`${arranging ? "btn-primary" : "btn-ghost"} min-h-10`}
           >
-            {arranging ? "Fertig" : "Anordnen"}
+            {arranging ? "Listo" : "Ordenar"}
           </button>
         </div>
         <p className="text-sm text-muted">
           {arranging
-            ? "Am Griff ⠿ ziehen, oder ein Gericht auf „Startseite“ legen."
-            : "Tippe auf ein Gericht, um es zu ändern."}
+            ? "Arrastrá desde el ícono ⠿ o llevá un plato a «Inicio»."
+            : "Tocá un plato para editarlo."}
         </p>
       </div>
       {jump}
@@ -204,9 +204,9 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
     setError(null);
     startTransition(async () => {
       // A dropped connection throws rather than returning an error; both put the order back.
-      const result = await run().catch((): ActionResult => ({ ok: false, error: "Keine Verbindung." }));
+      const result = await run().catch((): ActionResult => ({ ok: false, error: "Sin conexión." }));
       if (result && !result.ok) {
-        setError(`Nicht gespeichert: ${result.error}`);
+        setError(`No se guardó: ${result.error}`);
         // The rows glide back to where they were, so a rejected save is visible as a movement and
         // not only as a sentence above the list.
         relayout(layoutOf(categories, items), KEY_GLIDE);
@@ -442,8 +442,8 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
   const handleProps = (id: string, label: string, extra = "") => ({
     type: "button" as const,
     "data-handle": id,
-    "aria-label": `${label} verschieben (Pfeiltasten hoch und runter)`,
-    title: "Ziehen zum Verschieben",
+    "aria-label": `Mover ${label} (flechas arriba y abajo)`,
+    title: "Arrastrar para mover",
     // touch-none: without it the browser takes a finger drag on the handle as a page scroll.
     // min-h/min-w: this is the one control on the page that has to be grabbed accurately, and it
     // was 23x32, under the 24px WCAG 2.2 floor in one direction and well under a thumb in both.
@@ -468,12 +468,12 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
         >
           <div className="flex flex-wrap items-baseline gap-x-3">
             <h2 id="startseite-title" className="font-serif text-xl">
-              Startseite
+              Inicio
             </h2>
-            <span className="text-xs text-muted">Gericht hierher ziehen, um es oben auf der Website zu zeigen.</span>
+            <span className="text-xs text-muted">Arrastrá un plato aquí para mostrarlo al principio del sitio web.</span>
           </div>
           {layout.featured.length === 0 ? (
-            <p className="text-sm text-muted">Noch nichts ausgewählt: die Website zeigt dann das erste Gericht jeder Kategorie.</p>
+            <p className="text-sm text-muted">No hay platos elegidos. El sitio mostrará el primero de cada categoría.</p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {layout.featured.map((id) => {
@@ -490,7 +490,7 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
                   >
                     <button
                       {...handleProps(id, item.name)}
-                      aria-label={`${item.name} von der Startseite nehmen: herausziehen`}
+                      aria-label={`Quitar ${item.name} del inicio: arrastrar hacia afuera`}
                       onPointerDown={(e) => start(e, { kind: "featured", id, pointerId: e.pointerId })}
                     >
                       ⠿
@@ -499,7 +499,7 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
                     <button
                       type="button"
                       className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-cream hover:text-ink"
-                      aria-label={`${item.name} von der Startseite nehmen`}
+                      aria-label={`Quitar ${item.name} del inicio`}
                       onClick={() => unfeature(id)}
                       disabled={pending}
                     >
@@ -531,7 +531,7 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
           >
             <div className="flex items-start gap-2">
               {arranging && (
-                <button {...handleProps(catId, `Kategorie ${cat.label}`)} onPointerDown={(e) => start(e, { kind: "cat", id: catId, pointerId: e.pointerId })} onKeyDown={(e) => keyCat(e, catId)}>
+                <button {...handleProps(catId, `Categoría ${cat.label}`)} onPointerDown={(e) => start(e, { kind: "cat", id: catId, pointerId: e.pointerId })} onKeyDown={(e) => keyCat(e, catId)}>
                   ⠿
                 </button>
               )}
@@ -545,7 +545,7 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
                     drop?.cat === catId ? "border-blue bg-sky-50" : "border-line"
                   }`}
                 >
-                  {arranging ? "Noch keine Gerichte. Hierher ziehen, um eins zu verschieben." : "Noch keine Gerichte."}
+                  {arranging ? "No hay platos. Arrastrá uno aquí para moverlo." : "No hay platos."}
                 </p>
               )}
               {list.map((id, index) => {
@@ -591,10 +591,10 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
           aria-hidden="true"
           className="fixed right-2 top-1/2 z-30 grid max-h-[70vh] w-36 -translate-y-1/2 gap-0.5 overflow-y-auto rounded-xl border border-line bg-white/95 p-1.5 shadow-lg backdrop-blur sm:right-4 sm:w-52"
         >
-          <p className="px-2 pb-1 text-[0.65rem] font-bold uppercase tracking-wider text-muted">Ablegen in</p>
+          <p className="px-2 pb-1 text-[0.65rem] font-bold uppercase tracking-wider text-muted">Mover a</p>
           <div data-rail-featured className={railEntry(overFeatured)}>
             <StaffIcon name="specials" size={16} />
-            <span className="min-w-0 flex-1 truncate">Startseite</span>
+            <span className="min-w-0 flex-1 truncate">Inicio</span>
           </div>
           {layout.cats.map((catId) => {
             const cat = catById.get(catId);
@@ -605,7 +605,7 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
                 <MenuIcon slug={cat.slug} size={16} />
                 <span className="min-w-0 flex-1 truncate">{cat.label}</span>
                 <span className={`text-xs ${target ? "text-white/80" : "text-muted"}`}>
-                  {catId === drag.from ? "hier" : layout.items[catId].length}
+                  {catId === drag.from ? "aquí" : layout.items[catId].length}
                 </span>
               </div>
             );

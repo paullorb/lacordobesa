@@ -71,7 +71,7 @@ describe("effectiveReservationSettings", () => {
 describe("reservationFormError", () => {
   test("accepts one seat and one person, refuses zero", () => {
     assert.equal(reservationFormError({ capacity_seats: 1, max_party_size: 1 }), null);
-    assert.match(reservationFormError({ capacity_seats: 0, max_party_size: 4 }) ?? "", /Bitte sinnvolle Werte/);
-    assert.match(reservationFormError({ capacity_seats: 20, max_party_size: 0 }) ?? "", /Bitte sinnvolle Werte/);
+    assert.match(reservationFormError({ capacity_seats: 0, max_party_size: 4 }) ?? "", /Ingresá valores válidos/);
+    assert.match(reservationFormError({ capacity_seats: 20, max_party_size: 0 }) ?? "", /Ingresá valores válidos/);
   });
 });

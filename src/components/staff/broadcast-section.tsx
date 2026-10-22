@@ -3,7 +3,7 @@ import { confirmBroadcastOptin } from "@/app/staff/actions";
 import { requireStaff } from "@/lib/auth";
 import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
-import { addDays, fmtDateDE, todayISO } from "@/lib/dates";
+import { addDays, fmtStaffDate, todayISO } from "@/lib/dates";
 import { SITE_URL, unsubscribeUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
@@ -44,9 +44,9 @@ export async function BroadcastSection() {
   if (error) {
     return (
       <section id="verschicken" className="grid scroll-mt-4 gap-3">
-        <h2 className="font-serif text-2xl">An Gäste verschicken</h2>
+        <h2 className="font-serif text-2xl">Enviar a clientes</h2>
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800" role="alert">
-          Die Liste konnte gerade nicht geladen werden. Bitte lade die Seite neu.
+          No pudimos cargar la lista. Actualizá la página.
         </p>
       </section>
     );
@@ -61,34 +61,32 @@ export async function BroadcastSection() {
   return (
     <section id="verschicken" className="grid scroll-mt-4 gap-6">
       <div>
-        <h2 className="font-serif text-2xl">An Gäste verschicken</h2>
+        <h2 className="font-serif text-2xl">Enviar a clientes</h2>
         <p className="text-sm text-muted">
-          Gäste, die Specials per WhatsApp bekommen möchten. Der Knopf „Senden“ öffnet den Chat mit einer fertigen
-          Nachricht, in der der persönliche Abmeldelink dieses Gastes steht. Du verschickst, nicht wir: automatisch geht
-          nichts raus.
+          Clientes que quieren recibir especiales por WhatsApp. «Enviar» abre el chat con un mensaje preparado y el
+          enlace personal para darse de baja. Vos enviás el mensaje; nada se envía automáticamente.
         </p>
       </div>
 
       <div className="card grid gap-3">
-        <h3 className="font-semibold">Warten auf Bestätigung ({pending.length})</h3>
+        <h3 className="font-semibold">Pendientes de confirmación ({pending.length})</h3>
         <p className="text-sm text-muted">
-          Nach der Anmeldung schickt der Gast uns eine WhatsApp. Bestätige erst, wenn sie <strong>von genau dieser
-          Nummer</strong> angekommen ist: Nur so wissen wir, dass sich niemand mit einer fremden Nummer angemeldet hat.
-          Ohne Bestätigung bekommt die Nummer nichts.
+          Después de anotarse, el cliente nos envía un WhatsApp. Confirmá solo si el mensaje llegó <strong>desde ese
+          mismo número</strong>. Así sabemos que nadie anotó un número ajeno. Sin confirmación no se envía nada.
         </p>
         {pending.length === 0 ? (
-          <p className="text-sm text-muted">Gerade wartet niemand.</p>
+          <p className="text-sm text-muted">No hay nadie pendiente.</p>
         ) : (
           <ul className="grid gap-1.5">
             {pending.map((o) => (
               <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
                 <span className="min-w-0 flex-1">
-                  <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
-                  <span className="block text-xs text-muted">Angemeldet am {fmtDateDE(o.consented_at.slice(0, 10))}</span>
+                  <strong>{o.name ?? "Sin nombre"}</strong> <span className="text-muted">{o.phone}</span>
+                  <span className="block text-xs text-muted">Se anotó el {fmtStaffDate(o.consented_at.slice(0, 10))}</span>
                 </span>
                 <form action={confirmBroadcastOptin}>
                   <input type="hidden" name="id" value={o.id} />
-                  <button className="btn-ghost !py-1">Nachricht ist da, bestätigen</button>
+                  <button className="btn-ghost !py-1">Mensaje recibido: confirmar</button>
                 </form>
               </li>
             ))}
@@ -98,22 +96,22 @@ export async function BroadcastSection() {
 
       {!special && confirmed.length > 0 && (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Gerade ist kein Special aktiv. Leg oben eines an, dann steht es in der fertigen Nachricht.
+          No hay especiales activos. Creá uno arriba para incluirlo en el mensaje.
         </p>
       )}
 
       <div className="card grid gap-3">
-        <h3 className="font-semibold">Bestätigt ({confirmed.length})</h3>
+        <h3 className="font-semibold">Confirmados ({confirmed.length})</h3>
         {confirmed.length === 0 ? (
-          <p className="text-sm text-muted">Noch niemand bestätigt.</p>
+          <p className="text-sm text-muted">Todavía no hay nadie confirmado.</p>
         ) : (
           <ul className="grid gap-1.5">
             {confirmed.map((o) => (
               <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
                 <span className="min-w-0 flex-1">
-                  <strong>{o.name ?? "Ohne Namen"}</strong> <span className="text-muted">{o.phone}</span>
+                  <strong>{o.name ?? "Sin nombre"}</strong> <span className="text-muted">{o.phone}</span>
                   <span className="block text-xs text-muted">
-                    Bestätigt am {fmtDateDE(o.confirmed_at!.slice(0, 10))}
+                    Confirmado el {fmtStaffDate(o.confirmed_at!.slice(0, 10))}
                   </span>
                 </span>
                 {special && (
@@ -123,7 +121,7 @@ export async function BroadcastSection() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Senden <ArrowIcon direction="up-right" size={14} />
+                    Enviar <ArrowIcon direction="up-right" size={14} />
                   </a>
                 )}
               </li>

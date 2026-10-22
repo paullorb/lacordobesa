@@ -7,7 +7,7 @@ import type { ActionResult } from "@/app/staff/actions";
 export function SubmitButton({
   children,
   className = "btn-primary",
-  pendingText = "Speichern …",
+  pendingText = "Guardando …",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -26,7 +26,7 @@ export function ActionForm({
   action,
   children,
   className = "grid gap-3",
-  successText = "Gespeichert.",
+  successText = "Guardado.",
 }: {
   action: (prev: ActionResult, fd: FormData) => Promise<ActionResult>;
   children: React.ReactNode;

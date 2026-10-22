@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import { saveWaitlistNotes, setWaitlistStatus } from "@/app/staff/actions";
 import { Disclosure, MoreActions, StaffLoadError, StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { fmtDateDE, todayISO } from "@/lib/dates";
+import { fmtDate, fmtStaffDate, todayISO } from "@/lib/dates";
 import { WAITLIST_STATUS_LABEL } from "@/lib/statuses";
 import type { Tables } from "@/lib/database.types";
 
-export const metadata = { title: "Warteliste" };
+export const metadata = { title: "Lista de espera" };
 
 export default function WaitlistPage() {
   return (
@@ -40,27 +40,27 @@ async function Waitlist() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Warteliste</h1>
-        <p className="text-sm text-muted">Gäste, die an einem ausgebuchten Tag trotzdem kommen wollten.</p>
-        <Disclosure summary="So funktioniert's">
+        <h1 className="font-serif text-3xl">Lista de espera</h1>
+        <p className="text-sm text-muted">Personas que querían venir en un día sin mesas disponibles.</p>
+        <Disclosure summary="Cómo funciona">
           <p className="text-sm text-muted">
-            Die Liste ist pro Tag und nach der Reihenfolge der Anmeldung sortiert. Wird ein Tisch frei, zum Beispiel
-            durch eine Stornierung, biete ihn von oben nach unten an.
+            La lista está ordenada por día y por orden de inscripción. Si se libera una mesa, por ejemplo por una
+            cancelación, ofrecela empezando por la primera persona.
           </p>
         </Disclosure>
       </div>
 
       {waitingCount > 0 && (
         <p className="card border-amber-200 bg-amber-50 text-sm font-semibold">
-          {waitingCount} {waitingCount === 1 ? "Gast wartet" : "Gäste warten"} auf einen Tisch.
+          {waitingCount} {waitingCount === 1 ? "persona espera" : "personas esperan"} una mesa.
         </p>
       )}
 
-      {days.length === 0 && <p className="card text-sm text-muted">Niemand steht auf der Warteliste.</p>}
+      {days.length === 0 && <p className="card text-sm text-muted">No hay nadie en la lista de espera.</p>}
 
       {days.map((date) => (
         <section key={date} className="grid gap-2">
-          <h2 className="border-b border-line pb-1 font-serif text-xl">{fmtDateDE(date, { weekday: "long" })}</h2>
+          <h2 className="border-b border-line pb-1 font-serif text-xl">{fmtStaffDate(date, { weekday: "long" })}</h2>
           {entries
             .filter((e) => e.date === date)
             .map((entry, index) => (
@@ -74,7 +74,7 @@ async function Waitlist() {
 
 function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; position: number }) {
   const isLive = e.status === "waiting" || e.status === "notified";
-  const offer = `Hola ${e.name}! Bei La Cordobesa ist für ${fmtDateDE(e.date, { weekday: undefined })} ein Tisch für ${e.party_size} ${
+  const offer = `Hola ${e.name}! Bei La Cordobesa ist für ${fmtDate(e.date, "de", { weekday: undefined })} ein Tisch für ${e.party_size} ${
     e.party_size === 1 ? "Person" : "Personen"
   } frei geworden. Passt das noch bei dir?`;
 
@@ -86,11 +86,11 @@ function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; posi
             <strong className="font-serif text-xl tabular-nums">{position}.</strong>
             <span className="font-semibold">{e.name}</span>
             <span className="text-sm">
-              {e.party_size} {e.party_size === 1 ? "Person" : "Pers."}
+              {e.party_size} {e.party_size === 1 ? "persona" : "personas"}
             </span>
             <span className={`status status-${e.status}`}>{WAITLIST_STATUS_LABEL[e.status]}</span>
           </div>
-          {e.time_preference && <div className="text-sm text-muted">Wunsch: {e.time_preference}</div>}
+          {e.time_preference && <div className="text-sm text-muted">Preferencia: {e.time_preference}</div>}
           <div className="text-sm text-muted">
             <a href={`tel:${e.phone}`} className="hover:text-blue-dark">
               {e.phone}
@@ -107,19 +107,19 @@ function Entry({ entry: e, position }: { entry: Tables<"waitlist_entries">; posi
         </div>
         <div className="flex flex-wrap items-start gap-1.5">
           {/* "notified" (Angerufen) is no longer set from here; rows already in it still count as live. */}
-          {isLive && <WhatsAppButton phone={e.phone} text={offer} label="Tisch anbieten" />}
+          {isLive && <WhatsAppButton phone={e.phone} text={offer} label="Ofrecer mesa" />}
           {isLive && (
-            <StatusButton action={setWaitlistStatus} id={e.id} status="converted" label="Hat einen Tisch" primary />
+            <StatusButton action={setWaitlistStatus} id={e.id} status="converted" label="Mesa asignada" primary />
           )}
-          {isLive && <StatusButton action={setWaitlistStatus} id={e.id} status="cancelled" label="Abgesagt" danger />}
+          {isLive && <StatusButton action={setWaitlistStatus} id={e.id} status="cancelled" label="Cancelar" danger />}
           {!isLive && (
             <MoreActions>
-              <StatusButton action={setWaitlistStatus} id={e.id} status="waiting" label="Wieder öffnen" />
+              <StatusButton action={setWaitlistStatus} id={e.id} status="waiting" label="Reabrir" />
             </MoreActions>
           )}
         </div>
       </div>
-      <StaffNotesForm action={saveWaitlistNotes} id={e.id} value={e.staff_notes} placeholder="Interne Notiz" />
+      <StaffNotesForm action={saveWaitlistNotes} id={e.id} value={e.staff_notes} placeholder="Nota interna" />
     </article>
   );
 }

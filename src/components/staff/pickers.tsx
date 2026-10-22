@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowIcon } from "@/components/icons";
-import { fmtDateDE, monthRange, shiftMonth, todayISO } from "@/lib/dates";
+import { fmtStaffDate, monthRange, shiftMonth, todayISO } from "@/lib/dates";
 
 /**
  * Date and time fields for the staff area.
@@ -19,7 +19,7 @@ import { fmtDateDE, monthRange, shiftMonth, todayISO } from "@/lib/dates";
  */
 
 /** Monday first. Not WEEKDAYS_DE from lib/data, which would pull its cached server reads into this bundle. */
-const HEADS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const HEADS = ["lu", "ma", "mi", "ju", "vi", "sá", "do"];
 
 const FINE = "(pointer: fine)";
 const subscribe = (onChange: () => void) => {
@@ -148,7 +148,7 @@ export function TimeField({ step = 15, ...props }: FieldProps & { step?: number 
         inputMode="numeric"
         placeholder="--:--"
         pattern="([01]\d|2[0-3]):[0-5]\d"
-        title="Uhrzeit als HH:MM"
+        title="Hora en formato HH:MM"
         autoComplete="off"
         required={props.required}
         disabled={props.disabled}
@@ -231,7 +231,7 @@ export function DateField(props: FieldProps) {
   const lead = (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7;
   const days = Array.from({ length: Number(last.slice(8, 10)) }, (_, i) => `${shown}-${String(i + 1).padStart(2, "0")}`);
   const allowed = (iso: string) => (!props.min || iso >= props.min) && (!props.max || iso <= props.max);
-  const title = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${first}T00:00:00Z`));
+  const title = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${first}T00:00:00Z`));
 
   return (
     <div ref={box} className={`picker ${props.className ?? ""}`}>
@@ -258,16 +258,16 @@ export function DateField(props: FieldProps) {
           setOpen((o) => !o);
         }}
       >
-        <span className={value ? "" : "text-muted"}>{value ? fmtDateDE(value, { weekday: "short" }) : "Datum wählen"}</span>
+        <span className={value ? "" : "text-muted"}>{value ? fmtStaffDate(value, { weekday: "short" }) : "Elegir fecha"}</span>
       </button>
       {open && (
-        <div role="dialog" aria-label="Datum wählen" className="picker-pop picker-calendar">
+        <div role="dialog" aria-label="Elegir fecha" className="picker-pop picker-calendar">
           <div className="mb-1 flex items-center justify-between">
-            <button type="button" className="btn-ghost" aria-label="Vorheriger Monat" onClick={() => setMonth(shiftMonth(shown, -1))}>
+            <button type="button" className="btn-ghost" aria-label="Mes anterior" onClick={() => setMonth(shiftMonth(shown, -1))}>
               <ArrowIcon direction="left" size={16} />
             </button>
             <strong className="text-sm">{title}</strong>
-            <button type="button" className="btn-ghost" aria-label="Nächster Monat" onClick={() => setMonth(shiftMonth(shown, 1))}>
+            <button type="button" className="btn-ghost" aria-label="Mes siguiente" onClick={() => setMonth(shiftMonth(shown, 1))}>
               <ArrowIcon direction="right" size={16} />
             </button>
           </div>
@@ -284,7 +284,7 @@ export function DateField(props: FieldProps) {
                 type="button"
                 disabled={!allowed(iso)}
                 aria-pressed={iso === value}
-                aria-label={fmtDateDE(iso, { weekday: "long" })}
+                aria-label={fmtStaffDate(iso, { weekday: "long" })}
                 className="picker-day"
                 onClick={() => {
                   setValue(iso);
@@ -297,7 +297,7 @@ export function DateField(props: FieldProps) {
           </div>
           {!props.required && value && (
             <button type="button" className="mt-1 text-xs text-muted underline" onClick={() => { setValue(""); setOpen(false); }}>
-              Leeren
+              Borrar
             </button>
           )}
         </div>

@@ -79,7 +79,7 @@ describe("staff view", () => {
     assert.deepEqual(bars, [
       { label: "a", value: 10 },
       { label: "b", value: 9 },
-      { label: "Weitere", value: 15 },
+      { label: "Otros", value: 15 },
     ]);
   });
 
@@ -105,32 +105,32 @@ describe("staff view", () => {
  */
 describe("pageLabel", () => {
   test("names the German pages", () => {
-    assert.equal(pageLabel("/"), "Startseite");
-    assert.equal(pageLabel("/karte"), "Karte");
-    assert.equal(pageLabel("/gallery"), "Galerie");
-    assert.equal(pageLabel("/catering"), "Feiern und Catering");
+    assert.equal(pageLabel("/"), "Inicio");
+    assert.equal(pageLabel("/karte"), "Carta");
+    assert.equal(pageLabel("/gallery"), "Galería");
+    assert.equal(pageLabel("/catering"), "Eventos y catering");
   });
 
   test("tags the Spanish and English pages instead of repeating the name", () => {
-    assert.equal(pageLabel("/es/karte"), "Karte (ES)");
-    assert.equal(pageLabel("/en/karte"), "Karte (EN)");
-    assert.equal(pageLabel("/es/gallery"), "Galerie (ES)");
+    assert.equal(pageLabel("/es/karte"), "Carta (ES)");
+    assert.equal(pageLabel("/en/karte"), "Carta (EN)");
+    assert.equal(pageLabel("/es/gallery"), "Galería (ES)");
   });
 
   test("names a prefixed home page as a home page", () => {
-    assert.equal(pageLabel("/es"), "Startseite (ES)");
-    assert.equal(pageLabel("/en"), "Startseite (EN)");
+    assert.equal(pageLabel("/es"), "Inicio (ES)");
+    assert.equal(pageLabel("/en"), "Inicio (EN)");
   });
 
   test("names the collapsed token buckets, which is where most guests land from a mail", () => {
-    assert.equal(pageLabel("/reservierung/*"), "Reservierung verwalten");
-    assert.equal(pageLabel("/vorbestellung/*"), "Vorbestellung verwalten");
-    assert.equal(pageLabel("/abmelden/*"), "Specials abmelden");
-    assert.equal(pageLabel("/es/reservierung/*"), "Reservierung verwalten (ES)");
+    assert.equal(pageLabel("/reservierung/*"), "Gestionar reserva");
+    assert.equal(pageLabel("/vorbestellung/*"), "Gestionar pedido");
+    assert.equal(pageLabel("/abmelden/*"), "Cancelar novedades");
+    assert.equal(pageLabel("/es/reservierung/*"), "Gestionar reserva (ES)");
   });
 
   test("names the catch-all bucket", () => {
-    assert.equal(pageLabel(OTHER_PATH), "Sonstige Seiten");
+    assert.equal(pageLabel(OTHER_PATH), "Otras páginas");
   });
 
   test("falls back to the path itself, never to undefined", () => {

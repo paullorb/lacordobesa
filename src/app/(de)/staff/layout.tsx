@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   // Its own manifest, name and home-screen tile, so it installs beside the public site, not over it.
   manifest: APPS.staff.path,
   icons: { icon: [...ICONS.favicon], apple: APPS.staff.appleIcon },
-  title: { default: "Team", template: "%s · La Cordobesa Team" },
+  title: { default: "Equipo", template: "%s · La Cordobesa Equipo" },
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, statusBarStyle: "default", title: APPS.staff.shortName },
 };
@@ -22,12 +22,12 @@ export const viewport: Viewport = { themeColor: APPS.staff.themeColor };
 
 export default function StaffLayout({ children }: LayoutProps<"/staff">) {
   return (
-    <div className="staff">
+    <div className="staff" lang="es-AR">
       <header className="sticky top-0 z-10 border-b border-line bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/staff" className="flex items-center gap-2 font-serif text-lg">
             <Logo className="h-8 w-8" />
-            La Cordobesa <span className="text-xs font-sans font-bold uppercase tracking-wider text-muted">Team</span>
+            La Cordobesa <span className="text-xs font-sans font-bold uppercase tracking-wider text-muted">Equipo</span>
           </Link>
           {/* Reads the session, so it streams in; the rest of the chrome stays static. */}
           <Suspense fallback={null}>

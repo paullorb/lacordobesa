@@ -53,8 +53,8 @@ describe("signing in", () => {
   test("the sign-in form is usable by name, not by CSS class", { skip: skipAnon }, async () => {
     await visit("/staff/login", {
       body: async ({ page }) => {
-        await page.getByLabel(/name/i).first().waitFor();
-        await page.getByLabel(/passwort/i).first().waitFor();
+        await page.getByLabel(/nombre de usuario/i).first().waitFor();
+        await page.getByLabel(/contraseña/i).first().waitFor();
       },
     });
   });
@@ -80,14 +80,14 @@ describe("every staff page loads for a signed-in member of the team", () => {
 
 describe("the navigation says where you are", () => {
   const cases = [
-    ["/staff", "Heute"],
-    ["/staff/reservierungen", "Tische"],
-    ["/staff/oeffnungszeiten", "Tische"],
-    ["/staff/vorbestellungen", "Bestellungen"],
-    ["/staff/karte", "Website"],
-    ["/staff/gallery", "Website"],
-    ["/staff/zahlen", "Zahlen"],
-    ["/staff/einstellungen", "Einstellungen"],
+    ["/staff", "Hoy"],
+    ["/staff/reservierungen", "Mesas"],
+    ["/staff/oeffnungszeiten", "Mesas"],
+    ["/staff/vorbestellungen", "Pedidos"],
+    ["/staff/karte", "Sitio web"],
+    ["/staff/gallery", "Sitio web"],
+    ["/staff/zahlen", "Estadísticas"],
+    ["/staff/einstellungen", "Ajustes"],
   ];
 
   for (const [path, area] of cases) {
@@ -95,7 +95,7 @@ describe("the navigation says where you are", () => {
       await visit(path, {
         staff: true,
         body: async ({ page }) => {
-          const current = page.locator('nav[aria-label="Bereiche"] a[aria-current]');
+          const current = page.locator('nav[aria-label="Secciones"] a[aria-current]');
           assert.equal(await current.count(), 1, "exactly one area should be marked current");
           assert.equal((await current.textContent()).trim(), area);
         },
@@ -109,12 +109,12 @@ describe("the navigation says where you are", () => {
       body: async ({ page }) => {
         // Tische leads to Reservierungen, so the tab is "true" and the sub-link is "page".
         assert.equal(
-          await page.locator('nav[aria-label="Bereiche"] a[aria-current="true"]').count(),
+          await page.locator('nav[aria-label="Secciones"] a[aria-current="true"]').count(),
           1,
           "the area tab leads elsewhere, so it is current but not the page",
         );
-        const page_ = page.locator('nav[aria-label="Tische"] a[aria-current="page"]');
-        assert.equal((await page_.textContent()).trim(), "Warteliste");
+        const page_ = page.locator('nav[aria-label="Mesas"] a[aria-current="page"]');
+        assert.equal((await page_.textContent()).trim(), "Lista de espera");
       },
     });
   });
@@ -129,12 +129,12 @@ describe("Einstellungen holds four decisions, and Team-Zugänge has its own page
           els.map((e) => e.getAttribute("name")).filter((n) => !n.startsWith("$ACTION")).sort(), // Next's own hidden inputs
         );
         assert.deepEqual(names, ["announcement", "capacity_seats", "enabled", "max_party_size", "preorders_enabled"]);
-        assert.equal(await page.getByRole("button", { name: "Speichern", exact: true }).count(), 1);
-        for (const label of ["Hinweiszeile ganz oben", "Sitzplätze gesamt", "Max. Personen online"]) {
+        assert.equal(await page.getByRole("button", { name: "Guardar", exact: true }).count(), 1);
+        for (const label of ["Aviso en la parte superior", "Capacidad total", "Máximo de personas por reserva en línea"]) {
           assert.equal(await page.getByLabel(label, { exact: false }).count(), 1, label);
         }
         assert.equal(await page.getByText("Datenbank-Migration").count(), 0, "the migration banner is gone");
-        assert.equal(await page.getByText("Team-Zugänge", { exact: true }).count(), 0, "the account list moved to /staff/team");
+        assert.equal(await page.getByText("Accesos del equipo", { exact: true }).count(), 0, "the account list moved to /staff/team");
       },
     });
   });
@@ -144,7 +144,7 @@ describe("Einstellungen holds four decisions, and Team-Zugänge has its own page
     await visit("/staff/einstellungen", {
       staff: true,
       body: async ({ page }) => {
-        const link = page.getByRole("link", { name: "Team-Zugänge verwalten" });
+        const link = page.getByRole("link", { name: "Administrar accesos del equipo" });
         assert.equal(await link.count(), 1);
         assert.equal(await link.getAttribute("href"), "/staff/team");
       },
@@ -159,7 +159,7 @@ describe("Einstellungen holds four decisions, and Team-Zugänge has its own page
         assert.ok((await page.locator("main ul li").count()) > 0, "no accounts listed");
         assert.equal(await page.locator("#new-username").count(), 1);
         assert.equal(await page.locator("#new-password").count(), 1);
-        assert.equal(await page.getByRole("button", { name: "Anlegen", exact: true }).count(), 1);
+        assert.equal(await page.getByRole("button", { name: "Crear", exact: true }).count(), 1);
       },
     });
   });
@@ -170,8 +170,8 @@ describe("Heute is the one-glance page", () => {
     await visit("/staff", {
       staff: true,
       body: async ({ page }) => {
-        assert.equal(await page.locator('main [aria-label="Vorheriger Monat"]').count(), 0, "the month calendar is back on Heute");
-        const link = page.getByRole("link", { name: "Alle Reservierungen und Kalender" });
+        assert.equal(await page.locator('main [aria-label="Mes anterior"]').count(), 0, "the month calendar is back on Heute");
+        const link = page.getByRole("link", { name: "Ver todas las reservas y el calendario" });
         assert.equal(await link.getAttribute("href"), "/staff/reservierungen");
       },
     });
@@ -195,8 +195,8 @@ describe("the menu editor", () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
-        const pill = page.locator('nav[aria-label="Website"] a[aria-current="page"]');
-        assert.equal((await pill.textContent()).trim(), "Karte", "at the top the pill just says Karte");
+        const pill = page.locator('nav[aria-label="Sitio web"] a[aria-current="page"]');
+        assert.equal((await pill.textContent()).trim(), "Menú", "at the top the pill just says Karte");
         // The second category, so the first is certainly above the header line.
         const target = page.locator("[data-arrange-cat]").nth(1);
         const label = await target.getAttribute("data-cat-label");
@@ -204,11 +204,11 @@ describe("the menu editor", () => {
           window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 150, behavior: "instant" }),
         );
         await page.waitForFunction(
-          () => document.querySelector('nav[aria-label="Website"] a[aria-current="page"]')?.getAttribute("aria-label")?.startsWith("Karte: "),
+          () => document.querySelector('nav[aria-label="Sitio web"] a[aria-current="page"]')?.getAttribute("aria-label")?.startsWith("Menú: "),
           null,
           { timeout: 5000 },
         );
-        assert.equal(await pill.getAttribute("aria-label"), `Karte: ${label}`);
+        assert.equal(await pill.getAttribute("aria-label"), `Menú: ${label}`);
       },
     });
   });
@@ -254,7 +254,7 @@ describe("the menu editor", () => {
         assert.ok(labels.length > 0, "no availability buttons found");
         for (const label of labels) {
           assert.ok(
-            /melden|anbieten/.test(label),
+            /Marcar agotado|Volver a ofrecer/.test(label),
             `"${label}" next to a dish reads as that dish being sold out, rather than as the button that marks it`,
           );
         }
@@ -288,12 +288,12 @@ describe("the menu editor", () => {
       body: async ({ page }) => {
         assert.equal(await page.locator("[data-handle]").count(), 0, "drag handles on the calm list");
         assert.equal(await page.locator("#startseite-title").count(), 0, "the Startseite zone on the calm list");
-        const toggle = page.getByRole("button", { name: "Anordnen", exact: true });
+        const toggle = page.getByRole("button", { name: "Ordenar", exact: true });
         assert.equal(await toggle.getAttribute("aria-pressed"), "false");
         await startArranging(page);
         assert.ok((await page.locator("[data-handle]").count()) > 0, "no drag handles while arranging");
         assert.equal(await page.locator("#startseite-title").count(), 1, "no Startseite zone while arranging");
-        const done = page.getByRole("button", { name: "Fertig", exact: true });
+        const done = page.getByRole("button", { name: "Listo", exact: true });
         assert.equal(await done.getAttribute("aria-pressed"), "true");
         await done.click();
         await page.waitForTimeout(300);
@@ -323,7 +323,7 @@ describe("the menu editor", () => {
     await visit("/staff/karte", {
       staff: true,
       body: async ({ page }) => {
-        const header = page.locator('main details:has(> summary:has-text("Kategorie bearbeiten"))').first();
+        const header = page.locator('main details:has(> summary:has-text("Editar categoría"))').first();
         await header.locator("> summary").click();
         const form = header.locator("form").first();
         const visible = await form.locator("input:not([type=hidden])").evaluateAll((els) =>
@@ -331,7 +331,7 @@ describe("the menu editor", () => {
         );
         assert.deepEqual(visible, ["label"]);
         const more = form.locator("details").first();
-        assert.equal((await more.locator("> summary").textContent()).trim(), "Mehr");
+        assert.equal((await more.locator("> summary").textContent()).trim(), "Más");
         assert.equal(await more.evaluate((el) => el.open), false, "Mehr starts open");
         // Closed, yet still submitted with the form.
         const submitted = await form.evaluate((f) => [...new FormData(f).keys()]);
@@ -369,7 +369,7 @@ describe("sending lives on the specials page", () => {
         assert.match(new URL(page.url()).pathname, /^\/staff\/specials$/);
         const section = page.locator("main section#verschicken");
         assert.equal(await section.count(), 1);
-        assert.equal(await section.getByRole("heading", { name: "An Gäste verschicken" }).count(), 1);
+        assert.equal(await section.getByRole("heading", { name: "Enviar a clientes" }).count(), 1);
       },
     });
   });
@@ -401,7 +401,7 @@ describe("the opening hours page", () => {
     await visit("/staff/oeffnungszeiten", {
       staff: true,
       body: async ({ page }) => {
-        assert.equal(await page.getByRole("link", { name: "Nächster Monat" }).count(), 0);
+        assert.equal(await page.getByRole("link", { name: "Mes siguiente" }).count(), 0);
       },
     });
   });
@@ -455,7 +455,7 @@ describe("the opening hours editor", () => {
         // disables the day buttons. Test the rule itself, which is what the shop cares about —
         // the earliest day the picker will let you choose is today.
         const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
-        const thisMonth = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric", timeZone: "Europe/Berlin" }).format(new Date());
+        const thisMonth = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric", timeZone: "Europe/Berlin" }).format(new Date());
 
         for (const id of ["#cl-from", "#cl-to"]) {
           await page.locator(id).click();
@@ -485,7 +485,7 @@ describe("today's page", () => {
       staff: true,
       body: async ({ page }) => {
         const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
-        const expected = new Intl.DateTimeFormat("de-DE", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" })
+        const expected = new Intl.DateTimeFormat("es-AR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" })
           .format(new Date(`${today}T00:00:00Z`));
         const heading = await page.locator("main h1").textContent();
         assert.ok(heading.includes(expected), `the page says "${heading.trim()}", today is ${expected}`);

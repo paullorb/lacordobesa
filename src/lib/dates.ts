@@ -69,8 +69,12 @@ export function fmtDate(iso: string, locale: Locale, opts: Intl.DateTimeFormatOp
   }).format(new Date(`${iso}T00:00:00Z`));
 }
 
-/** German dates, for the staff app, which is not translated: the team works in German. */
+/** German dates retained for German public copy and compatibility with existing date tests. */
 export const fmtDateDE = (iso: string, opts: Intl.DateTimeFormatOptions = {}) => fmtDate(iso, "de", opts);
+
+/** Argentine Spanish dates throughout the staff app. */
+export const fmtStaffDate = (iso: string, opts: Intl.DateTimeFormatOptions = {}) => fmtDate(iso, "es", opts);
+export const STAFF_WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
 // ---------------------------------------------------------------- months
 // Month maths used by the staff calendar. These lived in components/staff/month-calendar.tsx,

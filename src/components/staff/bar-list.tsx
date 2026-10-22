@@ -25,7 +25,7 @@ export function BarList({
     return (
       <figure className="m-0">
         <figcaption className="mb-2 text-sm font-semibold">{caption}</figcaption>
-        <p className="text-sm text-muted">Dafür gibt es noch keine Daten.</p>
+        <p className="text-sm text-muted">Todavía no hay datos.</p>
       </figure>
     );
   }
@@ -36,7 +36,7 @@ export function BarList({
       <table className="w-full border-collapse text-sm">
         <thead className="sr-only">
           <tr>
-            <th scope="col">Kategorie</th>
+            <th scope="col">Categoría</th>
             <th scope="col">{valueLabel}</th>
           </tr>
         </thead>

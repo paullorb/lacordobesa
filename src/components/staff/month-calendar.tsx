@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ArrowIcon } from "@/components/icons";
 import { DayPending } from "@/components/staff/day-pending";
-import { WEEKDAYS_DE } from "@/lib/data";
-import { fmtDateDE, monthRange, shiftMonth } from "@/lib/dates";
+import { fmtStaffDate, monthRange, shiftMonth, STAFF_WEEKDAYS } from "@/lib/dates";
 
 export type DayInfo = {
   /** confirmed + pending reservations */
@@ -34,7 +33,7 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
   const firstDow = new Date(`${first}T00:00:00Z`).getUTCDay(); // 0 = Sunday
   const leading = (firstDow + 6) % 7; // cells before the 1st, Monday-based
   const daysInMonth = Number(last.slice(8, 10));
-  const title = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+  const title = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
     new Date(`${first}T00:00:00Z`),
   );
 
@@ -45,18 +44,18 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
   return (
     <div className="card p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between">
-        <Link href={hrefForMonth(shiftMonth(month, -1))} className="btn-ghost" aria-label="Vorheriger Monat">
+        <Link href={hrefForMonth(shiftMonth(month, -1))} className="btn-ghost" aria-label="Mes anterior">
           <ArrowIcon direction="left" size={18} />
         </Link>
         <strong className="font-serif text-lg">{title}</strong>
-        <Link href={hrefForMonth(shiftMonth(month, 1))} className="btn-ghost" aria-label="Nächster Monat">
+        <Link href={hrefForMonth(shiftMonth(month, 1))} className="btn-ghost" aria-label="Mes siguiente">
           <ArrowIcon direction="right" size={18} />
         </Link>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
         {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
           <div key={wd} className="pb-1 text-xs font-bold uppercase tracking-wider text-muted">
-            {WEEKDAYS_DE[wd].slice(0, 2)}
+            {STAFF_WEEKDAYS[wd].slice(0, 2)}
           </div>
         ))}
         {cells.map((date, i) => {
@@ -83,8 +82,8 @@ export function MonthCalendar({ month, today, selected, days, weeklyClosed = [],
               // puts utilities in @layer utilities, which unlayered CSS always beats. Without this
               // the selected day is ink on ink, i.e. today's date is invisible once you click it.
               style={isSel ? { color: "white" } : undefined}
-              title={`${fmtDateDE(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": geschlossen" : ""}`}
-              aria-label={`${fmtDateDE(date, { weekday: "long" })}${closed ? ", geschlossen" : ""}`}
+              title={`${fmtStaffDate(date)}${info.closedReason ? `: ${info.closedReason}` : closed ? ": cerrado" : ""}`}
+              aria-label={`${fmtStaffDate(date, { weekday: "long" })}${closed ? ", cerrado" : ""}`}
             >
               {/* coral-text, not coral: white on the graphic coral is 2.75:1, and the one number
                   on this grid that has to be found at a glance is today's. */}

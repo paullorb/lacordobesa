@@ -10,7 +10,7 @@ test("/staff/signup rejects a visitor without the shared link", { skip }, async 
   await visit("/staff/signup", {
     body: async ({ page }) => {
       await page.getByText(/could not be found|nicht gefunden/i).first().waitFor();
-      assert.equal(await page.getByRole("button", { name: "Zugang anlegen" }).count(), 0);
+      assert.equal(await page.getByRole("button", { name: "Crear acceso" }).count(), 0);
     },
   });
 });
@@ -19,9 +19,10 @@ test("the shared signup link shows a name and password form", { skip: skip || !p
   await visit(`/staff/signup?key=${encodeURIComponent(process.env.STAFF_SIGNUP_TOKEN)}`, {
     body: async ({ page, response }) => {
       assert.equal(response.status(), 200);
-      await page.getByLabel("Name zum Anmelden").waitFor();
-      await page.getByLabel("Passwort").waitFor();
-      await page.getByRole("button", { name: "Zugang anlegen" }).waitFor();
+      assert.equal(await page.locator(".staff").getAttribute("lang"), "es-AR");
+      await page.getByLabel("Nombre de usuario").waitFor();
+      await page.getByLabel("Contraseña").waitFor();
+      await page.getByRole("button", { name: "Crear acceso" }).waitFor();
     },
   });
 });

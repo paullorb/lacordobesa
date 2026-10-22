@@ -16,51 +16,51 @@ const SCROLL_THRESHOLD = 120;
 // second row. A tab with one page for the viewer has no second row. The /staff/team and
 // /staff/specials routes are plain links on purpose: this file does not import them.
 const GROUPS: Group[] = [
-  { label: "Heute", icon: "today", items: [{ href: "/staff", label: "Heute", icon: "today" }] },
+  { label: "Hoy", icon: "today", items: [{ href: "/staff", label: "Hoy", icon: "today" }] },
   // Everything that decides who sits where and when: bookings, the waitlist, celebrations, and the
   // opening hours that say which slots exist at all.
   {
-    label: "Tische",
+    label: "Mesas",
     icon: "guests",
     items: [
-      { href: "/staff/reservierungen", label: "Reservierungen", icon: "reservations" },
-      { href: "/staff/warteliste", label: "Warteliste", icon: "waitlist" },
-      { href: "/staff/anfragen", label: "Feier-Anfragen", icon: "celebrate" },
-      { href: "/staff/oeffnungszeiten", label: "Öffnungszeiten", icon: "hours" },
+      { href: "/staff/reservierungen", label: "Reservas", icon: "reservations" },
+      { href: "/staff/warteliste", label: "Lista de espera", icon: "waitlist" },
+      { href: "/staff/anfragen", label: "Eventos", icon: "celebrate" },
+      { href: "/staff/oeffnungszeiten", label: "Horarios", icon: "hours" },
     ],
   },
   {
-    label: "Bestellungen",
+    label: "Pedidos",
     icon: "preorder",
-    items: [{ href: "/staff/vorbestellungen", label: "Vorbestellungen", icon: "preorder" }],
+    items: [{ href: "/staff/vorbestellungen", label: "Pedidos anticipados", icon: "preorder" }],
   },
   {
-    label: "Website",
+    label: "Sitio web",
     icon: "content",
     items: [
-      { href: MENU_HREF, label: "Karte", icon: "menu" },
+      { href: MENU_HREF, label: "Menú", icon: "menu" },
       // Specials and sending them to the guests who asked for them are one page.
       { href: "/staff/specials", label: "Specials", icon: "specials" },
-      { href: "/staff/gallery", label: "Galerie", icon: "gallery" },
+      { href: "/staff/gallery", label: "Galería", icon: "gallery" },
       // The review scores on the site are the agency's business, not the restaurant's.
-      { href: "/staff/bewertungen", label: "Bewertungen", icon: "reviews", adminOnly: true },
+      { href: "/staff/bewertungen", label: "Reseñas", icon: "reviews", adminOnly: true },
     ],
   },
   {
-    label: "Zahlen",
+    label: "Estadísticas",
     icon: "stats",
     items: [
-      { href: "/staff/zahlen", label: "Zahlen", icon: "stats" },
+      { href: "/staff/zahlen", label: "Estadísticas", icon: "stats" },
       // The website's own analytics are the agency's business, not the restaurant's.
-      { href: "/staff/besucher", label: "Besucher", icon: "visitors", adminOnly: true },
+      { href: "/staff/besucher", label: "Visitantes", icon: "visitors", adminOnly: true },
     ],
   },
   {
-    label: "Einstellungen",
+    label: "Ajustes",
     icon: "settings",
     items: [
-      { href: "/staff/einstellungen", label: "Einstellungen", icon: "settings" },
-      { href: "/staff/team", label: "Team", icon: "guests", adminOnly: true },
+      { href: "/staff/einstellungen", label: "Ajustes", icon: "settings" },
+      { href: "/staff/team", label: "Equipo", icon: "guests", adminOnly: true },
     ],
   },
 ];
@@ -136,7 +136,7 @@ export function StaffNav({ isAdmin }: { isAdmin: boolean }) {
   const scrolled = useScrolledCategory(isActive(pathname, MENU_HREF));
   return (
     <>
-      <nav aria-label="Bereiche" className={row}>
+      <nav aria-label="Secciones" className={row}>
         {groups.map((g) => {
           const active = g === current;
           return (
@@ -159,7 +159,7 @@ export function StaffNav({ isAdmin }: { isAdmin: boolean }) {
           rel="noreferrer"
           className={`${pill} ml-auto text-blue-dark hover:bg-mint`}
         >
-          Seite ansehen <ArrowIcon direction="up-right" size={14} />
+          Ver sitio web <ArrowIcon direction="up-right" size={14} />
         </a>
       </nav>
       {current && current.items.length > 1 && (

@@ -2,12 +2,20 @@ import { Suspense } from "react";
 import { saveInquiryNotes, setInquiryStatus } from "@/app/staff/actions";
 import { MoreActions, StaffLoadError, StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { fmtDateDE } from "@/lib/dates";
-import { budgetLabel, occasionLabel } from "@/lib/events";
+import { fmtStaffDate } from "@/lib/dates";
 import { INQUIRY_STATUS_LABEL } from "@/lib/statuses";
 import type { Tables } from "@/lib/database.types";
 
-export const metadata = { title: "Feier-Anfragen" };
+export const metadata = { title: "Consultas para eventos" };
+
+const OCCASIONS: Record<string, string> = {
+  geburtstag: "Cumpleaños", firmenfeier: "Evento de empresa", taufe: "Bautismo o comunión",
+  hochzeit: "Boda", catering: "Catering para retirar o entregar", andere: "Otro evento",
+};
+const BUDGETS: Record<string, string> = {
+  unsicher: "Aún sin definir", "bis-500": "hasta 500 €", "500-1000": "500 a 1.000 €",
+  "1000-2500": "1.000 a 2.500 €", "ueber-2500": "más de 2.500 €",
+};
 
 export default function InquiriesPage() {
   return (
@@ -35,13 +43,13 @@ async function Inquiries() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-serif text-3xl">Feier-Anfragen</h1>
-        <p className="text-sm text-muted">Anfragen für Feiern und Catering, am besten in ein, zwei Tagen beantworten.</p>
+        <h1 className="font-serif text-3xl">Consultas para eventos</h1>
+        <p className="text-sm text-muted">Consultas para celebraciones y catering. Conviene responder en uno o dos días.</p>
       </div>
 
       {fresh > 0 && (
         <p className="card border-amber-200 bg-amber-50 text-sm font-semibold">
-          {fresh} neue {fresh === 1 ? "Anfrage" : "Anfragen"} warten auf eine Antwort.
+          {fresh} {fresh === 1 ? "consulta nueva espera" : "consultas nuevas esperan"} una respuesta.
         </p>
       )}
 
@@ -49,13 +57,13 @@ async function Inquiries() {
         {live.length > 0 ? (
           live.map((i) => <InquiryCard key={i.id} inquiry={i} />)
         ) : (
-          <p className="card text-sm text-muted">Keine offenen Anfragen.</p>
+          <p className="card text-sm text-muted">No hay consultas pendientes.</p>
         )}
       </div>
 
       {closed.length > 0 && (
         <details>
-          <summary className="cursor-pointer text-sm font-semibold">Abgeschlossen ({closed.length})</summary>
+          <summary className="cursor-pointer text-sm font-semibold">Cerradas ({closed.length})</summary>
           <div className="mt-3 grid gap-3">
             {closed.map((i) => (
               <InquiryCard key={i.id} inquiry={i} />
@@ -76,12 +84,12 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <strong className="font-serif text-xl">{occasionLabel(i.occasion)}</strong>
+            <strong className="font-serif text-xl">{OCCASIONS[i.occasion] ?? i.occasion}</strong>
             <span className={`status status-${i.status}`}>{INQUIRY_STATUS_LABEL[i.status]}</span>
           </div>
           <div className="text-xs text-muted">
-            {i.event_date ? fmtDateDE(i.event_date) : "Datum noch offen"}
-            {i.guests ? ` · ca. ${i.guests} Personen` : ""} · Rahmen: {budgetLabel(i.budget_band)}
+            {i.event_date ? fmtStaffDate(i.event_date) : "Fecha por definir"}
+            {i.guests ? ` · aprox. ${i.guests} personas` : ""} · Presupuesto: {BUDGETS[i.budget_band] ?? i.budget_band}
           </div>
           <div className="mt-1 font-semibold">{i.name}</div>
           <div className="text-sm text-muted">
@@ -97,21 +105,21 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
               </>
             )}
           </div>
-          <div className="text-xs text-muted">Angefragt am {fmtDateDE(i.created_at.slice(0, 10))}</div>
+          <div className="text-xs text-muted">Consulta recibida el {fmtStaffDate(i.created_at.slice(0, 10))}</div>
         </div>
         <div className="flex flex-wrap items-start gap-1.5">
           {isLive && <WhatsAppButton phone={i.phone} text={greeting} />}
           {/* "quoted" (Angebot raus) is no longer set from here; rows already in it are live and finish like any other. */}
           {i.status === "new" && (
-            <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Übernehmen" primary />
+            <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Tomar consulta" primary />
           )}
           {isLive && i.status !== "new" && (
-            <StatusButton action={setInquiryStatus} id={i.id} status="won" label="Gewonnen" primary />
+            <StatusButton action={setInquiryStatus} id={i.id} status="won" label="Aceptada" primary />
           )}
-          {isLive && <StatusButton action={setInquiryStatus} id={i.id} status="lost" label="Verloren" danger />}
+          {isLive && <StatusButton action={setInquiryStatus} id={i.id} status="lost" label="No concretada" danger />}
           {!isLive && (
             <MoreActions>
-              <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Wieder öffnen" />
+              <StatusButton action={setInquiryStatus} id={i.id} status="in_progress" label="Reabrir" />
             </MoreActions>
           )}
         </div>
@@ -123,7 +131,7 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
         action={saveInquiryNotes}
         id={i.id}
         value={i.staff_notes}
-        placeholder="Interne Notiz (Angebot, Rückruf …)"
+        placeholder="Nota interna (presupuesto, llamada …)"
       />
     </article>
   );

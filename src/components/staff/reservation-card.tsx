@@ -4,7 +4,7 @@ import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/com
 import { CopyButton } from "@/components/staff/copy-button";
 import { StartGate } from "@/components/staff/start-gate";
 import { fmtTime } from "@/lib/data";
-import { fmtDate, fmtDateDE, hasStarted } from "@/lib/dates";
+import { fmtDate, fmtStaffDate, hasStarted } from "@/lib/dates";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { manageUrl } from "@/lib/site";
 import { RESERVATION_STATUS_LABEL } from "@/lib/statuses";
@@ -26,7 +26,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
         ]
       : [
-          `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDateDE(r.date, { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
+          `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDate(r.date, "de", { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
           `Falls du absagen oder verschieben musst: ${guestLink}`,
         ]
   ).join("\n\n");
@@ -41,20 +41,20 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           <div className="flex items-center gap-2">
             <strong className="font-serif text-xl">{fmtTime(r.start_time)}</strong>
             <span className="text-sm">
-              {r.party_size} {r.party_size === 1 ? "Person" : "Pers."}
+              {r.party_size} {r.party_size === 1 ? "persona" : "personas"}
             </span>
             <span className={`status status-${r.status}`}>{RESERVATION_STATUS_LABEL[r.status]}</span>
-            {r.source === "staff" && <span className="status bg-gray-100 text-gray-600">Telefon/Vor Ort</span>}
+            {r.source === "staff" && <span className="status bg-gray-100 text-gray-600">Teléfono / local</span>}
             {locale !== DEFAULT_LOCALE && (
               <span
                 className="status bg-amber-50 text-amber-800"
-                title={`Auf ${locale === "es" ? "Spanisch" : "Englisch"} gebucht: E-Mail und Link sind ${locale === "es" ? "spanisch" : "englisch"}`}
+                title={`Reserva en ${locale === "es" ? "español" : "inglés"}: el correo y el enlace están en ${locale === "es" ? "español" : "inglés"}`}
               >
                 {locale.toUpperCase()}
               </span>
             )}
           </div>
-          {showDate && <div className="text-xs text-muted">{fmtDateDE(r.date)}</div>}
+          {showDate && <div className="text-xs text-muted">{fmtStaffDate(r.date)}</div>}
           <div className="mt-1 font-semibold">{r.name}</div>
           <div className="text-sm text-muted">
             {/* A staff-entered booking can have no number at all, which is stored as an empty
@@ -64,7 +64,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
                 {r.phone}
               </a>
             ) : (
-              "keine Nummer"
+              "sin número"
             )}
             {r.email && (
               <>
@@ -80,7 +80,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
         <div className="flex flex-wrap items-start gap-1.5">
           {isLive && r.status !== "confirmed" && <WhatsAppButton phone={r.phone} text={confirmText} />}
           {r.status === "pending" && (
-            <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Bestätigen" primary />
+            <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Confirmar" primary />
           )}
           {r.status === "confirmed" && (
             <StartGate
@@ -90,23 +90,23 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
               before={
                 <>
                   <WhatsAppButton phone={r.phone} text={confirmText} />
-                  <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
+                  <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Cancelar" danger />
                 </>
               }
               after={
                 <>
-                  <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Erledigt" primary />
-                  <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="Nicht erschienen" />
+                  <StatusButton action={setReservationStatus} id={r.id} status="completed" label="Completada" primary />
+                  <StatusButton action={setReservationStatus} id={r.id} status="no_show" label="No se presentó" />
                 </>
               }
             />
           )}
           {isLive && r.status !== "confirmed" && (
-            <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Stornieren" danger />
+            <StatusButton action={setReservationStatus} id={r.id} status="cancelled" label="Cancelar" danger />
           )}
           {!isLive && (
             <MoreActions>
-              <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Wieder öffnen" />
+              <StatusButton action={setReservationStatus} id={r.id} status="confirmed" label="Reabrir" />
             </MoreActions>
           )}
         </div>
@@ -114,15 +114,15 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
       {r.status === "confirmed" && !started && <MailState r={r} />}
       {isLive && !started && (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-          <span className="font-bold">Gäste-Link</span>
-          <CopyButton text={guestLink} label="Link kopieren" />
+          <span className="font-bold">Enlace para el cliente</span>
+          <CopyButton text={guestLink} label="Copiar enlace" />
           <a
             href={guestLink}
             className="inline-flex min-h-10 items-center underline hover:text-blue-dark"
             target="_blank"
             rel="noreferrer"
           >
-            Öffnen
+            Abrir
           </a>
         </div>
       )}
@@ -130,7 +130,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
         action={saveStaffNotes}
         id={r.id}
         value={r.staff_notes}
-        placeholder="Interne Notiz (Tisch, Hinweise …)"
+        placeholder="Nota interna (mesa, indicaciones …)"
       />
     </article>
   );
@@ -139,21 +139,21 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
 /** Whether the guest has been told by mail, and a retry when they have not. */
 function MailState({ r }: { r: Tables<"reservations"> }) {
   if (!r.email) {
-    return <p className="text-xs text-muted">Keine E-Mail hinterlegt, bitte per Telefon oder WhatsApp bestätigen.</p>;
+    return <p className="text-xs text-muted">No hay correo electrónico. Confirmá por teléfono o WhatsApp.</p>;
   }
   if (r.confirmation_sent_at) {
     return (
       <p className="text-xs text-emerald-700">
-        Bestätigung per E-Mail verschickt am {fmtDateDE(r.confirmation_sent_at.slice(0, 10))}.
+        Confirmación enviada por correo el {fmtStaffDate(r.confirmation_sent_at.slice(0, 10))}.
       </p>
     );
   }
   return (
-    <ActionForm action={resendConfirmation} className="flex flex-wrap items-center gap-2" successText="E-Mail verschickt.">
+    <ActionForm action={resendConfirmation} className="flex flex-wrap items-center gap-2" successText="Correo enviado.">
       <input type="hidden" name="id" value={r.id} />
-      <span className="text-xs text-amber-700">Bestätigungs-E-Mail noch nicht verschickt.</span>
-      <SubmitButton className="btn-ghost !py-1" pendingText="Wird gesendet …">
-        E-Mail senden
+      <span className="text-xs text-amber-700">Todavía no se envió el correo de confirmación.</span>
+      <SubmitButton className="btn-ghost !py-1" pendingText="Enviando …">
+        Enviar correo
       </SubmitButton>
     </ActionForm>
   );

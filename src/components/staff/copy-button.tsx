@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
  *  that appears together with its text is not reliably read out). Where the browser refuses the
  *  clipboard, which happens on plain http and in some in-app browsers, the text is offered in a field
  *  and selected, so a long press or Ctrl+C still gets it out. */
-export function CopyButton({ text, label = "Kopieren" }: { text: string; label?: string }) {
+export function CopyButton({ text, label = "Copiar" }: { text: string; label?: string }) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
   const field = useRef<HTMLInputElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -32,17 +32,17 @@ export function CopyButton({ text, label = "Kopieren" }: { text: string; label?:
   return (
     <>
       <button type="button" className="btn-ghost min-h-10" onClick={copy}>
-        {state === "copied" ? "Kopiert" : label}
+        {state === "copied" ? "Copiado" : label}
       </button>
       <span className="sr-only" role="status" aria-live="polite">
-        {state === "copied" ? "Kopiert" : state === "manual" ? "Link markiert, bitte selbst kopieren" : ""}
+        {state === "copied" ? "Copiado" : state === "manual" ? "Enlace seleccionado; copialo manualmente" : ""}
       </span>
       {state === "manual" && (
         <input
           ref={field}
           readOnly
           value={text}
-          aria-label="Gäste-Link"
+          aria-label="Enlace para invitados"
           className="min-h-10 basis-full text-xs"
           onFocus={(e) => e.currentTarget.select()}
         />
