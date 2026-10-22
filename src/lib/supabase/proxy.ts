@@ -31,6 +31,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isLogin = pathname === "/staff/login";
+  const isSignup = pathname === "/staff/signup";
 
   // Signed in but not on the staff allowlist (public.staff): drop the session so the user
   // cannot sit in a half-authenticated state, then send them to the login page.
@@ -41,7 +42,7 @@ export async function updateSession(request: NextRequest) {
       // The allowlist check itself failed. Fail closed, but keep the session: signing the whole
       // team out over a backend blip is worse than making them retry. Leaving them on the login
       // page rather than bouncing them to /staff below is what keeps this from looping.
-      if (isLogin) return response;
+      if (isLogin || isSignup) return response;
       const url = request.nextUrl.clone();
       url.pathname = "/staff/login";
       url.search = "?fehler=pruefung-fehlgeschlagen";
@@ -50,7 +51,7 @@ export async function updateSession(request: NextRequest) {
     if (!isStaff) {
       await supabase.auth.signOut();
       user = null;
-      if (!isLogin) {
+      if (!isLogin && !isSignup) {
         const url = request.nextUrl.clone();
         url.pathname = "/staff/login";
         url.search = "?fehler=kein-zugang";
@@ -59,7 +60,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (!user && pathname.startsWith("/staff") && !isLogin) {
+  if (!user && pathname.startsWith("/staff") && !isLogin && !isSignup) {
     const url = request.nextUrl.clone();
     url.pathname = "/staff/login";
     url.searchParams.set("next", pathname);

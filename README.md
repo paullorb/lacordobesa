@@ -124,12 +124,18 @@ So the way to see a change before it ships is `npm run dev` against staging, not
 
 ## Staff accounts
 
+Staff can create their own login at the shared team link, `/staff/signup?key=<STAFF_SIGNUP_TOKEN>`.
+Set `STAFF_SIGNUP_TOKEN` to a long random value in production and share the full URL with the venue team.
+The link is a bearer credential: anyone holding it can create a normal staff account, so keep it off public
+pages and rotate the environment variable if it is exposed. A new account is confirmed and allow-listed,
+then signed in to `/staff`. The token is checked again on every signup request.
+
 Staff sign in with a short **name** and password (no e-mail). Supabase Auth is e-mail based, so each name maps
 to `<name>@staff.lacordobesa.local` (see [`src/lib/staff.ts`](src/lib/staff.ts)).
 
 Being signed in is not enough: the account also needs a row in `public.staff` (the allowlist from migration
-0004, which `is_staff()` checks). There is intentionally no API path that inserts one, so adding a staff member
-is two steps in the Supabase dashboard:
+0004, which `is_staff()` checks). The shared signup link and admin-only Team page create this row together with
+the Auth user. For manual recovery, adding a staff member in the Supabase dashboard is two steps:
 
 1. **Authentication → Users → Add user**, e-mail `maria@staff.lacordobesa.local`, a password, **Auto Confirm** on.
 2. **SQL Editor** — allow-list that user (copy the UUID from the users table, or match on the e-mail):
@@ -142,7 +148,8 @@ is two steps in the Supabase dashboard:
 
 Skipping step 2 leaves an account that logs in and is then rejected everywhere ("Dieser Zugang ist nicht für
 das Team freigeschaltet"). To revoke access, delete the `public.staff` row (the login itself keeps working but
-sees nothing). Keep "Allow new users to sign up" turned off under Authentication → Providers → Email.
+sees nothing). Keep "Allow new users to sign up" turned off under Authentication → Providers → Email: the shared
+link uses the server-side admin API and does not require public Supabase signup.
 
 Auth hardening (dashboard settings, not in migrations): Authentication → Sign In / Providers → Email → set
 **Minimum password length to 8** (raise it later if you want) and turn on **Prevent use of leaked passwords** (HaveIBeenPwned; Pro plan).
