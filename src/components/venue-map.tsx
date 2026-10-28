@@ -8,26 +8,34 @@ import type { Locale } from "@/lib/i18n";
 import { legalHref } from "@/lib/legal-links";
 
 type Props = { locale: Locale; query: string; label: string; openUrl: string };
+type Provider = "google" | "osm";
+
+const OSM_EMBED_URL = "https://www.openstreetmap.org/export/embed.html?bbox=8.6265%2C50.1300%2C8.6500%2C50.1450&layer=mapnik&marker=50.1378984%2C8.6392488";
+const OSM_MAP_URL = "https://www.openstreetmap.org/?mlat=50.1378984&mlon=8.6392488#map=17/50.1378984/8.6392488";
 
 export function VenueMap({ locale, query, label, openUrl }: Props) {
   const t = getDictionary(locale).map;
-  const [loaded, setLoaded] = useState(false);
-  const src = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=16&hl=${locale}&output=embed`;
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const googleSrc = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=16&hl=${locale}&output=embed`;
 
   return (
     <div className="venue-map">
-      {loaded ? (
-        <iframe
-          title={`Google Maps: ${label}`}
-          src={src}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          allowFullScreen
-        />
+      {provider ? (
+        <>
+          <iframe
+            title={`${provider === "google" ? "Google Maps" : "OpenStreetMap"}: ${label}`}
+            src={provider === "google" ? googleSrc : OSM_EMBED_URL}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+          <a className="venue-map-open inline-icon" href={provider === "google" ? openUrl : OSM_MAP_URL} target="_blank" rel="noreferrer">
+            {provider === "google" ? t.openGoogle : t.openOsm} <ArrowIcon direction="up-right" />
+          </a>
+        </>
       ) : (
         <div className="venue-map-consent">
-          {/* Until the real map is loaded, a drawn one: streets, the Ginnheimer Wäldchen the shop is
-              named after, and a pin where it stands. Nothing here is fetched from Google. */}
+          {/* Until a provider is chosen, show only this drawn map. Neither map provider is contacted. */}
           <span className="venue-map-pin" aria-hidden="true">
             <PinIcon size={30} />
           </span>
@@ -38,12 +46,12 @@ export function VenueMap({ locale, query, label, openUrl }: Props) {
             {t.consentAfter}
           </p>
           <div className="visit-actions">
-            <button type="button" className="button" data-track="map_load" onClick={() => setLoaded(true)}>
-              {t.load}
+            <button type="button" className="button" data-track="map_load" onClick={() => setProvider("google")}>
+              {t.loadGoogle}
             </button>
-            <a className="button secondary" href={openUrl} target="_blank" rel="noreferrer">
-              {t.open} <ArrowIcon direction="up-right" />
-            </a>
+            <button type="button" className="button secondary" data-track="map_load" onClick={() => setProvider("osm")}>
+              {t.loadOsm}
+            </button>
           </div>
         </div>
       )}
