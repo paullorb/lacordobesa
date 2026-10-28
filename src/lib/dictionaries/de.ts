@@ -574,12 +574,13 @@ export const de = {
     failed: "Teilen hat nicht geklappt. Kopier den Link bitte aus der Adressleiste.",
   },
   map: {
-    consentBefore:
-      "Die Karte wird von Google Maps bereitgestellt. Beim Laden werden Daten (u. a. deine IP-Adresse) an Google übertragen, siehe ",
-    privacy: "Datenschutz",
+    consentBefore: "Beim Laden werden technische Daten wie deine IP-Adresse an den gewählten Kartendienst übertragen. Details stehen in den ",
+    privacy: "Datenschutzhinweisen",
     consentAfter: ".",
-    load: "Karte laden",
-    open: "In Google Maps öffnen",
+    loadGoogle: "Google Maps laden",
+    loadOsm: "OpenStreetMap laden",
+    openGoogle: "In Google Maps öffnen",
+    openOsm: "In OpenStreetMap öffnen",
   },
   gallery: {
     filterLabel: "Kategorie filtern",

@@ -563,12 +563,13 @@ export const es: Dictionary = {
     failed: "No se pudo compartir. Copiá el enlace desde la barra de direcciones, por favor.",
   },
   map: {
-    consentBefore:
-      "El mapa lo provee Google Maps. Al cargarlo se envían datos a Google (entre otros, tu dirección IP), mirá la ",
+    consentBefore: "Al cargar el mapa se envían datos técnicos, como tu dirección IP, al proveedor elegido. Encontrás más detalles en nuestra ",
     privacy: "política de privacidad",
     consentAfter: " (en alemán).",
-    load: "Cargar el mapa",
-    open: "Abrir en Google Maps",
+    loadGoogle: "Cargar Google Maps",
+    loadOsm: "Cargar OpenStreetMap",
+    openGoogle: "Abrir en Google Maps",
+    openOsm: "Abrir en OpenStreetMap",
   },
   gallery: {
     filterLabel: "Filtrar por categoría",

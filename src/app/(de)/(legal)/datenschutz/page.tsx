@@ -132,18 +132,22 @@ export default function DatenschutzPage() {
       <h2>6. Externe Links</h2>
       <p>
         Die Website verlinkt auf Instagram (Meta Platforms Ireland Ltd.), WhatsApp (WhatsApp Ireland Ltd.) und
-        Google Maps (Google Ireland Ltd.). Beim Aufruf dieser Links verlässt du unsere Website; erst dann werden
+        Google Maps (Google Ireland Ltd.) und OpenStreetMap (OpenStreetMap Foundation). Beim Aufruf dieser Links verlässt du unsere Website; erst dann werden
         Daten an den jeweiligen Anbieter übertragen. Inhalte von Instagram und WhatsApp werden nicht in unsere Seite
         eingebettet.
       </p>
 
-      <h2>6a. Google Maps (Karte im Bereich „Besuch uns“)</h2>
+      <h2>6a. Karten im Bereich „Besuch uns“</h2>
       <p>
-        Zur Anzeige unseres Standorts können wir eine Karte von Google Maps (Google Ireland Ltd., Gordon House,
-        Barrow Street, Dublin 4, Irland) einbinden. Die Karte wird erst geladen, nachdem du auf „Karte laden“
-        geklickt hast (Einwilligung, Art. 6 Abs. 1 lit. a DSGVO). Dabei überträgt dein Browser Daten wie deine
-        IP-Adresse und Browserinformationen an Google; Google kann dabei Cookies setzen. Ohne Klick findet keine
-        Verbindung zu Google statt. Weitere Informationen findest du in der Datenschutzerklärung von Google.
+        Zur Anzeige unseres Standorts kannst du zwischen einer Karte von Google Maps (Google Ireland Ltd., Gordon
+        House, Barrow Street, Dublin 4, Irland) und OpenStreetMap (OpenStreetMap Foundation, St John’s Innovation
+        Centre, Cowley Road, Cambridge, CB4 0WS, Vereinigtes Königreich) wählen. Die eingebettete Karte des
+        ausgewählten Anbieters wird erst nach deinem Klick auf die entsprechende Schaltfläche geladen. Mit dem Klick
+        willigst du in diese Übertragung ein (Art. 6 Abs. 1 lit. a DSGVO). Dabei werden
+        technische Daten wie deine IP-Adresse und Browserinformationen an den Anbieter übertragen; Google kann
+        zusätzlich Cookies setzen. Ohne Auswahl wird keiner der beiden Kartendienste kontaktiert. Informationen
+        findest du in den Datenschutzhinweisen von <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google</a> und
+        <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noreferrer">OpenStreetMap</a>.
       </p>
 
       <h2>7. Deine Rechte</h2>

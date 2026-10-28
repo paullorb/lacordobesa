@@ -572,12 +572,13 @@ export const en: Dictionary = {
     failed: "Sharing did not work. Please copy the link from the address bar.",
   },
   map: {
-    consentBefore:
-      "The map is provided by Google Maps. When it loads, data (including your IP address) is sent to Google, see the ",
+    consentBefore: "Loading a map sends technical data such as your IP address to the selected provider. See our ",
     privacy: "privacy policy",
-    consentAfter: " (in German).",
-    load: "Load the map",
-    open: "Open in Google Maps",
+    consentAfter: " for details (in German).",
+    loadGoogle: "Load Google Maps",
+    loadOsm: "Load OpenStreetMap",
+    openGoogle: "Open in Google Maps",
+    openOsm: "Open in OpenStreetMap",
   },
   gallery: {
     filterLabel: "Filter by category",
