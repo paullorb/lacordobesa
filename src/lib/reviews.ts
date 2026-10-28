@@ -80,7 +80,7 @@ export type ReviewScores = Partial<Record<ReviewPlatformId, ReviewScore>>;
 export const BASELINE_SCORES: ReviewScores = {
   // Typed in by hand: a Places API key costs money the shop does not need to spend yet. Count is the
   // floor ("over 50"). Refresh this by hand now and then (issue #113).
-  google: { value: "4,7", scale: "5", count: 50, checked: "2026-10-15" },
+  google: { value: "4,7", scale: "5", count: 92, checked: "2026-10-28" },
   coolibri: { value: "8,6", scale: "10", count: 80, checked: "2026-10-14" },
   // Restaurant Guru builds its score from Google feedback, so it is not an independent count.
   restaurantguru: { value: "4,8", scale: "5", count: 59, checked: "2026-10-15" },
