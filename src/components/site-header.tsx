@@ -65,11 +65,11 @@ export function SiteHeader({ whatsappHref, locale, path = "/" }: Props) {
       <PointerEffects />
       <RouteTransition />
       <header className="site-header" ref={header}>
-        {path === "/" && <MotionIconButton className="progress-empanada" animation="empanada" ariaLabel={t.home.animateEmpanada}><EmpanadaIcon /></MotionIconButton>}
         {/* First focusable thing on the page, visible only once focused. Every <main> carries id="main". */}
         <a className="skip-link" href="#main">
           {t.nav.skipToContent}
         </a>
+        {path === "/" && <MotionIconButton className="progress-empanada" animation="empanada" ariaLabel={t.home.animateEmpanada}><EmpanadaIcon /></MotionIconButton>}
         <div className="nav">
           <Link className="brand" href={href("/")} aria-label={t.nav.home}>
             <Logo />
