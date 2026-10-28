@@ -286,7 +286,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
    that is what gives the photo inside it room to stick; with `start` both columns shrink to their
    own content and the photo simply ended 537px above the bottom of the card. */
 .visit { display: grid; grid-template-columns: .95fr 1.05fr; gap: 4rem; align-items: stretch; }
-.visit-intro { color: var(--muted); line-height: 1.8; font-size: var(--fs-base); }
 .reviews { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
 .reviews-copy p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: var(--fs-base); line-height: 1.7; }
 /* Equal rows: some listings carry a score and some do not (a figure only appears once somebody has
@@ -539,6 +538,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .footer-brand p { max-width: 220px; margin: 1.1rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; line-height: 1.5; color: rgba(255,253,248,.8); }
 /* The heart sits in a run of text, so it needs to ride the baseline rather than the line box. */
 .footer-brand p svg { display: inline-block; width: .9em; height: .9em; vertical-align: -.08em; margin: 0 -.06em; color: var(--coral); fill: currentColor; }
+.footer-brand p .footer-heart { display: inline-grid; vertical-align: baseline; padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; }
+.footer-brand p .footer-heart svg { margin: 0; }
 .footer-col { min-width: 0; }
 .footer-col .contact-row { padding: 0 0 1.15rem; border-top: 0; }
 .footer-col .contact-row:last-child { padding-bottom: 0; }
@@ -1037,12 +1038,12 @@ body::after {
 }
 @keyframes read-progress { to { transform: scaleX(1); } }
 
-/* The landing page's chapters, numbered down the right edge of a wide screen (components/chapter-nav.tsx).
+/* The landing page's chapter icons down the right edge of a wide screen (components/chapter-nav.tsx).
    The whole list is drawn in `difference` over the page, which turns its white type dark on the
    cream and mint bands and light on the two dark ones without a rule per section. The blend has
    to sit on the list itself: an ancestor with opacity or a transform would isolate it, and the
-   numbers would then blend against nothing and stay white everywhere. A chapter's name appears
-   beside its number on hover or focus and stays beside the current one. Below 1321px the menu
+   icons would then blend against nothing and stay white everywhere. A chapter's name appears
+   beside its icon on hover or focus and stays beside the current one. Below 1321px the menu
    does this job and the list is not rendered at all. */
 .chapter-nav { display: none; }
 @media (min-width: 1321px) {
@@ -1051,10 +1052,7 @@ body::after {
   .chapter-nav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
   .chapter-nav a { display: flex; align-items: center; justify-content: flex-end; gap: .7rem; min-height: 32px; padding: 0 .2rem; text-decoration: none; color: inherit; opacity: .42; transition: opacity .25s; }
   .chapter-nav a:hover, .chapter-nav a:focus-visible, .chapter-nav a[aria-current] { opacity: 1; }
-  .chapter-num { position: relative; min-width: 2rem; text-align: right; font-family: var(--serif); font-style: italic; font-size: var(--fs-sm); line-height: 1; }
-  /* The mark: a short rule under the current chapter's number, the same line the eyebrows open with. */
-  .chapter-num::after { content: ""; position: absolute; right: 0; bottom: -5px; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
-  .chapter-nav a[aria-current] .chapter-num::after { transform: scaleX(1); }
+  .chapter-icon { display: inline-flex; align-items: center; justify-content: center; min-width: 2rem; }
   .chapter-label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; opacity: 0; translate: 8px 0; transition: opacity .25s, translate .3s cubic-bezier(.2,.7,.2,1); }
   .chapter-nav a:hover .chapter-label, .chapter-nav a:focus-visible .chapter-label, .chapter-nav a[aria-current] .chapter-label { opacity: 1; translate: 0 0; }
   .chapter-nav a:focus-visible { outline-color: currentColor; outline-offset: 4px; }
@@ -1331,7 +1329,8 @@ html:has(.staff) { scrollbar-gutter: stable; }
    like the line itself, so it needs neither JavaScript nor a listener. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    html:has(.chapter-nav) .site-header::after { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -50% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav) .progress-empanada { display: grid; position: absolute; z-index: 1; top: calc(100% - 15px); left: 0; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; color: var(--coral); translate: -50% 0; cursor: pointer; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav) .progress-empanada svg { width: 30px; height: 30px; }
   }
 }
 @keyframes read-empanada { 0% { left: 0; opacity: 0; } 1.5% { opacity: 1; } 100% { left: 100%; opacity: 1; } }

@@ -2,7 +2,7 @@ import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
-import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon } from "@/components/icons";
+import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
 import { CheerCursor } from "@/components/cheer-cursor";
 import { HeroCursor } from "@/components/hero-cursor";
@@ -79,13 +79,13 @@ export async function HomeView({ locale }: { locale: Locale }) {
     return { weekday: wd, label: t.weekdays[wd], text: closed ? t.closedLabel : t.hoursRange(fmtTime(h.opens), fmtTime(h.closes)), closed };
   });
   const chapters = [
-    { id: "geschichte", label: t.chapters.story },
-    { id: "karte", label: t.chapters.menu },
-    ...(photos.featured.length || instagram.length ? [{ id: "fotos", label: t.chapters.photos }] : []),
-    { id: "handwerk", label: t.chapters.craft },
-    { id: "gaeste", label: t.chapters.reviews },
-    { id: "reservieren", label: t.chapters.reserve },
-    { id: "besuch", label: t.chapters.visit },
+    { id: "geschichte", label: t.chapters.story, icon: "story" },
+    { id: "karte", label: t.chapters.menu, icon: "menu" },
+    ...(photos.featured.length || instagram.length ? [{ id: "fotos", label: t.chapters.photos, icon: "gallery" }] : []),
+    { id: "handwerk", label: t.chapters.craft, icon: "craft" },
+    { id: "gaeste", label: t.chapters.reviews, icon: "reviews" },
+    { id: "reservieren", label: t.chapters.reserve, icon: "reserve" },
+    { id: "besuch", label: t.chapters.visit, icon: "visit" },
   ];
 
   // Featured items on the home page; the full list lives behind each category.
@@ -203,7 +203,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <p className="eyebrow">{t.menuEyebrow}</p>
               <h2>{t.menuTitle}</h2>
               <Repulgue className="repulgue-divider" />
-              <p>{t.menuText}</p>
             </div>
 
             <div className="menu-grid">
@@ -267,7 +266,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <div>
               <p className="eyebrow">{t.craftEyebrow}</p>
               <h2>{t.craftTitle}</h2>
-              <p>{t.craftText}</p>
               <a className="text-link inline-icon" href={CONTACT.instagram} target="_blank" rel="noreferrer">
                 <InstagramIcon /> {t.craftLink}
               </a>
@@ -285,7 +283,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
           <div className="reviews-copy">
             <p className="eyebrow">{t.reviewsEyebrow}</p>
             <h2 id="reviews-title">{t.reviewsTitle}</h2>
-            <p>{t.reviewsText}</p>
           </div>
           <ul className="reviews-list">
             {reviews.map((r) => {
@@ -370,7 +367,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <div className="visit-copy">
               <p className="eyebrow">{t.visitEyebrow}</p>
               <h2>{t.visitHeading}</h2>
-              <p className="visit-intro">{t.visitIntro}</p>
               <div className="visit-card">
                 <h3>{CONTACT.name}</h3>
                 <ContactRow kind="address" label={t.visitAddressLabel}>
@@ -388,10 +384,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </ContactRow>
                 <div className="visit-actions">
                   <a className="button" href={whatsappHref()} target="_blank" rel="noreferrer">
-                    WhatsApp <ArrowIcon direction="up-right" />
+                    <WhatsAppIcon /> WhatsApp <ArrowIcon direction="up-right" />
                   </a>
                   <a className="button secondary" href={CONTACT.mapsUrl} target="_blank" rel="noreferrer">
-                    {t.visitRoute} <ArrowIcon direction="up-right" />
+                    <PinIcon /> {t.visitRoute} <ArrowIcon direction="up-right" />
                   </a>
                   <ShareButton
                     locale={locale}

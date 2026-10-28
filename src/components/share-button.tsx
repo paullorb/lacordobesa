@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowIcon } from "@/components/icons";
+import { ShareIcon } from "@/components/icons";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 
@@ -37,7 +37,7 @@ export function ShareButton({ locale, title, text, className = "button secondary
   return (
     <>
       <button type="button" className={className} onClick={share}>
-        <ArrowIcon direction="up-right" /> {t.button}
+        <ShareIcon /> {t.button}
       </button>
       <p className="share-note" role="status">
         {done ? t[done] : ""}

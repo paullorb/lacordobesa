@@ -38,6 +38,7 @@ export const de = {
     backHome: "Zur Startseite",
     madeWithBefore: "Con mucho ",
     madeWithAfter: " desde Frankfurt am Main.",
+    animateHeart: "Herz hüpfen lassen",
     /** The shop's clock, in the footer: a visitor abroad sees what time it is in Frankfurt. */
     localTime: (time: string) => `Frankfurt, ${time} Uhr`,
   },
@@ -47,6 +48,7 @@ export const de = {
   home: {
     /** The chapter list down the right edge of the landing page on a wide screen. */
     chaptersLabel: "Abschnitte dieser Seite",
+    animateEmpanada: "Empanada hüpfen lassen",
     chapters: { story: "Geschichte", menu: "Karte", photos: "Fotos", craft: "Handwerk", reviews: "Gäste", reserve: "Reservieren", visit: "Besuch" },
     todayMark: "Heute",
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
@@ -74,19 +76,14 @@ export const de = {
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
     menuTitle: "Ein paar Lieblingsstücke",
-    menuText:
-      "Von Empanadas über Steaks vom Grill bis zum Flan, alles hausgemacht.",
     menuFull: "Ganze Karte ansehen",
     specialTag: "Heute",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Jede Empanada bekommt ihren eigenen Rand.",
-    craftText:
-      "Teig ausrollen, füllen, verschließen: die Liebe steckt in den kleinen Handgriffen.",
     craftLink: "Mehr auf Instagram",
     craftTag: "Mit Liebe gemacht · Desde Frankfurt",
     reviewsEyebrow: "Lo que dicen",
     reviewsTitle: "Unsere Gäste sagen es besser.",
-    reviewsText: "Lies selbst nach, was Gäste schreiben, dort, wo wir nichts ändern können.",
     reviewsScoreBare: (value: string, scale: string) => `${value} von ${scale}`,
     reviewsScore: (value: string, scale: string, count: number) => `${value} von ${scale} · ${reviewCountLabel(count)} Bewertungen`,
     reviewsAsOf: (date: string) => `Stand ${date}`,
@@ -113,8 +110,6 @@ export const de = {
     heroPhotoAlt: "Illustratives Stimmungsbild mit argentinischen Empanadas, Alfajores und Gebäck",
     galleryPhotoAlt: "Foto aus dem Lokal von La Cordobesa",
     visitHeading: "Komm vorbei. Wir freuen uns auf dich.",
-    visitIntro:
-      "Vorbestellung, Frage oder Catering? Schreib oder ruf uns an.",
     visitAddressLabel: "Besuch uns",
     closedLabel: "geschlossen",
     callLabel: "Ruf uns an",

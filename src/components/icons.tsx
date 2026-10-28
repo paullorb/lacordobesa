@@ -252,6 +252,23 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
       <path d="m4.4 17.2 4.4-4.1a1.4 1.4 0 0 1 1.9 0l2.6 2.5 1.6-1.4a1.4 1.4 0 0 1 1.9 0l3.2 3" />
     </>
   ),
+  // A folded empanada: the craft of making its distinctive edge.
+  craft: (
+    <>
+      <path d="M3.5 17.5c0-7.5 17-7.5 17 0Z" />
+      <path d="M6.5 14.5c1.6-3.6 9.4-3.6 11 0" />
+      <path d="M5 17.5v2M8 17.5v2M11 17.5v2M14 17.5v2M17 17.5v2M19.8 17.5v1.8" />
+    </>
+  ),
+  // A heart: what guests say about the restaurant.
+  reviews: <path d="M12 20.3C6.6 16.9 3.5 13.9 3.5 10.3A4.3 4.3 0 0 1 12 8.4a4.3 4.3 0 0 1 8.5 1.9c0 3.6-3.1 6.6-8.5 10Z" />,
+  // A calendar with a reserved table.
+  reserve: (
+    <>
+      <rect x="4" y="5.5" width="16" height="15" rx="2" />
+      <path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h2M14 13h2M8 16.5h2M14 16.5h2" />
+    </>
+  ),
   // A map pin: where to find us.
   visit: (
     <>
@@ -267,6 +284,14 @@ export function NavIcon({ name, size = 22, className }: IconProps & { name: stri
       {NAV_ICONS[name] ?? FALLBACK}
     </Icon>
   );
+}
+
+export function ShareIcon({ size = 18, className }: IconProps) {
+  return <Icon size={size} className={className}><circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5" /></Icon>;
+}
+
+export function WhatsAppIcon({ size = 18, className }: IconProps) {
+  return <Icon size={size} className={className}><path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L3.5 20l1.2-4.4a8.2 8.2 0 1 1 15.5-3.9Z" /><path d="M8.5 8.2c.3-.5.6-.5.9-.5h.5c.2 0 .4.1.5.4l.8 1.8c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .7.5.9 1.3 1.7 2.2 2.2.3.2.5.2.7 0l.8-.9c.2-.2.4-.3.7-.2l1.7.8c.3.1.4.3.4.5 0 .4-.2 1.2-.7 1.6-.5.5-1.2.7-1.9.6-1-.2-2.3-.8-3.7-2-1.7-1.5-2.8-3.3-3.1-4.4-.3-.9 0-1.6.3-2Z" /></Icon>;
 }
 
 // ---------------------------------------------------------------- staff area

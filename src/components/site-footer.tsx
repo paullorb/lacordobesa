@@ -6,6 +6,7 @@ import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/compon
 import { fmtTime, getOpeningHours } from "@/lib/data";
 import { todayISO } from "@/lib/dates";
 import { HeartIcon } from "@/components/icons";
+import { MotionIconButton } from "@/components/motion-icon-button";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { LanguageSwitch } from "@/components/language-switch";
 import { LocalTime } from "@/components/local-time";
@@ -38,7 +39,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
           <Logo />
           <p>
             {t.madeWithBefore}
-            <HeartIcon />
+            <MotionIconButton className="footer-heart" animation="heart" ariaLabel={t.animateHeart}><HeartIcon /></MotionIconButton>
             {t.madeWithAfter}
           </p>
         </div>
