@@ -321,6 +321,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .contact-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; color: var(--blue-dark); font-size: .9rem; }
 .contact-row small { display: block; margin-bottom: .25rem; color: var(--muted); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .contact-row a, .contact-row address, .contact-row .hours { font-size: var(--fs-sm); text-decoration: none; font-style: normal; line-height: 1.6; }
+.contact-address-map-link { display: inline-flex; align-items: center; gap: .45rem; }
+.contact-address-map-link svg { flex: none; width: 14px; height: 14px; opacity: .72; }
+.contact-address-map-link:hover svg, .contact-address-map-link:focus-visible svg { opacity: 1; }
 .contact-email { overflow-wrap: normal; word-break: normal; }
 .hours { display: grid; grid-template-columns: auto auto; gap: .15rem 1.2rem; }
 .hours .closed { color: var(--muted); }
@@ -1024,12 +1027,12 @@ body::after {
 
 /* How far down the page the reader is, as a coral line filling the header's bottom edge. Driven by
    the document's own scroll position, so there is no listener and nothing to fall behind. Only on
-   the long reads (the landing page and the menu, which carry .chapter-nav and .menu-index): on a form
-   or a short page the line is full after one flick and says nothing. The line is ::before and the
+   the landing page (marked by .chapter-nav): on a form or a short page the line is full after one
+   flick and says nothing. The line is ::before and the
    empanada ::after so the empanada paints on top of it. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    html:has(.chapter-nav, .menu-index) .site-header::before { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; pointer-events: none; animation: read-progress linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav) .site-header::before { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--coral); transform: scaleX(0); transform-origin: left; pointer-events: none; animation: read-progress linear both; animation-timeline: scroll(root); }
   }
 }
 @keyframes read-progress { to { transform: scaleX(1); } }
@@ -1323,12 +1326,12 @@ html:has(.staff) { scrollbar-gutter: stable; }
 }
 @media (prefers-reduced-motion: reduce) { .idea-grid li, .idea-grid li::after, .idea-num { transition: none; } }
 
-/* The empanada at the end of the progress line (the same drawing as the menu button). It sits on the
-   line, hangs a little over the page, and only appears once the reader has left the top: scroll-driven
+/* The empanada at the end of the homepage progress line (the same drawing as the menu button). Its
+   center marks the line's endpoint, and it only appears once the reader has left the top: scroll-driven
    like the line itself, so it needs neither JavaScript nor a listener. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    html:has(.chapter-nav, .menu-index) .site-header::after { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -100% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
+    html:has(.chapter-nav) .site-header::after { content: ""; position: absolute; top: calc(100% - 15px); left: 0; width: 30px; height: 30px; translate: -50% 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 28C3 8 37 8 37 28Z' fill='%23e0a35a' stroke='%238a4f1e' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M8 24C10 14 30 14 32 24' fill='none' stroke='%23f5cf93' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M3 28H37' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M5 28.5v3.5M9.4 28.5v3.5M13.8 28.5v3.5M18.2 28.5v3.5M22.6 28.5v3.5M27 28.5v3.5M31.4 28.5v3.5M35 28.5v3' stroke='%238a4f1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='18' r='1.2' fill='%238a4f1e'/%3E%3Ccircle cx='24' cy='16.5' r='1.2' fill='%238a4f1e'/%3E%3C/svg%3E") center / contain no-repeat; pointer-events: none; opacity: 0; filter: drop-shadow(0 1px 1px rgba(31,26,20,.25)); animation: read-empanada linear both; animation-timeline: scroll(root); }
   }
 }
 @keyframes read-empanada { 0% { left: 0; opacity: 0; } 1.5% { opacity: 1; } 100% { left: 100%; opacity: 1; } }
