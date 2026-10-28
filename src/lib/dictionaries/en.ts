@@ -40,12 +40,14 @@ export const en: Dictionary = {
     backHome: "Go to home",
     madeWithBefore: "Con mucho ",
     madeWithAfter: " desde Frankfurt am Main.",
+    animateHeart: "Animate the heart",
     localTime: (time: string) => `Frankfurt, ${time}`,
   },
   legalNotice:
     "This page is only available in German. If you have a question about it, message or call us and we will gladly help.",
   home: {
     chaptersLabel: "Sections of this page",
+    animateEmpanada: "Animate the empanada",
     chapters: { story: "Story", menu: "Menu", photos: "Photos", craft: "Craft", reviews: "Guests", reserve: "Reserve", visit: "Visit" },
     todayMark: "Today",
     title: "La Cordobesa · A piece of Argentina in Frankfurt am Main",
@@ -71,19 +73,14 @@ export const en: Dictionary = {
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
     menuTitle: "A few favourites",
-    menuText:
-      "From empanadas to steak off the grill and flan, all homemade.",
     menuFull: "See the full menu",
     specialTag: "Today",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Every empanada gets its own folded edge.",
-    craftText:
-      "Roll out the dough, fill it, seal it: the love is in the small movements.",
     craftLink: "More on Instagram",
     craftTag: "Made with love · Desde Frankfurt",
     reviewsEyebrow: "Lo que dicen",
     reviewsTitle: "Our guests say it better.",
-    reviewsText: "See for yourself what guests write, on sites where we cannot change a word.",
     reviewsScoreBare: (value: string, scale: string) => `${value} out of ${scale}`,
     reviewsScore: (value: string, scale: string, count: number) =>
       `${value} out of ${scale} · ${reviewCountLabel(count)} ${count === 1 ? "review" : "reviews"}`,
@@ -111,8 +108,6 @@ export const en: Dictionary = {
     heroPhotoAlt: "Illustrative picture with Argentine empanadas, alfajores and pastries",
     galleryPhotoAlt: "Photo from inside La Cordobesa",
     visitHeading: "Come by. We look forward to seeing you.",
-    visitIntro:
-      "Pre-order, question or catering? Message or call us.",
     visitAddressLabel: "Visit us",
     closedLabel: "closed",
     callLabel: "Call us",

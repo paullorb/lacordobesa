@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { NavIcon } from "@/components/icons";
 
-export type Chapter = { id: string; label: string };
+export type Chapter = { id: string; label: string; icon: string };
 
 /**
  * The landing page's table of contents, down the right edge of a wide screen.
  *
- * Seven numbered anchors, one per section, with the section under the reader marked. It answers
+ * Seven illustrated anchors, one per section, with the section under the reader marked. It answers
  * the question a long page keeps raising, "where am I and how much is left", without a scrollbar
  * to squint at. Plain anchors, so it works before the script runs; what the script adds is the
  * mark, and keeping the whole list out of the way until the hero has been read.
@@ -75,8 +76,8 @@ export function ChapterNav({ label, chapters }: { label: string; chapters: Chapt
                 history.replaceState(null, "", `#${c.id}`);
               }}
             >
-              <span className="chapter-num" aria-hidden="true">
-                {String(i + 1).padStart(2, "0")}
+              <span className="chapter-icon" aria-hidden="true">
+                <NavIcon name={c.icon} size={21} />
               </span>
               <span className="chapter-label">{c.label}</span>
             </a>
