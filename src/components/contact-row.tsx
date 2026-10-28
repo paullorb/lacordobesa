@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ClockIcon, MailIcon, PhoneIcon, PinIcon } from "@/components/icons";
+import { ArrowIcon, ClockIcon, MailIcon, PhoneIcon, PinIcon } from "@/components/icons";
 import { CONTACT } from "@/lib/contact";
 
 const ICONS = { address: PinIcon, hours: ClockIcon, phone: PhoneIcon, email: MailIcon } as const;
@@ -27,10 +27,21 @@ export function ContactRow({ kind, label, children }: { kind: ContactKind; label
 export function ContactAddress() {
   return (
     <address>
-      {/* The house number stays with the street name instead of wrapping onto a line of its own. */}
-      {CONTACT.street.replace(/ (\S+)$/, "\u00a0$1")}
-      <br />
-      {CONTACT.city}
+      <a
+        className="contact-address-map-link"
+        href={CONTACT.mapsUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Google Maps: ${CONTACT.street}, ${CONTACT.city}`}
+      >
+        <span>
+          {/* The house number stays with the street name instead of wrapping onto a line of its own. */}
+          {CONTACT.street.replace(/ (\S+)$/, "\u00a0$1")}
+          <br />
+          {CONTACT.city}
+        </span>
+        <ArrowIcon direction="up-right" />
+      </a>
     </address>
   );
 }
