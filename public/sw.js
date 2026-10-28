@@ -1,6 +1,6 @@
 // Minimal service worker for the staff PWA: network-first, with an offline fallback page.
 // Data must always be fresh, so nothing from /staff is cached except the offline page itself.
-const CACHE = "cordobesa-staff-v2";
+const CACHE = "cordobesa-staff-v3";
 const OFFLINE_URL = "/staff/offline";
 
 self.addEventListener("install", (event) => {
