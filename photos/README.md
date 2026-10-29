@@ -7,11 +7,11 @@ build time: it is a staging area. Two of these files get copied into `public/ass
 by hand; the rest are uploaded through `/staff/gallery`, which is the only way gallery content ever
 enters the database (see `CLAUDE.md`, "Content lives behind the staff UI").
 
-**Status (2026-10-15):** nine sample photographs from Unsplash are in this folder and live in the
-gallery (staging and production), see `CREDITS.md`. They are named after their subject, not after the
-twelve slots below, and they are all food: the room, the counter, the table and the hands (#6 to #12
-in the list) are still to be shot. Unsplash needs no attribution, so `CREDITS.md` keeps no per-file
-source rows. `upload-gallery.mjs` re-runs the upload against any site and skips what already exists.
+**Status (2026-10-29):** a twelve-file Unsplash mockup set is staged in this folder; sources and
+crop notes are in `CREDITS.md`. The photos are for mockup/staging use only and have not been copied
+to `public/assets/` or uploaded to any gallery. The `hero.jpg` and `og.jpg` crops are provisional:
+the source shows pastries and coffee but not empanadas, so they do not meet the final hero brief.
+`upload-gallery.mjs` re-runs the upload against any site and skips what already exists.
 
 ---
 
