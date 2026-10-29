@@ -150,6 +150,7 @@ describe("broadcast channels", () => {
 
   test("e-mail stays shut until it has a confirmation step", () => {
     assert.equal(isOpenChannel("email"), false);
+    assert.ok(isOpenChannel("email", true));
     assert.ok(isOpenChannel("whatsapp"));
   });
 });

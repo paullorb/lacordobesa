@@ -65,7 +65,7 @@ export default function DatenschutzPage() {
         Art. 6 Abs. 1 lit. b DSGVO. Speicherort und Auftragsverarbeitung entsprechen Abschnitt 3.
       </p>
 
-      <h2>3b. Specials per WhatsApp</h2>
+      <h2>3b. Specials per WhatsApp und E-Mail</h2>
       <p>
         Wenn du dich für unsere Specials anmeldest, speichern wir deine Handynummer, optional deinen Namen, den
         Zeitpunkt deiner Anmeldung und den Wortlaut der Einwilligung, der dir beim Anmelden angezeigt wurde. Den
@@ -75,6 +75,11 @@ export default function DatenschutzPage() {
         Damit niemand eine fremde Nummer eintragen kann, bestätigst du die Anmeldung, indem du uns von dieser Nummer
         eine WhatsApp schickst (Double-Opt-in). Erst dann nehmen wir dich in die Liste auf und speichern, wann die
         Bestätigung eingegangen ist. An eine Nummer ohne Bestätigung schicken wir keine Specials.
+      </p>
+      <p>
+        Wenn du E-Mail auswählst, schicken wir dir einen einmaligen Bestätigungslink. Erst wenn du ihn auf der
+        Bestätigungsseite anklickst, nehmen wir deine Adresse in den Verteiler auf. Die Bestätigungsnachricht wird über
+        unseren Versanddienstleister Resend verschickt. Nicht bestätigte Adressen erhalten keine Specials.
       </p>
       <p>
         Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit widerrufen, ohne

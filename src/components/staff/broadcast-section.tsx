@@ -35,7 +35,6 @@ export async function BroadcastSection() {
     supabase
       .from("broadcast_optins")
       .select("*")
-      .eq("channel", "whatsapp")
       .is("unsubscribed_at", null)
       .order("created_at"),
     getActiveSpecials(),
@@ -53,9 +52,10 @@ export async function BroadcastSection() {
   }
 
   const pendingSince = addDays(todayISO(), -PENDING_DAYS);
-  const optins = (data ?? []).filter((o) => o.phone);
-  const confirmed = optins.filter((o) => o.confirmed_at);
-  const pending = optins.filter((o) => !o.confirmed_at && o.consented_at.slice(0, 10) >= pendingSince);
+  const optins = (data ?? []).filter((o) => o.phone || o.email);
+  const confirmed = optins.filter((o) => o.channel === "whatsapp" && o.confirmed_at);
+  const pending = optins.filter((o) => o.channel === "whatsapp" && !o.confirmed_at && o.consented_at.slice(0, 10) >= pendingSince);
+  const confirmedEmails = optins.filter((o) => o.channel === "email" && o.confirmed_at && o.email);
   const special = specials[0];
 
   return (
@@ -91,6 +91,20 @@ export async function BroadcastSection() {
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      <div className="card grid gap-3">
+        <h3 className="font-semibold">Bestätigte E-Mail-Adressen für BCC ({confirmedEmails.length})</h3>
+        {confirmedEmails.length === 0 ? (
+          <p className="text-sm text-muted">Noch keine bestätigten E-Mail-Adressen.</p>
+        ) : (
+          <textarea
+            aria-label="Bestätigte E-Mail-Adressen für BCC"
+            className="min-h-24 w-full rounded border border-line bg-paper p-2 text-sm"
+            readOnly
+            value={confirmedEmails.map((o) => o.email).join("; ")}
+          />
         )}
       </div>
 

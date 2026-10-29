@@ -35,6 +35,7 @@ const SERVER_ONLY_RPCS = [
   ["request_event_inquiry", { p_name: "x", p_phone: "+4915111111111", p_email: null, p_occasion: "birthday", p_budget_band: "a", p_event_date: berlinToday(), p_guests: 10, p_message: "x" }],
   ["join_waitlist", { p_name: "x", p_phone: "+4915111111111", p_email: null, p_date: berlinToday(), p_party_size: 2, p_time_preference: "evening" }],
   ["subscribe_broadcast", { p_channel: "specials", p_consent_text: "x", p_name: "x", p_phone: "+4915111111111", p_email: null }],
+  ["request_broadcast_email", { p_name: "x", p_email: "x@example.test", p_consent_text: "x", p_confirmation_token: "x" }],
   ["track_event", { p_event: "pageview", p_detail: "", p_path: "/", p_referrer: "", p_device: "phone", p_browser: "chrome", p_lang: "de" }],
   ["take_request_quota", { p_bucket: "zz-test-grants", p_max_1h: 1, p_max_24h: 1 }],
 ];
@@ -50,6 +51,7 @@ const STAFF_ONLY_RPCS = [
 
 /** What the public pages and the guest links genuinely need. */
 const PUBLIC_RPCS = [
+  ["confirm_broadcast_email", { p_token: "x" }],
   ["reservation_settings", {}],
   ["preorder_settings", {}],
   ["reservation_availability", { p_date: berlinToday() }],

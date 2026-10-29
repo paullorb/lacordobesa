@@ -26,6 +26,7 @@ import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
+import { mailConfigured } from "@/lib/mail";
 import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { resolveReviews } from "@/lib/reviews";
@@ -56,6 +57,7 @@ const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `
 
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
+  const emailSpecialsEnabled = mailConfigured();
   const href = (path: string) => localeHref(locale, path);
   const [announcement, menu, specials, specialIdeas, hours, closures, reservation, photos, instagram, reviewScores] = await Promise.all([
     getAnnouncement(),
@@ -252,7 +254,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
               </div>
             )}
             <div id={specials.length > 0 ? undefined : "specials"}>
-              <SpecialsOptin locale={locale} ideas={specialIdeas} />
+              <SpecialsOptin locale={locale} ideas={specialIdeas} emailEnabled={emailSpecialsEnabled} />
             </div>
           </div>
         </section>

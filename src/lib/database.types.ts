@@ -79,6 +79,7 @@ export type Database = {
           consented_at: string
           created_at: string
           email: string | null
+          email_confirmation_token_hash: string | null
           id: string
           name: string | null
           phone: string | null
@@ -95,6 +96,7 @@ export type Database = {
           consented_at?: string
           created_at?: string
           email?: string | null
+          email_confirmation_token_hash?: string | null
           id?: string
           name?: string | null
           phone?: string | null
@@ -111,6 +113,7 @@ export type Database = {
           consented_at?: string
           created_at?: string
           email?: string | null
+          email_confirmation_token_hash?: string | null
           id?: string
           name?: string | null
           phone?: string | null
@@ -846,6 +849,11 @@ export type Database = {
         }[]
       }
       reservation_settings: { Args: never; Returns: Json }
+      request_broadcast_email: {
+        Args: { p_confirmation_token: string; p_consent_text: string; p_email: string; p_name: string }
+        Returns: boolean
+      }
+      confirm_broadcast_email: { Args: { p_token: string }; Returns: boolean }
       subscribe_broadcast: {
         Args: {
           p_channel: string

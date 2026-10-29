@@ -8,13 +8,12 @@
 export const BROADCAST_CHANNELS = ["whatsapp", "email"] as const;
 export type BroadcastChannel = (typeof BROADCAST_CHANNELS)[number];
 
-/** The channels the sign-up form offers. A channel belongs here only once its second opt-in step
- *  exists (migration 20261012215041). WhatsApp has one: the guest sends us a message from the number
- *  they entered, and staff confirm the sign-up when it arrives. E-mail would need a confirmation
- *  mail, and no mail sender is configured, so it stays off. subscribe_broadcast() refuses it too. */
+/** WhatsApp is confirmed by the guest's own message. E-mail is offered only when the server can
+ *  send its confirmation link; callers pass that server-side configuration explicitly. */
 export const OPEN_CHANNELS: readonly BroadcastChannel[] = ["whatsapp"];
 
-export const isOpenChannel = (v: string): v is BroadcastChannel => (OPEN_CHANNELS as readonly string[]).includes(v);
+export const isOpenChannel = (v: string, emailEnabled = false): v is BroadcastChannel =>
+  v === "whatsapp" || (v === "email" && emailEnabled);
 
 export const CHANNEL_LABEL: Record<BroadcastChannel, string> = {
   whatsapp: "WhatsApp",
