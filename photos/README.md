@@ -7,10 +7,11 @@ build time: it is a staging area. Two of these files get copied into `public/ass
 by hand; the rest are uploaded through `/staff/gallery`, which is the only way gallery content ever
 enters the database (see `CLAUDE.md`, "Content lives behind the staff UI").
 
-**Status (2026-10-29):** a twelve-file Unsplash mockup set is staged in this folder; sources and
+**Status (2026-10-29):** a twelve-file mockup set is staged in this folder; sources and
 crop notes are in `CREDITS.md`. The photos are for mockup/staging use only and have not been copied
-to `public/assets/` or uploaded to any gallery. The `hero.jpg` and `og.jpg` crops are provisional:
-the source shows pastries and coffee but not empanadas, so they do not meet the final hero brief.
+to `public/assets/` or uploaded to any gallery. The `hero.jpg` and `og.jpg` are staging-only crops
+of the existing site hero, which matches the empanada-and-medialuna brief. Its original source is
+undocumented; see `CREDITS.md`.
 `upload-gallery.mjs` re-runs the upload against any site and skips what already exists.
 
 ---

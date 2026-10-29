@@ -5,8 +5,8 @@ assets or uploaded to a gallery. All linked sources are available under the [Uns
 
 | File | Source / photographer | Notes |
 |---|---|---|
-| `hero.jpg` | [Jessica Fadel](https://unsplash.com/photos/a-tray-of-pastries-and-a-cup-of-coffee-on-a-table-4B7UC90DAZE) | Provisional crop; pastries and coffee, not the requested empanadas and medialunas. |
-| `og.jpg` | [Jessica Fadel](https://unsplash.com/photos/a-tray-of-pastries-and-a-cup-of-coffee-on-a-table-4B7UC90DAZE) | Separate centered crop; same provisional source as `hero.jpg`. |
+| `hero.jpg` | Existing `public/assets/hero-pasteleria.jpg`; source unknown | Staging-only crop; the composition matches the requested empanadas and medialunas. |
+| `og.jpg` | Existing `public/assets/hero-pasteleria.jpg`; source unknown | Separate centered staging-only crop from the same source as `hero.jpg`. |
 | `empanadas-close.jpg` | Legacy `empanadas.jpg` source; Unsplash attribution was not recorded | Square crop of raw empanadas; repulgue visible. Replace with a baked close-up if available. |
 | `alfajores.jpg` | Legacy Unsplash sample; original photographer and URL were not recorded | Existing repo image; alfajores on a cooling rack, not broken open. |
 | `medialunas-cafe.jpg` | [sofia inductgroup](https://unsplash.com/photos/a-croissant-and-a-cup-of-coffee-on-a-table-iZMC8UlNg4Y) | Cropped square. |
@@ -23,4 +23,4 @@ assets or uploaded to a gallery. All linked sources are available under the [Uns
 The legacy food photographs in this folder were already described as Unsplash images, but the
 original photo URLs and photographers were not preserved. Do not treat them as fully source-verified
 until the provenance is recovered. The existing `public/assets/hero-pasteleria.jpg` has unknown
-origin and was not copied into this mockup set.
+origin. Its two derived mockup crops are included above for staging only.
