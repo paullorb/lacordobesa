@@ -460,6 +460,8 @@ export const de = {
       "Damit niemand eine fremde Nummer einträgt, schick uns die vorbereitete Nachricht von deiner Nummer. Dann bist du dabei. Abmelden geht jederzeit über den Link in jeder Nachricht.",
     confirmCta: "Nachricht in WhatsApp öffnen",
     confirmMessage: "¡Hola! Ich möchte die Specials von La Cordobesa per WhatsApp bekommen.",
+    emailDoneTitle: "Fast geschafft: bestätige deine E-Mail-Adresse",
+    emailDoneText: "Falls diese Adresse noch nicht bestätigt ist, haben wir einen Bestätigungslink geschickt. Erst nach dem Klick nehmen wir dich in den E-Mail-Verteiler auf.",
     consent: {
       whatsapp:
         "Ich möchte von La Cordobesa per WhatsApp über Specials und Aktionen informiert werden. Ich kann mich jederzeit über den Link in der Nachricht abmelden.",

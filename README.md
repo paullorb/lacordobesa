@@ -209,14 +209,15 @@ order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not ca
 already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
 guests pay at pickup.
 
-Specials list (migrations `20261012100835`, `20261012215041`): `specials` had no distribution channel, so only a
+Specials list (migrations `20261012100835`, `20261012215041`, `20261029074029`): `specials` had no distribution channel, so only a
 visitor who happened to open the site ever saw one. Guests opt in on the landing page, right under the specials, and
 staff send from the "An Gäste verschicken" section of `/staff/specials` (`/staff/broadcast` redirects there) with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
 the guest then sends the restaurant a prefilled WhatsApp from that number, and staff press "bestätigen" when it
 arrives. Only confirmed rows are offered for sending, so a stranger's number entered by someone else never gets a
-message. E-mail sign-ups are switched off (in `OPEN_CHANNELS` and in `subscribe_broadcast`) because their second step
-would be a confirmation mail and no mail sender is configured in production; there is deliberately no "copy all
-numbers" or BCC list either, since a group message cannot carry each guest's own unsubscribe link. **Not an automated sender**: the WhatsApp Cloud
+message. E-mail sign-ups appear only when the transactional mail sender is configured. They receive a one-time
+confirmation link; its token is hashed in the database and confirmed only after the guest submits the confirmation
+page, so mail link scanners do not subscribe them. Confirmed e-mail addresses are shown to staff as a BCC list.
+**Not an automated sender**: the WhatsApp Cloud
 API needs a Meta Business account, a verified number and approved templates, none of which exist yet; swapping the
 sender later does not change the table. Consent is stored as evidence, not a boolean: `consent_text` snapshots the exact
 wording shown ([`src/lib/broadcast.ts`](src/lib/broadcast.ts)), with `consented_at` and `source`, and every message

@@ -141,7 +141,7 @@ describe("SECURITY DEFINER functions", () => {
       select p.proname from pg_proc p
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public' and p.prosecdef order by 1`).flat();
-    for (const name of ["request_reservation", "request_preorder", "join_waitlist", "request_event_inquiry", "subscribe_broadcast"]) {
+    for (const name of ["request_reservation", "request_preorder", "join_waitlist", "request_event_inquiry", "subscribe_broadcast", "request_broadcast_email"]) {
       assert.ok(definers.includes(name), `${name} is not SECURITY DEFINER, so it cannot insert past RLS`);
     }
   });
@@ -156,6 +156,7 @@ describe("the grant matrix", () => {
     arrange_menu_items: "false,true,true",
     cancel_preorder_by_token: "true,false,true",
     cancel_reservation_by_token: "true,false,true",
+    confirm_broadcast_email: "true,false,true",
     create_preorder_manually: "false,true,true",
     is_admin: "false,true,true",
     is_staff: "false,true,true",
@@ -166,6 +167,7 @@ describe("the grant matrix", () => {
     preorder_by_token: "true,false,true",
     preorder_settings: "true,true,true",
     request_event_inquiry: "false,false,true",
+    request_broadcast_email: "false,false,true",
     request_preorder: "false,false,true",
     request_reservation: "false,false,true",
     reservation_availability: "true,false,true",

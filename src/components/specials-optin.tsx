@@ -20,9 +20,10 @@ type Stage = "ask" | "form" | "declined";
  *
  *  `ideas` are the "what we may offer" cards staff keep under /staff/specials. With none, the box is
  *  just the question and the form, as before. */
-export function SpecialsOptin({ locale, ideas = [] }: { locale: Locale; ideas?: SpecialIdea[] }) {
+export function SpecialsOptin({ locale, ideas = [], emailEnabled = false }: { locale: Locale; ideas?: SpecialIdea[]; emailEnabled?: boolean }) {
   const [state, formAction, pending] = useActionState(subscribeToSpecials, null);
   useTrackForm("specials", state, pending);
+  const channels = emailEnabled ? [...OPEN_CHANNELS, "email" as const] : OPEN_CHANNELS;
   const [channel, setChannel] = useState<BroadcastChannel>(OPEN_CHANNELS[0]);
   const t = getDictionary(locale).optin;
   const [stage, setStage] = useState<Stage>("ask");
@@ -44,16 +45,23 @@ export function SpecialsOptin({ locale, ideas = [] }: { locale: Locale; ideas?: 
     setStage(next);
   };
 
-  // Double opt-in: the sign-up is stored unconfirmed, and the guest's own message from the number
-  // they entered is the proof that they, and not someone else, asked for it.
   if (state?.ok) {
     return (
       <div className="optin optin-done" role="status">
-        <strong>{t.doneTitle}</strong>
-        <p>{t.doneText}</p>
-        <a className="button" href={whatsappHref(t.confirmMessage)} target="_blank" rel="noreferrer">
-          {t.confirmCta}
-        </a>
+        {state.channel === "email" ? (
+          <>
+            <strong>{t.emailDoneTitle}</strong>
+            <p>{t.emailDoneText}</p>
+          </>
+        ) : (
+          <>
+            <strong>{t.doneTitle}</strong>
+            <p>{t.doneText}</p>
+            <a className="button" href={whatsappHref(t.confirmMessage)} target="_blank" rel="noreferrer">
+              {t.confirmCta}
+            </a>
+          </>
+        )}
       </div>
     );
   }
@@ -110,9 +118,9 @@ export function SpecialsOptin({ locale, ideas = [] }: { locale: Locale; ideas?: 
           {/* Step 2: only after a yes. */}
           <div className="optin-step" data-open={stage === "form"} inert={stage !== "form"}>
             <div className="optin-step-inner optin-fields">
-              {OPEN_CHANNELS.length > 1 && (
+              {channels.length > 1 && (
                 <div className="slots" role="group" aria-label={t.channelLabel}>
-                  {OPEN_CHANNELS.map((c) => (
+                  {channels.map((c) => (
                     <button
                       key={c}
                       type="button"

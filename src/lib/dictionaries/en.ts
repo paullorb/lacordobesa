@@ -458,6 +458,8 @@ export const en: Dictionary = {
       "So that nobody can sign up somebody else's number, send us the prepared message from the number you gave. Then you are in. You can unsubscribe at any time via the link in every message.",
     confirmCta: "Open the message in WhatsApp",
     confirmMessage: "¡Hola! I would like to receive the La Cordobesa specials on WhatsApp.",
+    emailDoneTitle: "Almost there: confirm your email address",
+    emailDoneText: "If this address is not already confirmed, we sent a confirmation link. You join the email list after you open it.",
     consent: {
       whatsapp:
         "I would like La Cordobesa to tell me about specials and offers on WhatsApp. I can unsubscribe at any time using the link in the message.",

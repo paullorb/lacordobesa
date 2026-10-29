@@ -450,6 +450,8 @@ export const es: Dictionary = {
       "Para que nadie anote un número ajeno, mandanos el mensaje preparado desde el número que pusiste. Ya estás. Podés darte de baja cuando quieras con el enlace de cada mensaje.",
     confirmCta: "Abrir el mensaje en WhatsApp",
     confirmMessage: "¡Hola! Quiero recibir los especiales de La Cordobesa por WhatsApp.",
+    emailDoneTitle: "Ya casi: confirmá tu e-mail",
+    emailDoneText: "Si esta dirección todavía no está confirmada, te enviamos un enlace. Te sumamos a la lista cuando lo abras.",
     consent: {
       whatsapp:
         "Quiero que La Cordobesa me informe por WhatsApp sobre especiales y promociones. Puedo darme de baja en cualquier momento con el enlace del mensaje.",
