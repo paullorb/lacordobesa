@@ -106,7 +106,7 @@ describe("what the publishable key may read", () => {
 
   // Guest data and the shop's own books. Either no policy (an empty result) or no grant (an error);
   // both are a refusal, and what must never happen is a row coming back.
-  const PRIVATE = ["reservations", "preorders", "preorder_lines", "waitlist_entries", "event_inquiries", "broadcast_optins", "staff", "analytics_daily", "request_quota", "closures"];
+  const PRIVATE = ["reservations", "preorders", "preorder_lines", "waitlist_entries", "event_inquiries", "broadcast_optins", "broadcast_email_send_attempts", "staff", "analytics_daily", "request_quota", "closures"];
   for (const table of PRIVATE) {
     test(`anon reads no rows from ${table}`, { skip }, async () => {
       const { data, error } = await anon().from(table).select("*").limit(1);

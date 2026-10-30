@@ -18,7 +18,7 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-src https://www.google.com https://maps.google.com",
+  "frame-src https://www.google.com https://maps.google.com https://www.openstreetmap.org",
   "frame-ancestors 'none'",
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
