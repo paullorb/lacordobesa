@@ -27,8 +27,14 @@ function messageFor(special: Tables<"specials">, unsubscribe: string) {
     .join("\n");
 }
 
-/** "An Gäste verschicken": the guests who asked for specials on WhatsApp, with a Senden button per
- *  confirmed guest. Lives on the Specials page, since that is where the text being sent is written. */
+function emailFor(address: string, special: Tables<"specials">, unsubscribe: string) {
+  const subject = `La Cordobesa Specials: ${special.title}`;
+  const recipient = encodeURIComponent(address).replace("%40", "@");
+  return `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageFor(special, unsubscribe))}`;
+}
+
+/** Staff prepare one message per confirmed WhatsApp or email guest so each gets their own
+ *  unsubscribe link. Lives on the Specials page, where the text being sent is written. */
 export async function BroadcastSection() {
   const { supabase } = await requireStaff();
   const [{ data, error }, specials] = await Promise.all([
@@ -95,20 +101,29 @@ export async function BroadcastSection() {
       </div>
 
       <div className="card grid gap-3">
-        <h3 className="font-semibold">Bestätigte E-Mail-Adressen für BCC ({confirmedEmails.length})</h3>
+        <h3 className="font-semibold">Correos confirmados ({confirmedEmails.length})</h3>
+        <p className="text-sm text-muted">
+          Enviá cada correo por separado. El mensaje preparado incluye el enlace personal para darse de baja.
+        </p>
         {confirmedEmails.length === 0 ? (
-          <p className="text-sm text-muted">Noch keine bestätigten E-Mail-Adressen.</p>
+          <p className="text-sm text-muted">Todavía no hay correos confirmados.</p>
         ) : (
-          <textarea
-            aria-label="Bestätigte E-Mail-Adressen für BCC"
-            className="min-h-24 w-full rounded border border-line bg-paper p-2 text-sm"
-            readOnly
-            value={confirmedEmails.map((o) => o.email).join("; ")}
-          />
+          <ul className="grid gap-1.5">
+            {confirmedEmails.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
+                <span className="min-w-0 flex-1"><strong>{o.name ?? "Sin nombre"}</strong> <span className="text-muted">{o.email}</span></span>
+                {special && (
+                  <a className="btn-ghost !py-1" href={emailFor(o.email!, special, unsubscribeUrl(o.unsubscribe_token))}>
+                    Preparar correo <ArrowIcon direction="up-right" size={14} />
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
-      {!special && confirmed.length > 0 && (
+      {!special && (confirmed.length > 0 || confirmedEmails.length > 0) && (
         <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
           No hay especiales activos. Creá uno arriba para incluirlo en el mensaje.
         </p>
