@@ -155,21 +155,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
         <section className="section" id="geschichte">
           <div className="intro-grid">
-            <div className="intro-art">
-              <Logo alt="La Cordobesa Pastelería Argentina" />
-              {/* The caption runs round the mark as a slowly turning ring, like the stamp on a box
-                  of alfajores. Decorative: the same words are not information of their own. */}
-              <svg className="art-ring" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
-                <defs>
-                  <path id="art-ring-path" d="M200 200m-172 0a172 172 0 1 1 344 0a172 172 0 1 1 -344 0" />
-                </defs>
-                <text>
-                  <textPath href="#art-ring-path" textLength={1078} lengthAdjust="spacing">
-                    {`${t.storyArtCaption} · Pastelería Argentina · Frankfurt am Main · `}
-                  </textPath>
-                </text>
-              </svg>
-            </div>
             <div className="intro-copy">
               <p className="eyebrow">{t.storyEyebrow}</p>
               <h2>{t.storyTitle}</h2>
