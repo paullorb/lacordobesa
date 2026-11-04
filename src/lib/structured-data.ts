@@ -21,13 +21,13 @@ const COPY: Record<Locale, { description: string; cuisine: string[]; menuName: s
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt am Main: Empanadas, Alfajores, Kuchen, Pasta und Gerichte vom Grill.",
     cuisine: ["Argentinisch", "Südamerikanisch", "Konditorei"],
-    menuName: "Carta / Karte",
+    menuName: "Menü",
   },
   es: {
     description:
       "Especialidades argentinas caseras en Frankfurt am Main: empanadas, alfajores, tortas, pastas y platos a la parrilla.",
     cuisine: ["Argentina", "Sudamericana", "Pastelería"],
-    menuName: "La carta",
+    menuName: "Menú",
   },
   en: {
     description:

@@ -7,7 +7,7 @@ export type Row = { bucket: string; total: number };
 
 const PAGE_LABEL: Record<string, string> = {
   "/": "Inicio",
-  "/karte": "Carta",
+  "/karte": "Menü",
   "/gallery": "Galería",
   "/vorbestellen": "Pedir por adelantado",
   "/catering": "Eventos y catering",

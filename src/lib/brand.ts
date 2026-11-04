@@ -85,7 +85,7 @@ export const APPS = {
     path: "/manifest.webmanifest",
     name: `${BRAND.name} · ${BRAND.tagline}`,
     shortName: BRAND.name,
-    description: "Argentinische Spezialitäten in Frankfurt: Karte, Reservierung und Vorbestellung.",
+    description: "Argentinische Spezialitäten in Frankfurt: Menü, Reservierung und Vorbestellung.",
     id: "/",
     startUrl: "/",
     scope: "/",

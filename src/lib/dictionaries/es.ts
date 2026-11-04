@@ -9,7 +9,7 @@ import type { Dictionary } from "@/lib/dictionaries/de";
 export const es: Dictionary = {
   nav: {
     story: "Nuestra historia",
-    menu: "La carta",
+    menu: "Menú",
     preorder: "Encargar",
     celebrate: "Festejos",
     gallery: "Galería",
@@ -24,7 +24,7 @@ export const es: Dictionary = {
   },
   footer: {
     story: "Nuestra historia",
-    menu: "La carta",
+    menu: "Menú",
     preorder: "Encargar",
     celebrate: "Festejos y catering",
     gallery: "Galería",
@@ -44,7 +44,7 @@ export const es: Dictionary = {
   home: {
     chaptersLabel: "Secciones de esta página",
     animateEmpanada: "Animar la empanada",
-    chapters: { story: "Historia", menu: "Carta", photos: "Fotos", craft: "A mano", reviews: "Opiniones", reserve: "Reservar", visit: "Visitanos" },
+    chapters: { story: "Historia", menu: "Menú", photos: "Fotos", craft: "A mano", reviews: "Opiniones", reserve: "Reservar", visit: "Visitanos" },
     todayMark: "Hoy",
     title: "La Cordobesa · Un pedacito de Argentina en Frankfurt am Main",
     description:
@@ -55,7 +55,7 @@ export const es: Dictionary = {
     heroText:
       "Empanadas, clásicos dulces y especialidades caseras, a la manera argentina.",
     heroReserve: "Reservar mesa",
-    heroMenu: "Ver la carta",
+    heroMenu: "Ver el menú",
     marqueeLabel: "Especialidades caseras",
     storyEyebrow: "Somos",
     storyTitle: "Casero y auténtico",
@@ -67,7 +67,7 @@ export const es: Dictionary = {
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
     menuTitle: "Algunos de nuestros favoritos",
-    menuFull: "Ver la carta completa",
+    menuFull: "Ver el menú completo",
     specialTag: "Hoy",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Cada empanada lleva su propio repulgue.",
@@ -122,7 +122,7 @@ export const es: Dictionary = {
     eyebrow: "Perdón",
     text: "Quizás un error de tipeo, o la página se mudó.",
     home: "Ir al inicio",
-    menu: "La carta",
+    menu: "Menú",
     reserve: "Reservar mesa",
   },
   photos: {
@@ -134,14 +134,14 @@ export const es: Dictionary = {
     instagramAlt: (handle: string) => `Publicación de Instagram de ${handle}`,
   },
   menuPage: {
-    title: "La carta",
-    description: "La carta completa de La Cordobesa: empanadas, pastas, parrilla, postres y bebidas, todo casero.",
+    title: "Menú",
+    description: "El menú completo de La Cordobesa: empanadas, pastas, parrilla, postres y bebidas, todo casero.",
     eyebrow: "De nuestra cocina",
     intro: "Todo casero, hecho a la manera argentina.",
     note: "Si tenés alguna alergia o intolerancia, avisale a nuestro equipo.",
     noteEmphasis: "¡Buen provecho!",
     cta: "Reservar mesa",
-    indexLabel: "Categorías de la carta",
+    indexLabel: "Categorías del menú",
     descriptionsInGerman: "Por ahora las descripciones están en alemán. Preguntanos y te las explicamos.",
   },
   galleryPage: {
@@ -163,8 +163,8 @@ export const es: Dictionary = {
     closedAfter: " y lo arreglamos al momento.",
     footerBefore: "¿Preferís una mesa? ",
     footerReserve: "Reservá acá",
-    footerMiddle: ". La carta completa está en ",
-    footerMenu: "La carta",
+    footerMiddle: ". El menú completo está en ",
+    footerMenu: "Menú",
     footerAfter: ".",
   },
   cateringPage: {

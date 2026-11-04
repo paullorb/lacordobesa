@@ -11,7 +11,7 @@ import { reviewCountLabel } from "@/lib/reviews";
 export const de = {
   nav: {
     story: "Unsere Geschichte",
-    menu: "Carta / Karte",
+    menu: "Menü",
     preorder: "Vorbestellen",
     celebrate: "Feiern",
     gallery: "Galerie",
@@ -26,7 +26,7 @@ export const de = {
   },
   footer: {
     story: "Unsere Geschichte",
-    menu: "Carta / Karte",
+    menu: "Menü",
     preorder: "Vorbestellen",
     celebrate: "Feiern & Catering",
     gallery: "Galerie",
@@ -49,7 +49,7 @@ export const de = {
     /** The chapter list down the right edge of the landing page on a wide screen. */
     chaptersLabel: "Abschnitte dieser Seite",
     animateEmpanada: "Empanada hüpfen lassen",
-    chapters: { story: "Geschichte", menu: "Karte", photos: "Fotos", craft: "Handwerk", reviews: "Gäste", reserve: "Reservieren", visit: "Besuch" },
+    chapters: { story: "Geschichte", menu: "Menü", photos: "Fotos", craft: "Handwerk", reviews: "Gäste", reserve: "Reservieren", visit: "Besuch" },
     todayMark: "Heute",
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description:
@@ -60,7 +60,7 @@ export const de = {
     heroText:
       "Empanadas, süße Klassiker und hausgemachte Spezialitäten, nach argentinischer Art.",
     heroReserve: "Tisch reservieren",
-    heroMenu: "Zur Karte",
+    heroMenu: "Zum Menü",
     /** Beside the small line at the foot of the hero that says there is more below. */
     marqueeLabel: "Hausgemachte Spezialitäten",
     storyEyebrow: "Wir sind",
@@ -73,7 +73,7 @@ export const de = {
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
     menuTitle: "Ein paar Lieblingsstücke",
-    menuFull: "Ganze Karte ansehen",
+    menuFull: "Komplettes Menü ansehen",
     specialTag: "Heute",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Jede Empanada bekommt ihren eigenen Rand.",
@@ -128,7 +128,7 @@ export const de = {
     eyebrow: "Perdón",
     text: "Vielleicht ein Tippfehler, oder die Seite ist umgezogen.",
     home: "Zur Startseite",
-    menu: "Carta / Karte",
+    menu: "Menü",
     reserve: "Tisch reservieren",
   },
   photos: {
@@ -140,14 +140,14 @@ export const de = {
     instagramAlt: (handle: string) => `Instagram-Beitrag von ${handle}`,
   },
   menuPage: {
-    title: "Carta / Karte",
-    description: "Die komplette Karte von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
+    title: "Menü",
+    description: "Das komplette Menü von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
     eyebrow: "De nuestra cocina",
     intro: "Alles hausgemacht, nach argentinischer Art zubereitet.",
     note: "Bei Allergien oder Unverträglichkeiten frag bitte unser Personal.",
     noteEmphasis: "¡Buen provecho!",
     cta: "Tisch reservieren",
-    indexLabel: "Kategorien der Karte",
+    indexLabel: "Menükategorien",
     descriptionsInGerman: "Die Beschreibungen gibt es bislang nur auf Deutsch. Frag uns gern, wir erklären sie dir.",
   },
   galleryPage: {
@@ -169,8 +169,8 @@ export const de = {
     closedAfter: ", dann klären wir alles direkt.",
     footerBefore: "Lieber einen Tisch? ",
     footerReserve: "Hier reservieren",
-    footerMiddle: ". Die ganze Karte findest du unter ",
-    footerMenu: "Carta / Karte",
+    footerMiddle: ". Das ganze Menü findest du unter ",
+    footerMenu: "Menü",
     footerAfter: ".",
   },
   cateringPage: {
