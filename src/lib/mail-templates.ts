@@ -6,10 +6,10 @@ import { escapeHtml, type Mail } from "@/lib/mail";
 import { manageUrl } from "@/lib/site";
 
 /** Brand colours, inlined: mail clients drop <style> blocks and know nothing about CSS variables. */
-const INK = "#152f3b";
-const MUTED = "#596d72";
-const CREAM = "#f5f1e9";
-const PAPER = "#fffdf8";
+const INK = "#17384b";
+const MUTED = "#526a76";
+const CREAM = "#f3f8fb";
+const PAPER = "#ffffff";
 
 type Confirmed = {
   name: string;

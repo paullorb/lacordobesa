@@ -31,12 +31,12 @@
 export const BRAND = {
   name: "La Cordobesa",
   tagline: "Pastelería Argentina",
-  /** The sky blue of the emblem. The generated icons are painted on it. */
-  blue: "#52a8d2",
-  /** The page background, and the theme colour of the public site. */
-  cream: "#f5f1e9",
-  /** The text colour, and the staff app's theme colour. */
-  ink: "#152f3b",
+  /** The sky blue sampled from the official Frankfurt logo; generated icons use this too. */
+  blue: "#52aee1",
+  /** A cool near-white page background from the logo's blue and white palette. */
+  cream: "#f3f8fb",
+  /** Deep blue text for contrast against the light brand surfaces. */
+  ink: "#17384b",
 } as const;
 
 /** Source art. These two are the only files a logo swap has to touch by hand. */

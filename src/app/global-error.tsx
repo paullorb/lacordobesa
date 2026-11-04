@@ -23,8 +23,8 @@ export default function GlobalError({ error, retry }: { error: Error & { digest?
           display: "grid",
           placeItems: "center",
           padding: "2rem",
-          background: "#f5f1e9",
-          color: "#152f3b",
+          background: "#f3f8fb",
+          color: "#17384b",
           fontFamily: "ui-sans-serif, system-ui, sans-serif",
           textAlign: "center",
         }}
@@ -45,8 +45,8 @@ export default function GlobalError({ error, retry }: { error: Error & { digest?
               padding: ".85rem 1.5rem",
               borderRadius: "999px",
               border: 0,
-              background: "#152f3b",
-              color: "#fffdf8",
+              background: "#17384b",
+              color: "#ffffff",
               cursor: "pointer",
             }}
           >

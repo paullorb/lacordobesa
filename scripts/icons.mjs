@@ -21,8 +21,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const PUBLIC = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
-const BLUE = "#52a8d2";
-const CREAM = "#f5f1e9";
+const BLUE = "#52aee1";
+const CREAM = "#f3f8fb";
 
 // librsvg (what sharp rasterises with) does not draw <textPath>, so the lettering on the arc would be
 // silently missing from every PNG. Swap it, in memory only, for one rotated <text> per letter on the same

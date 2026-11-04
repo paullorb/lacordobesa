@@ -69,7 +69,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
         to: email,
         subject: copy.subject,
         text: `${copy.intro}\n\n${confirmUrl}\n\n${copy.ignore}`,
-        html: `<div style="max-width:520px;margin:24px auto;padding:28px;background:#fffdf8;color:#282b2c;font-family:Arial,Helvetica,sans-serif;line-height:1.6"><p>${escapeHtml(copy.intro)}</p><p><a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:12px 20px;background:#282b2c;color:#fffdf8;text-decoration:none">${escapeHtml(copy.button)}</a></p><p>${escapeHtml(copy.ignore)}</p><p>La Cordobesa · Frankfurt am Main</p></div>`,
+        html: `<div style="max-width:520px;margin:24px auto;padding:28px;background:#f3f8fb;color:#17384b;font-family:Arial,Helvetica,sans-serif;line-height:1.6"><p>${escapeHtml(copy.intro)}</p><p><a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:12px 20px;background:#17384b;color:#ffffff;text-decoration:none">${escapeHtml(copy.button)}</a></p><p>${escapeHtml(copy.ignore)}</p><p>La Cordobesa · Frankfurt am Main</p></div>`,
         replyTo: CONTACT.email,
       });
       if (!result.ok) return { ok: false, error: errorFor("generic") };

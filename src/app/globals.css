@@ -1,22 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #152f3b;
-  --muted: #596d72;
-  --blue: #52a8d2;
-  /* #277fae read at 3.94:1 on the cream band and 4.36:1 on paper: under the 4.5:1 WCAG AA needs
-     for body text, and this is the colour every link and every eyebrow is set in. Two steps
-     darker clears it on all three light surfaces (4.96 cream, 5.50 paper, 4.91 mint) at the
-     same hue. */
+  --ink: #17384b;
+  --muted: #526a76;
+  --blue: #52aee1;
+  /* A darker shade of the logo blue for text and links on the light brand surfaces. */
   --blue-dark: #226e99;
-  --cream: #f5f1e9;
-  --paper: #fffdf8;
-  --coral: #e68061;
-  /* The coral above is a *graphic* colour: at 2.71:1 on paper it is fine for the repulgue, the
-     card edge and the status dot, and unreadable as text. Anything made of words uses this one. */
-  --coral-text: #b14a28;
-  --mint: #e9f2f2;
-  --line: rgba(21, 47, 59, 0.13);
+  --cream: #f3f8fb;
+  --paper: #ffffff;
+  --coral: #52aee1;
+  /* The darker logo blue keeps text and controls readable on white and pale blue. */
+  --coral-text: #226e99;
+  --mint: #e7f3f9;
+  --line: rgba(23, 56, 75, 0.13);
   --serif: var(--font-serif), "Playfair Display", Georgia, serif;
   --sans: var(--font-sans), "DM Sans", Arial, sans-serif;
   --header-h: 86px; /* the sticky header; 74px once the nav collapses */
@@ -69,7 +65,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 /* ------------------------------------------------------------------ public site */
 .site img { height: auto; }
 .site h1, .site h2, .site h3, .site p { margin-top: 0; }
-.announcement { padding: .58rem 1rem; text-align: center; background: var(--ink); color: #fffdf8; font-size: var(--fs-xs); letter-spacing: .09em; }
+.announcement { padding: .58rem 1rem; text-align: center; background: var(--ink); color: #ffffff; font-size: var(--fs-xs); letter-spacing: .09em; }
 .announcement span { color: #9ed8f2; }
 .site-header { position: sticky; z-index: 10; top: 0; background: rgba(245,241,233,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .progress-empanada { display: none; }
@@ -1019,7 +1015,7 @@ body::after {
 .skip-link:focus-visible {
   position: absolute; top: .6rem; left: 50%; translate: -50% 0; z-index: 50;
   width: auto; height: auto; overflow: visible; clip-path: none;
-  padding: .7rem 1.3rem; border-radius: 999px; background: var(--ink); color: #fffdf8;
+  padding: .7rem 1.3rem; border-radius: 999px; background: var(--ink); color: #ffffff;
   font-size: var(--fs-sm); font-weight: 700; text-decoration: none;
 }
 
