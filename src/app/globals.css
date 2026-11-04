@@ -176,14 +176,11 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .site h2 { text-wrap: balance; margin-bottom: 1rem; font-family: var(--serif); font-size: clamp(2.35rem, 4.5vw, 3.8rem); font-weight: 500; line-height: 1.08; letter-spacing: -.04em; }
 .section-heading h1 { color: var(--ink); font-size: clamp(2.8rem, 5.6vw, 4.6rem); line-height: 1.05; text-wrap: balance; }
 .section-heading > p:last-child { margin-bottom: 0; color: var(--muted); line-height: 1.8; font-size: var(--fs-lg); }
-.intro-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 5rem; align-items: center; }
-.intro-art { position: relative; min-height: 420px; border-radius: 48% 48% 8px 8px; background: #a8d7e8; display: grid; place-items: center; overflow: hidden; }
-.intro-art::before { content: ""; position: absolute; width: 300px; height: 300px; border: 1px solid rgba(255,255,255,.65); border-radius: 50%; }
-
-.intro-art img { z-index: 1; width: 195px; filter: drop-shadow(0 12px 12px rgba(14,64,82,.15)); }
-.art-ring { position: absolute; z-index: 1; top: 50%; left: 50%; width: min(400px, 96%); height: auto; aspect-ratio: 1; translate: -50% -50%; overflow: visible; fill: #16546a; font-family: var(--serif); font-size: 17px; font-style: italic; letter-spacing: .02em; }
-.intro-copy h2 { max-width: 500px; }
-.intro-copy > p:not(.eyebrow) { max-width: 570px; color: var(--muted); font-size: var(--fs-base); line-height: 1.75; }
+.intro-grid { display: block; }
+.intro-copy { max-width: 760px; margin: 0 auto; text-align: center; }
+.intro-copy .eyebrow { justify-content: center; }
+.intro-copy h2 { max-width: none; }
+.intro-copy > p:not(.eyebrow) { max-width: 680px; margin-left: auto; margin-right: auto; color: var(--muted); font-size: var(--fs-base); line-height: 1.75; }
 .intro-copy .signature { margin: 1.8rem 0 0; font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; color: var(--blue-dark); }
 /* Tailwind's base resets every paragraph margin, which ran the story's two paragraphs together. */
 .intro-copy > p:not(.eyebrow) + p { margin-top: 1em; }
@@ -722,8 +719,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .hero-image { object-position: 58% center; }
   .hero-content { padding: 4rem 2rem; }
   .section { width: calc(100% - 40px); padding: 82px 0; }
-  .intro-grid, .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .intro-art { min-height: 340px; max-width: 440px; width: 100%; margin: auto; }
+  .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
   .menu-section { padding: 82px 20px; }
   .menu-grid { grid-template-columns: 1fr 1fr; }
   .menu-card:nth-child(n) { margin-top: 0; }
