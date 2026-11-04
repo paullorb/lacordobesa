@@ -56,7 +56,9 @@ export function CheerCursor({ locale }: { locale: Locale }) {
     const onMove = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
       pointer.current = { x: e.clientX, y: e.clientY };
-      follow((e.target as Element | null)?.closest?.("[data-cheer]") ?? null);
+      // Safari can keep the event target from an image's original hit test while the pointer is
+      // moving across composited layers. Resolve the current element at the pointer coordinates.
+      follow(under(e.clientX, e.clientY));
     };
     const onLeave = () => {
       pointer.current = null;

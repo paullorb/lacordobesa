@@ -456,7 +456,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .photo-strip-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.2rem .8rem .7rem; color: #fff; font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; text-align: left; background: linear-gradient(transparent, rgba(13,35,45,.78)); opacity: 0; translate: 0 8px; transition: opacity .35s, translate .35s; pointer-events: none; }
 .photo-strip a:focus-visible .photo-strip-caption { opacity: 1; translate: 0 0; }
 
-/* Opt-in for the specials list, shown under the specials on the landing page. */
+/* Opt-in for the specials list, shown after the menu on the Carta page. */
 .optin { display: grid; gap: 1.4rem; max-width: 720px; margin: 2.6rem auto 0; padding: 1.6rem 1.8rem; background: var(--mint); }
 .optin-copy h2 { font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; margin: .2rem 0 .5rem; }
 .optin-copy p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.7; }
@@ -1075,7 +1075,7 @@ body::after {
    only gives up its own cursor while the label is there to replace it. */
 .gallery-cursor { display: none; }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); line-height: 1.1; text-align: center; padding: .4rem; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1), translate .14s ease-out; }
+  .gallery-cursor { display: grid; place-items: center; position: fixed; z-index: 20; top: 0; left: 0; width: 78px; height: 78px; margin: -39px 0 0 -39px; border-radius: 50%; background: var(--paper); color: var(--ink); font-family: var(--serif); font-style: italic; font-size: var(--fs-base); line-height: 1.1; text-align: center; padding: .4rem; box-shadow: 0 10px 30px rgba(21,47,59,.18); pointer-events: none; opacity: 0; scale: .4; transition: opacity .25s, scale .3s cubic-bezier(.2,.7,.2,1); }
   .gallery-cursor[data-on] { opacity: 1; scale: 1; }
   body:has(> .gallery-cursor[data-on]) [data-cheer] { cursor: none; }
 }

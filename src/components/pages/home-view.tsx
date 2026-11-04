@@ -2,7 +2,7 @@ import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
-import { ArgentinaIcon, ArrowIcon, MenuIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
+import { ArrowIcon, MenuIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
 import { CheerCursor } from "@/components/cheer-cursor";
 import { HeroCursor } from "@/components/hero-cursor";
@@ -13,34 +13,27 @@ import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
-import { ReviewStars } from "@/components/review-stars";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
 import { PhoneNote } from "@/components/phone-note";
-import { EmpanadaMark, Repulgue, repulgueTile } from "@/components/repulgue";
+import { Repulgue } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
-import { SpecialsOptin } from "@/components/specials-optin";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
 import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
-import { mailConfigured } from "@/lib/mail";
-import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
+import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
-import { resolveReviews } from "@/lib/reviews";
 import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
-  getActiveSpecials,
-  getSpecialIdeas,
   getAnnouncement,
   getHomePhotos,
   getMenu,
   getOpeningHours,
   getReservationSettings,
-  getReviewScores,
   getUpcomingClosures,
 } from "@/lib/data";
 import { getInstagramPosts } from "@/lib/instagram";
@@ -57,21 +50,16 @@ const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `
 
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
-  const emailSpecialsEnabled = mailConfigured();
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, menu, specials, specialIdeas, hours, closures, reservation, photos, instagram, reviewScores] = await Promise.all([
+  const [announcement, menu, hours, closures, reservation, photos, instagram] = await Promise.all([
     getAnnouncement(),
     getMenu(),
-    getActiveSpecials(),
-    getSpecialIdeas(),
     getOpeningHours(),
     getUpcomingClosures(),
     getReservationSettings(),
     getHomePhotos(),
     getInstagramPosts(),
-    getReviewScores(),
   ]);
-  const reviews = resolveReviews(reviewScores);
 
   // The open-now status runs in the browser, so it gets just the fields it reads.
   const openingHours = hours.map(({ weekday, opens, closes, is_closed }) => ({ weekday, opens, closes, is_closed }));
@@ -84,8 +72,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
     { id: "geschichte", label: t.chapters.story, icon: "story" },
     { id: "karte", label: t.chapters.menu, icon: "menu" },
     ...(photos.featured.length || instagram.length ? [{ id: "fotos", label: t.chapters.photos, icon: "gallery" }] : []),
-    { id: "handwerk", label: t.chapters.craft, icon: "craft" },
-    { id: "gaeste", label: t.chapters.reviews, icon: "reviews" },
     { id: "reservieren", label: t.chapters.reserve, icon: "reserve" },
     { id: "besuch", label: t.chapters.visit, icon: "visit" },
   ];
@@ -99,7 +85,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
       <JsonLd data={restaurantJsonLd(hours, locale)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
-      {/* Wide screens only (see .chapter-nav): the page's seven chapters, with the current one marked. */}
+      {/* Wide screens only (see .chapter-nav): the page chapters, with the current one marked. */}
       <ChapterNav label={t.chaptersLabel} chapters={chapters} />
       <CheerCursor locale={locale} />
 
@@ -116,13 +102,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
             sizes="(max-width: 1392px) 100vw, 1392px"
           />
           <div className="hero-content">
-            {/* One span, so the sentence is a single flex item that wraps like text. As three loose
-                items, a narrow screen broke it into two ragged columns either side of the flag. */}
+            {/* One span, so the sentence is a single flex item that wraps like text. */}
             <p className="eyebrow">
               <span className="eyebrow-text">
-                {t.heroEyebrowBefore}
-                <ArgentinaIcon title={t.heroEyebrowFlag} />
-                {t.heroEyebrowAfter}
+                {t.heroEyebrow}
               </span>
             </p>
             {/* Each line is its own block and each word its own clipped box, so the headline rises
@@ -191,9 +174,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <p className="eyebrow">{t.storyEyebrow}</p>
               <h2>{t.storyTitle}</h2>
               <p>{t.storyP1}</p>
-              <p>
-                {t.storyP2} <em>{t.storyP2Emphasis}</em>
-              </p>
+              <p>{t.storyP2}</p>
               <p className="signature">{t.storySignature}</p>
             </div>
           </div>
@@ -237,96 +218,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
               </Link>
             </p>
 
-            {/* After the dishes, not before them: the cards are what the section is for, and the
-                specials and the sign-up are the offer that follows once somebody has seen what we
-                make. An anchor target, since the abmelden page links back here. */}
-            {specials.length > 0 && (
-              <div className="specials" id="specials">
-                {specials.map((s) => (
-                  <div className="special" key={s.id}>
-                    <span className="tag">{t.specialTag}</span>
-                    <div>
-                      <strong>{s.title}</strong>
-                      {s.description && <p>{s.description}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div id={specials.length > 0 ? undefined : "specials"}>
-              <SpecialsOptin locale={locale} ideas={specialIdeas} emailEnabled={emailSpecialsEnabled} />
-            </div>
           </div>
         </section>
 
         <PhotoStrip locale={locale} featured={photos.featured} posts={instagram} />
-
-        <section className="craft" id="handwerk">
-          {/* The same crimped edge the footer opens with, so both dark bands are closed the same way. */}
-          <div className="craft-edge" aria-hidden="true" style={{ maskImage: repulgueTile(), WebkitMaskImage: repulgueTile() }} />
-          <div className="section craft-grid">
-            <div>
-              <p className="eyebrow">{t.craftEyebrow}</p>
-              <h2>{t.craftTitle}</h2>
-              <a className="text-link inline-icon" href={CONTACT.instagram} target="_blank" rel="noreferrer">
-                <InstagramIcon /> {t.craftLink}
-              </a>
-            </div>
-            {/* The signature at full size: an empanada closed with its repulgue, drawn in as it
-                scrolls into view. It replaces a second copy of the hero photo. */}
-            <figure className="craft-art">
-              <EmpanadaMark />
-              <figcaption>{t.craftTag}</figcaption>
-            </figure>
-          </div>
-        </section>
-
-        <section className="section reviews" id="gaeste" aria-labelledby="reviews-title">
-          <div className="reviews-copy">
-            <p className="eyebrow">{t.reviewsEyebrow}</p>
-            <h2 id="reviews-title">{t.reviewsTitle}</h2>
-          </div>
-          <ul className="reviews-list">
-            {reviews.map((r) => {
-              const scoreText = r.score
-                ? r.score.count
-                  ? t.reviewsScore(r.score.value, r.score.scale, r.score.count)
-                  : t.reviewsScoreBare(r.score.value, r.score.scale)
-                : null;
-              return (
-                <li key={r.id}>
-                  <a className="review-card" data-spotlight="" href={r.url} target="_blank" rel="noreferrer">
-                    <span className="review-head">
-                      <span className="review-mark">
-                        <Image src={r.mark} alt="" width={36} height={36} unoptimized={r.mark.endsWith(".svg")} />
-                      </span>
-                      <strong>{r.name}</strong>
-                    </span>
-                    {scoreText && (
-                      <span className="review-score">
-                        {r.stars !== null && <ReviewStars value={r.stars} />}
-                        {scoreText}
-                      </span>
-                    )}
-                    {/* The score is a hand-copied snapshot, so say when it was read rather than pass it off as live. */}
-                    {r.score?.checked && (
-                      <span className="review-checked">
-                        {t.reviewsAsOf(
-                          new Intl.DateTimeFormat(INTL_LOCALE[locale], { month: "long", year: "numeric", timeZone: "UTC" }).format(
-                            new Date(`${r.score.checked}T00:00:00Z`),
-                          ),
-                        )}
-                      </span>
-                    )}
-                    <span className="review-open">
-                      {t.reviewsOpen} <ArrowIcon direction="up-right" size={14} />
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
 
         <section className="reserve-section" id="reservieren">
           <div className="section reserve-grid">

@@ -2,14 +2,16 @@ import Link from "next/link";
 import { MenuIcon } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
 import { MenuIndex } from "@/components/menu-index";
+import { SpecialsOptin } from "@/components/specials-optin";
 import { MenuItemIcon } from "@/components/menu-icons";
 import { PhoneNote } from "@/components/phone-note";
 import { Repulgue } from "@/components/repulgue";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { whatsappHref } from "@/lib/contact";
-import { getActiveSpecials, getAnnouncement, getMenu } from "@/lib/data";
+import { getActiveSpecials, getAnnouncement, getMenu, getSpecialIdeas } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
+import { mailConfigured } from "@/lib/mail";
 import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { menuJsonLd } from "@/lib/structured-data";
@@ -18,7 +20,8 @@ export const MENU_PATH = "/karte";
 
 export async function MenuView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).menuPage;
-  const [announcement, menu, specials] = await Promise.all([getAnnouncement(), getMenu(), getActiveSpecials()]);
+  const [announcement, menu, specials, specialIdeas] = await Promise.all([getAnnouncement(), getMenu(), getActiveSpecials(), getSpecialIdeas()]);
+  const emailSpecialsEnabled = mailConfigured();
 
   const shown = menu.flatMap((c) => c.items);
   const anyUntranslated = shown.some((i) => isUntranslated(i, locale));
@@ -38,20 +41,6 @@ export async function MenuView({ locale }: { locale: Locale }) {
             <Repulgue className="repulgue-divider" />
             <p>{t.intro}</p>
           </div>
-
-          {specials.length > 0 && (
-            <div className="specials">
-              {specials.map((s) => (
-                <div className="special" key={s.id}>
-                  <span className="tag">{getDictionary(locale).home.specialTag}</span>
-                  <div>
-                    <strong>{s.title}</strong>
-                    {s.description && <p>{s.description}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
           {anyUntranslated && <p className="form-note menu-translation-note">{t.descriptionsInGerman}</p>}
 
@@ -106,6 +95,22 @@ export async function MenuView({ locale }: { locale: Locale }) {
               {t.cta}
             </Link>
           </p>
+          <div className="menu-specials" id="specials">
+            {specials.length > 0 && (
+              <div className="specials">
+                {specials.map((s) => (
+                  <div className="special" key={s.id}>
+                    <span className="tag">{getDictionary(locale).home.specialTag}</span>
+                    <div>
+                      <strong>{s.title}</strong>
+                      {s.description && <p>{s.description}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <SpecialsOptin locale={locale} ideas={specialIdeas} emailEnabled={emailSpecialsEnabled} />
+          </div>
           <PhoneNote locale={locale} className="phone-note-center" />
         </section>
       </main>

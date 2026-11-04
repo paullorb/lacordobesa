@@ -54,25 +54,22 @@ export const de = {
     title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
     description:
       "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
-    heroEyebrowBefore: "Ein Stück ",
-    /** Read out in place of the flag, which is standing in for the word. */
-    heroEyebrowFlag: "Argentinien",
-    heroEyebrowAfter: " in Frankfurt am Main",
-    heroTitleLine1: "Wie zuhause.",
-    heroTitleLine2: "Con mucho amor.",
+    heroEyebrow: "Wie zuhause. Con mucho amor.",
+    heroTitleLine1: "Argentinien.",
+    heroTitleLine2: "Im Herzen Frankfurts.",
     heroText:
       "Empanadas, süße Klassiker und hausgemachte Spezialitäten, nach argentinischer Art.",
     heroReserve: "Tisch reservieren",
     heroMenu: "Zur Karte",
     /** Beside the small line at the foot of the hero that says there is more below. */
     marqueeLabel: "Hausgemachte Spezialitäten",
-    storyEyebrow: "Unsere kleine Welt",
-    storyTitle: "Mit Geschmack, der Erinnerungen weckt.",
+    storyEyebrow: "Wir sind",
+    storyTitle: "Hausgemacht & Authentisch",
     storyP1:
-      "La Cordobesa ist ein Familienprojekt: argentinische Rezepte, ehrliches Handwerk, ein Stück Heimat zum Teilen. Bei uns duftet es nach frischem Teig und süßen Alfajores.",
-    storyP2: "Ob auf einen Kaffee, eine warme Empanada oder ein Stück Kuchen:",
-    storyP2Emphasis: "¡Qué lindo tenerte acá!",
-    storySignature: "Con cariño, das Team von La Cordobesa",
+      "La Cordobesa ist pure Liebe zu unseren Wurzeln. Sie ist unsere Dankbarkeit gegenüber unserer Heimat und dem, was wir im Herzen tragen. Wir sind stolz darauf, Menschen mit den Aromen zu erreichen, die uns seit unserer Kindheit begleiten und uns immer wieder nach Hause zurückbringen.",
+    storyP2:
+      "Es ist unsere Leidenschaft, die argentinische Kultur und Tradition an unsere Kinder weiterzugeben. Wir sind ein Familienunternehmen aus Alta Gracia, Córdoba – und wir leben die Liebe zu dem, was uns von klein auf geprägt hat.",
+    storySignature: "Team La Cordobesa",
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
     menuTitle: "Ein paar Lieblingsstücke",

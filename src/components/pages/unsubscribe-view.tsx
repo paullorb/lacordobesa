@@ -38,7 +38,7 @@ export function UnsubscribeView({
             </Suspense>
             <p className="manage-hint">
               {t.againBefore}
-              <Link href={localeHref(locale, "/#specials")}>{t.againLink}</Link>
+              <Link href={localeHref(locale, "/karte#specials")}>{t.againLink}</Link>
               {t.againAfter}
               <a href={`tel:${CONTACT.phoneE164}`}>{CONTACT.phoneDisplay}</a>.
             </p>
