@@ -68,7 +68,7 @@ export const de = {
     storyP1:
       "La Cordobesa ist pure Liebe zu unseren Wurzeln. Sie ist unsere Dankbarkeit gegenüber unserer Heimat und dem, was wir im Herzen tragen. Wir sind stolz darauf, Menschen mit den Aromen zu erreichen, die uns seit unserer Kindheit begleiten und uns immer wieder nach Hause zurückbringen.",
     storyP2:
-      "Es ist unsere Leidenschaft, die argentinische Kultur und Tradition an unsere Kinder weiterzugeben. Wir sind ein Familienunternehmen aus Alta Gracia, Córdoba – und wir leben die Liebe zu dem, was uns von klein auf geprägt hat.",
+      "Es ist unsere Leidenschaft, die argentinische Kultur und Tradition an unsere Kinder weiterzugeben. Wir sind ein Familienunternehmen aus Alta Gracia, Córdoba, und wir leben die Liebe zu dem, was uns von klein auf geprägt hat.",
     storySignature: "Team La Cordobesa",
     storyArtCaption: "Sabores de nuestra casa",
     menuEyebrow: "De nuestra cocina",
