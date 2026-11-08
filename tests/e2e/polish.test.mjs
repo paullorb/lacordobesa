@@ -17,9 +17,9 @@ after(closeBrowser);
 
 describe("the headline still reads as a sentence", () => {
   for (const [path, first, second] of [
-    ["/", "Wie zuhause.", "Con mucho amor."],
-    ["/es", "Como en casa.", "Con mucho amor."],
-    ["/en", "Just like home.", "Con mucho amor."],
+    ["/", "Argentinien.", "Im Herzen Frankfurts."],
+    ["/es", "Argentina.", "En el corazón de Frankfurt."],
+    ["/en", "Argentina.", "At the heart of Frankfurt."],
   ]) {
     test(path, { skip }, async () => {
       await visit(path, {
