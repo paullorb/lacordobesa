@@ -2,8 +2,8 @@
  * Shared plumbing for the database tests.
  *
  * These are the tests the unit suite cannot be: 26 RPCs and seventeen tables with RLS on all of
- * them, none of which had a test before. They run against the **staging** project
- * (`lacordobesa-staging`), which exists so that tests can write, and they go through
+ * them, none of which had a test before. They run against the disposable local Supabase stack,
+ * which exists so that tests can write, and they go through
  * `@supabase/supabase-js` rather than psql so that what is exercised is the same path the app
  * takes, grants and row level security included.
  *
@@ -36,31 +36,24 @@ import { createClient } from "@supabase/supabase-js";
 
 const PRODUCTION_PROJECT_REF = "iabpugtwgjqldlzjjgqj";
 
-const URL_VAR = process.env.STAGING_SUPABASE_URL ? "STAGING_SUPABASE_URL" : "NEXT_PUBLIC_SUPABASE_URL";
-const url = process.env.STAGING_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-const publishable = process.env.STAGING_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-// STAGING_SERVICE_ROLE_KEY first on purpose. `.env.staging.local` also carries a STAGING_SECRET_KEY
-// in the newer `sb_secret_…` form, and as of 2026-10-16 that one is rejected with "Invalid API key"
-// (rotated, or the new key format is not enabled on this project). The legacy service-role JWT
-// works, so it is the one tried first and the other is kept as a fallback rather than removed.
-const secret =
-  process.env.STAGING_SERVICE_ROLE_KEY ?? process.env.STAGING_SECRET_KEY ?? process.env.SUPABASE_SECRET_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const publishable = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const secret = process.env.SUPABASE_SECRET_KEY;
 
-if (url?.includes(PRODUCTION_PROJECT_REF)) {
+if (url && (url.includes(PRODUCTION_PROJECT_REF) || !["127.0.0.1", "localhost"].includes(new URL(url).hostname))) {
   throw new Error(
-    `${URL_VAR} points at the production project (${PRODUCTION_PROJECT_REF}). These tests write, ` +
-      "so they must never run there. Point them at lacordobesa-staging (see .env.staging.local).",
+    `Supabase URL must be a local loopback address for database-writing tests (production ref: ${PRODUCTION_PROJECT_REF}).`,
   );
 }
 
 /** Why the suite cannot run, or false when it can. Mirrors the browser tests: a checkout with no
  *  credentials has to stay able to run `npm run check`, so this skips rather than fails. */
 export const skip = !url
-  ? "no Supabase URL, set STAGING_* in .env.staging.local"
+  ? "local Supabase is stopped; run `supabase start`"
   : !publishable
-    ? "no publishable key, set STAGING_PUBLISHABLE_KEY"
+    ? "no local publishable key; use `npm run test:integration`"
     : !secret
-      ? "no secret key, set STAGING_SECRET_KEY"
+      ? "no local secret key; use `npm run test:integration`"
       : false;
 
 const options = { auth: { persistSession: false, autoRefreshToken: false } };
@@ -71,11 +64,11 @@ export const anon = () => createClient(url, publishable, options);
 /** The server's client: bypasses RLS. For fixtures and cleanup only. */
 export const admin = () => createClient(url, secret, options);
 
-const staffUser = process.env.STAGING_STAFF_USER;
-const staffPass = process.env.STAGING_STAFF_PASS;
+const staffUser = process.env.STAFF_USER;
+const staffPass = process.env.STAFF_PASS;
 
 /** Why the staff tests cannot run, or false. */
-export const skipStaff = skip || (!staffUser || !staffPass ? "no STAGING_STAFF_USER / STAGING_STAFF_PASS" : false);
+export const skipStaff = skip || (!staffUser || !staffPass ? "no STAFF_USER / STAFF_PASS; use `npm run test:integration`" : false);
 
 /**
  * A signed-in staff client, which is what the staff pages hold.
@@ -109,7 +102,7 @@ export async function staff() {
 let counter = 0;
 export const testPhone = () => `+4915${String(Date.now() % 100000).padStart(5, "0")}${String(counter++).padStart(3, "0")}`;
 
-/** A name that says where the row came from, for anyone who finds one in the staging dashboard. */
+/** A name that says where the row came from, for anyone who finds one in the local database. */
 export const TEST_NAME = "ZZ Test Harness";
 
 const made = { reservations: [], preorders: [], waitlist_entries: [], event_inquiries: [], broadcast_optins: [] };

@@ -20,10 +20,10 @@
  * ## This file writes, and that is deliberate
  *
  * A token page cannot be opened without a row to open. So one reservation, one order and one
- * specials sign-up are created here with the **service key** against the **staging** project, and
+ * specials sign-up are created here with the **service key** against local Supabase, and
  * deleted in `after`. That is the one exception to "nothing in tests/e2e writes": the fixtures live
  * for the length of this file, and `request_reservation`'s site-wide quota gets its allowance back
- * when the rows go. Without credentials for staging the whole file skips.
+ * when the rows go. Without local Supabase the whole file skips.
  */
 import { test, describe, after } from "node:test";
 import assert from "node:assert/strict";

@@ -56,60 +56,34 @@ RPCs coerce an unknown locale to `de`, so an English booking still succeeds, it 
 ## Stack
 
 - [Next.js 16](https://nextjs.org) (App Router, Cache Components) + Tailwind v4
-- [Supabase](https://supabase.com) — Postgres, Row Level Security, Auth (projects `lacordobesa` and
-  `lacordobesa-staging`, both eu-central-1; see *Environments*)
+- [Supabase](https://supabase.com) — Postgres, Row Level Security, Auth (production project `lacordobesa`; local development uses Supabase CLI)
 - Deployed on Vercel
 
 ## Run locally
 
+Install Docker and the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started), then:
+
 ```bash
-cp .env.example .env.local   # fill in the Supabase URL + publishable key
 npm install
-npm run dev
+supabase start                 # starts a disposable local database and applies migrations + seeds
+npm run dev                    # local Supabase is wired in automatically
 ```
 
-Open http://localhost:3000. The staff area is at http://localhost:3000/staff.
-
-Point `.env.local` at the **staging** project, not the live one. See *Environments* right below: the app now
-refuses to start a query against production outside the production deployment, so a copied-from-prod
-`.env.local` fails on the first page load with an explanation rather than booking real tables.
+Open http://localhost:3000. The staff area is at http://localhost:3000/staff. `npm run test:integration`,
+`npm run test:e2e`, and `npm run build:local` also use the local stack. `npm run db:reset` reapplies all migrations
+and seeds. Tests that write to the database reject remote URLs, including production.
 
 ## Environments
 
-Two Supabase projects. The rule is that only the production deployment on Vercel ever talks to the
-production one.
+Only the production deployment on Vercel uses the production Supabase project (`lacordobesa`,
+`iabpugtwgjqldlzjjgqj`). Local development and CI use a fresh local Supabase stack; no shared staging
+project or Supabase credentials are needed. The app's `src/lib/supabase/env.ts` guard prevents production
+access outside the production deployment. To reach live data deliberately for a one-off command, set
+`ALLOW_PRODUCTION_DB=1` for that command.
 
-| | Supabase project | Who uses it |
-| --- | --- | --- |
-| Production | `lacordobesa` (`iabpugtwgjqldlzjjgqj`) | the deployment built from `main`, and nothing else |
-| Staging | `lacordobesa-staging` (`yfcpqyxonzjuflsqhasz`) | `npm run dev`, Playwright, agent sessions, anything exploratory |
-
-Vercel's `development` environment holds the staging values too, so `vercel env pull` sets a new machine up
-correctly. There is no `preview` environment at all, by choice (see the end of this section).
-
-Until 2026-10-14 there was only the first one, and it was set for every Vercel environment as well as in
-every `.env.local`. So local development and every agent session wrote into the live database. The damage is not stray rows: a test burst spends the site-wide quota
-inside `request_reservation` (15/hour, 80/24 h) and holds seats in `reservation_availability`, so submitting
-the reservation form twenty times to see whether it works can turn a real guest away.
-
-[`src/lib/supabase/env.ts`](src/lib/supabase/env.ts) is what keeps the split in place: it refuses to build a
-Supabase client against the production project unless `VERCEL_ENV=production`. A wrong `.env.local` now fails
-loudly on the first query. To reach live data on purpose (a one-off script, reproducing something that only
-exists in real data), set `ALLOW_PRODUCTION_DB=1` for that one command.
-
-Staging is not a fixture: it was built with `supabase db push` from [`supabase/migrations`](supabase/migrations)
-plus `seed.sql` and `seed_menu.sql`, which is also the only check that those files can stand a database up from
-nothing. Reset or re-seed it as roughly as you like. A schema change belongs in both, staging first:
-
-```bash
-supabase db push --db-url "$STAGING_DB_URL" --yes   # staging, from .env.staging.local
-supabase db push --db-url "$SUPABASE_DB_URL" --yes  # production, once it looks right
-```
-
-Staff login on staging is the user `paul`; its password, the project's keys and `STAGING_DB_URL` live in
-`.env.staging.local` (gitignored, on the owner's machine only). Staging has its own auth users, so a production
-password is never usable there. "Allow new users to sign up" is left at the Supabase default on staging, which
-is harmless because the allowlist in `public.staff` is what grants access, not having an account.
+Create schema changes in a migration, verify them against local Supabase with `npm run db:reset`, then
+apply reviewed migrations to production with the Supabase CLI. Production currently has all 44 checked-in
+migrations applied.
 
 **Vercel deploys `main` and nothing else.** There is no preview environment: no preview URLs, no preview
 environment variables, no deployment for a branch or a pull request. Build minutes are scarce and nobody
@@ -120,7 +94,7 @@ reviews previews, so the project runs without them. Two settings keep it that wa
 - The project's Ignored Build Step is `if [ "$VERCEL_ENV" = "production" ]; then exit 1; else exit 0; fi`
   (exit 0 means skip), which also catches a preview somebody triggers by hand with `vercel deploy`.
 
-So the way to see a change before it ships is `npm run dev` against staging, not a preview URL.
+So the way to see a change before it ships is `npm run dev` against the local Supabase stack, not a preview URL.
 
 ## Staff accounts
 
@@ -163,11 +137,8 @@ content is in [`supabase/seed.sql`](supabase/seed.sql), and the menu in
 schema, regenerate the types:
 
 ```bash
-# Docker running, and the IPv4 pooler: the direct host is IPv6 only, and --project-id would block on the
-# keychain in an agent session (CLAUDE.md). Staging and production carry the same schema.
-supabase gen types typescript \
-  --db-url "postgresql://postgres.yfcpqyxonzjuflsqhasz:<password>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres" \
-  > src/lib/database.types.ts
+# Local Supabase running (`supabase start`)
+supabase gen types typescript --local > src/lib/database.types.ts
 ```
 
 How reservations work:
@@ -191,7 +162,7 @@ How reservations work:
   manage-link RPCs, where the guest's token is the credential. There is no Vercel firewall rule in front of the forms.
 - **`SUPABASE_SECRET_KEY` is therefore required, not optional.** Without it `createPrivilegedClient()` throws and
   every public form fails to submit; it no longer degrades to "no per-visitor limit". It is set for `production` in
-  Vercel and for local work in `.env.local` (pointing at staging). A new environment needs it before the forms work.
+  Vercel; local development gets its local secret key from the Supabase CLI. A new deployment environment needs it before the forms work.
 - Staff confirm/cancel in the staff area; the WhatsApp button pre-fills a confirmation message that includes the
   guest's own management link.
 - Guests manage their booking at `/reservierung/<manage_token>`: cancel it, or move it to another slot (at most three
@@ -288,14 +259,13 @@ separate installable apps (`/manifest.webmanifest`, `/staff.webmanifest`).
 ```bash
 npm run check            # lint + typecheck + unit tests. The gate for a commit, and what branch protection requires.
 npm run test:unit        # the unit tests alone (or test:unit:coverage)
-npm run test:integration # the database suite, against staging
+npm run test:integration # the database suite, against local Supabase
 npm run test:e2e         # browser tests; needs `npm run dev` in another terminal
 npm run check:full       # all of the above, before a release
 npm run test:matrix      # the browser suite as Chrome, Firefox, Safari and four phones/tablets (a few minutes)
 ```
 
-CI (`.github/workflows/tests.yml`) runs `check` on every push and pull request, and the two staging
-suites plus a production build nightly at 05:10 UTC as a canary. Only `check` gates a merge; a red
+CI (`.github/workflows/tests.yml`) runs `check` on every push and pull request, and both suites plus a production build nightly against local Supabase at 05:10 UTC as a canary. Only `check` gates a merge; a red
 nightly is read in the morning, so look at it. `tests/README.md` has the detail.
 
 Node's own test runner drives both suites and no test dependency was added: the unit tests use

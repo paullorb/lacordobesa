@@ -5,7 +5,7 @@
  * notice going wrong: a new table shipped with row level security off, a SECURITY DEFINER function
  * without a pinned `search_path`, or a grant quietly widening. All three are reachable only through
  * the catalog, which the REST API does not expose, so this file goes through `psql` and
- * `STAGING_DB_URL`.
+ * the local `SUPABASE_DB_URL`.
  *
  * The grant matrix is kept here as a snapshot on purpose. It is long and boring, and that is the
  * point: a diff on it is the only cheap way to see that `anon` picked up execute on something, and
@@ -17,10 +17,10 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 
 const PRODUCTION_PROJECT_REF = "iabpugtwgjqldlzjjgqj";
-const dbUrl = process.env.STAGING_DB_URL;
+const dbUrl = process.env.SUPABASE_DB_URL;
 
-if (dbUrl?.includes(PRODUCTION_PROJECT_REF)) {
-  throw new Error("STAGING_DB_URL points at production. These tests must not run there.");
+if (dbUrl && (dbUrl.includes(PRODUCTION_PROJECT_REF) || !/localhost|127\.0\.0\.1/.test(new URL(dbUrl).hostname))) {
+  throw new Error("SUPABASE_DB_URL must point at local Supabase. These tests must not run against a remote database.");
 }
 
 const hasPsql = (() => {
@@ -46,7 +46,7 @@ const reachable = (() => {
   try {
     // stderr is piped, not ignored, for two reasons. `error.message` is the only other thing to
     // report and Node builds it from the whole command line, which here is the password-bearing
-    // STAGING_DB_URL: the skip reason below printed it once for each of the nine tests. Piping
+    // SUPABASE_DB_URL: the skip reason below printed it once for each of the nine tests. Piping
     // also lets the IPv6 detection read what psql actually said.
     execFileSync("psql", [dbUrl, "-At", "-c", "select 1"], {
       stdio: ["ignore", "ignore", "pipe"],
@@ -65,7 +65,7 @@ function scrub(text) {
 }
 
 const skip = !dbUrl
-  ? "no STAGING_DB_URL, set it in .env.staging.local"
+  ? "local Supabase is stopped; run `npm run test:integration`"
   : !hasPsql
     ? "psql is not installed"
     : reachable !== true
@@ -214,7 +214,7 @@ describe("the grant matrix", () => {
 });
 
 describe("the migration history matches the files on disk", () => {
-  test("every file in supabase/migrations has been applied to staging", { skip }, async () => {
+  test("every file in supabase/migrations has been applied locally", { skip }, async () => {
     // The repo is the source of truth (CLAUDE.md) and this is the drift that already happened once:
     // migrations 0004, 0007 and 0008 were in the repo but never reached the live database.
     const applied = new Set(query("select version from supabase_migrations.schema_migrations order by 1").flat());
@@ -223,6 +223,6 @@ describe("the migration history matches the files on disk", () => {
       .filter((f) => f.endsWith(".sql"))
       .map((f) => f.split("_")[0]);
     const missing = onDisk.filter((version) => !applied.has(version));
-    assert.deepEqual(missing, [], "these migrations are in the repo but not applied to staging");
+    assert.deepEqual(missing, [], "these migrations are in the repo but not applied locally");
   });
 });

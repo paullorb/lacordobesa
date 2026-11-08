@@ -178,10 +178,10 @@ describe("rearranging the menu", () => {
 
     const reversed = [...before].reverse().map((i) => i.id);
     const restored = before.map((i) => i.id);
-    // `finally`, not two statements at the end: this writes to the shop's real staging menu, and a
+    // `finally`, not two statements at the end: this writes to the shop's real local menu, and a
     // failing assertion between the two used to leave it reversed for every later test and for
     // anyone looking at the staff page. The failure this test exists to catch must not itself
-    // change staging.
+    // change the local database.
     try {
       const { error } = await client.rpc("arrange_menu_items", { p_category: categoryId, p_ids: reversed });
       assert.equal(error, null, `reordering failed: ${error?.message}`);

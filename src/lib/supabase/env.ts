@@ -7,9 +7,8 @@
  *  (15/hour, 80/24 h) and holds real seats in `reservation_availability`, so submitting the
  *  reservation form twenty times to see whether it works can turn a real guest away.
  *
- *  The fix is the staging project (see README, *Environments*), and this check is what keeps
- *  the fix in place: a wrong `.env.local` now fails loudly on the first query instead of
- *  quietly booking tables. Only the production deployment on Vercel may reach production.
+ *  Development and all write tests use a disposable local Supabase stack. This check keeps
+ *  production protected: only the production deployment on Vercel may reach production.
  *
  *  Escape hatch for the rare deliberate case (a one-off script, reproducing something that only
  *  exists in live data): `ALLOW_PRODUCTION_DB=1`. It has to be typed each time, which is the
@@ -29,8 +28,7 @@ function assertAllowedProject(url: string) {
 
   throw new Error(
     `Refusing to connect to the production Supabase project (${PRODUCTION_PROJECT_REF}) outside ` +
-      "the production deployment. Point NEXT_PUBLIC_SUPABASE_URL and " +
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY at the staging project (see README, Environments), " +
+      "the production deployment. Use local Supabase for development and tests, " +
       "or set ALLOW_PRODUCTION_DB=1 if you really mean to touch live data.",
   );
 }

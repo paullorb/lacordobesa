@@ -1,7 +1,7 @@
 /**
  * The staff area, signed in.
  *
- * Read-only throughout: these pages drive the live shop, and the suite points at staging, where a
+ * Read-only throughout: these pages drive the live shop, and the suite runs against local Supabase, where a
  * stray write still costs the next person a confusing afternoon. Nothing is saved, nothing is
  * dragged into a new order, nothing is marked sold out.
  */
