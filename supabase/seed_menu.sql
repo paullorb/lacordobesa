@@ -97,3 +97,14 @@ from (values
   ('cocktails', 'Prosecco',                 null, '6,00 €', false, 10)
 ) as v(slug, name, description, price, featured, sort)
 join public.menu_categories c on c.slug = v.slug;
+
+-- Keep the seeded menu's order options aligned with the production migration. Migrations run before
+-- seeds on a fresh local database, so the migration's one-time updates cannot cover these rows.
+update public.menu_items i
+   set is_preorderable = true, preorder_step = 6, preorder_unit = 'Stück'
+  from public.menu_categories c
+ where c.id = i.category_id and c.slug = 'empanadas' and i.name ilike 'Empanada %';
+update public.menu_items i
+   set is_preorderable = true, preorder_step = 1, preorder_unit = 'Pizza'
+  from public.menu_categories c
+ where c.id = i.category_id and c.slug = 'pizzas' and i.price_label !~ '^\s*\+';

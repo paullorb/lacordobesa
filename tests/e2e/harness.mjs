@@ -1,8 +1,7 @@
 /**
  * Shared plumbing for the browser tests.
  *
- * They drive a real `npm run dev` against the **staging** Supabase project, which is what
- * `.env.local` already points at. Nothing here writes: the staff pages are only read, and the
+ * They drive a real `npm run dev` against the local Supabase stack. Nothing here writes: the staff pages are only read, and the
  * public forms are filled in but never submitted, because a submitted reservation spends the
  * site-wide quota and holds a seat.
  *
@@ -199,7 +198,7 @@ let staffState = null;
  * failing with "staff sign-in failed" and an empty reason, which looks like a broken login form
  * rather than like a quota. Keeping the state on disk means one sign-in for the whole run.
  *
- * Keyed on the origin **and the staff identity**, so a run against staging and a run against
+ * Keyed on the origin **and the staff identity**, so a run against local and a run against
  * another environment never share a session, and neither do two runs as different users: an
  * origin-only key handed an admin's cookies to a run configured for a non-admin account, which
  * makes admin-only coverage pass for the wrong reason. Short-lived too: a stale session would fail

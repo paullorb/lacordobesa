@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { supabaseUrl, supabasePublishableKey } from "@/lib/supabase/env";
 
 const PRODUCTION = "https://iabpugtwgjqldlzjjgqj.supabase.co";
-const STAGING = "https://yfcpqyxonzjuflsqhasz.supabase.co";
+const LOCAL = "http://127.0.0.1:54321";
 
 const KEYS = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "VERCEL_ENV", "ALLOW_PRODUCTION_DB"] as const;
 const saved: Record<string, string | undefined> = {};
@@ -71,9 +71,9 @@ describe("supabaseUrl", () => {
     assert.equal(supabaseUrl(), PRODUCTION);
   });
 
-  test("staging passes without any ceremony, because it is the default target", () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL = STAGING;
-    assert.equal(supabaseUrl(), STAGING);
+  test("local Supabase passes without an escape hatch", () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = LOCAL;
+    assert.equal(supabaseUrl(), LOCAL);
   });
 
   test("catches the production ref wherever it appears in the URL", () => {

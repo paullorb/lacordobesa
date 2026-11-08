@@ -2,7 +2,7 @@
  * Fails a CI job whose test suite reported success without running anything.
  *
  * `node --test` exits 0 when every test skips, and three of this project's suites skip by design:
- * the browser tests when no server is listening, and the database tests when there are no staging
+ * the browser tests when no server is listening, and the database tests when there are no local Supabase
  * credentials. That is the right behaviour on a laptop and the wrong signal in CI, where "all green"
  * then means "nothing was checked". It is also how the browser suite came to have twelve failing
  * tests nobody had seen for three commits.

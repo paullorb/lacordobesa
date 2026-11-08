@@ -8,7 +8,8 @@ npm run check             # lint + typecheck + unit tests. The gate for a commit
 npm run check:full        # the above plus the database and browser suites. Before a release.
 npm run test:unit         # just the unit tests (fast, hermetic, no server)
 npm run test:unit:coverage # the same, with Node's line/branch report
-npm run test:integration  # the database tests; needs .env.staging.local, no server
+supabase start             # local database; applies migrations + seeds
+npm run test:integration  # the database tests; local stack required
 npm run test:e2e          # the browser tests; needs `npm run dev` in another terminal
 npm test                  # all three
 ```
@@ -17,7 +18,7 @@ npm test                  # all three
 on. That is also how the browser suite came to rot: for three commits in a row nobody ran it, and
 twelve of its tests had been failing against a selector that a UI change had removed. **`check` is
 the commit gate; `check:full` is the one to run before a release.** CI (`.github/workflows/tests.yml`)
-runs `check` on every push and pull request, and the database and browser suites against staging every
+runs `check` on every push and pull request, and the database and browser suites against a fresh local Supabase stack every
 night; only `check` is required to merge.
 
 Browsers are not installed by `npm install`. Once per machine:
@@ -59,8 +60,8 @@ The four modules that are excused are the ones that cannot be imported outside a
 
 ## integration/ — the database, through the client the app uses
 
-`npm run test:integration`. No browser and no server: these talk to **staging**
-(`lacordobesa-staging`) with `@supabase/supabase-js`, which is the same path the app takes, so the
+`npm run test:integration`. No browser and no web server: these talk to local Supabase
+with `@supabase/supabase-js`, which is the same path the app takes, so the
 grants and the row level security policies are part of what is exercised rather than mocked away.
 
 There are twenty-six RPCs and seventeen tables with RLS on all of them, and before these files none
@@ -75,7 +76,7 @@ of it had a test. What is pinned:
 | `staff.test.mjs` | What a signed-in staff member can do: `create_preorder_manually` (and that a refused basket leaves no row), the atomic menu reorder, `analytics_breakdown`. |
 | `content.test.mjs` | The `use cache` getters in `lib/data.ts` and `lib/preorders.ts` against real rows, including that `getMenu` blanks a hidden price and that the form's settings agree with the ones the RPC validates against. |
 
-**These tests write, and they clean up after themselves.** That is the point of the staging project.
+**These tests write to a disposable local database, and they clean up after themselves.**
 Two things follow:
 
 - `request_reservation` has a site-wide brake of 15 an hour counted off `reservations.created_at`.
@@ -87,11 +88,11 @@ Two things follow:
   hardcoded and no escape hatch. `src/lib/supabase/env.ts` guards the app; it cannot guard these
   files, because they are not the app.
 
-Without `.env.staging.local` the whole suite skips rather than fails.
+When local Supabase is stopped, database tests skip with instructions; the package script uses only the local CLI stack and never loads remote credentials.
 
 ## e2e/ — a real browser against a real server
 
-They point at whatever `.env.local` points at, which is **staging**. Nothing writes, with one
+They run against the local Supabase stack. Nothing writes, with one
 named exception: the staff pages are only read and the public forms are walked up to the point of
 sending and left there. A submitted reservation spends the site-wide quota (15 an hour, 80 a day)
 and holds a seat, so a test that books a table takes one away from whoever tests next.
@@ -114,7 +115,7 @@ quota allowance back.
 | `house-style.test.mjs` | House style as the browser paints it: the site's own icons rather than the system's emoji, and the rest of the rules an editor would flag. |
 | `motion.test.mjs` | The FLIP layer: the two places where a list reorders or a grid refilters, and that the rows are followed to where they land. |
 | `polish.test.mjs` | The finishing layer, each detail checked for the one way it quietly breaks: the word-by-word headline and its siblings. |
-| `token-routes.test.mjs` | The twelve pages whose URL is a credential, in all three languages: that they open, that the language switch keeps the token (#134 broke the build here), that they are noindex and send no referrer, and that a dead link is answered rather than crashed on. The one file under `e2e/` that writes: it arranges one reservation, one order and one sign-up in staging and deletes them afterwards, because a token page cannot be opened without a row to open. |
+| `token-routes.test.mjs` | The twelve pages whose URL is a credential, in all three languages: that they open, that the language switch keeps the token (#134 broke the build here), that they are noindex and send no referrer, and that a dead link is answered rather than crashed on. The one file under `e2e/` that writes: it arranges one reservation, one order and one sign-up locally and deletes them afterwards, because a token page cannot be opened without a row to open. |
 
 Tests skip rather than fail when there is no server listening or no `STAFF_USER` / `STAFF_PASS` in
 the environment, so `npm run check` stays runnable on a laptop with nothing else going on.
@@ -203,4 +204,3 @@ There is no language negotiation, on purpose (see `src/lib/i18n.ts`): `/` is Ger
 browser asks for, `/es` is Spanish, `/en` is English, and the switch is a link. `timezone.test.mjs` pins that.
 The unit tests check every dictionary against German key by key, and the e2e tests cover the `/en` routes, the
 three-way switch on every device in the matrix, hreflang and og:locale, and the German-only legal pages with their note.
-

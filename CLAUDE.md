@@ -79,27 +79,16 @@ the staff. Audits keep flagging the LMIV duty as a gap. It was built once (migra
 `20261012093136`), never filled in, and removed by owner decision on 2026-10-13
 (`20261012222037_drop_menu_allergens.sql`). Do not raise it again unless the owner asks.
 
-# Staging is the default target, production is not
+# Local Supabase is the development target; production stays protected
 
-There are two Supabase projects: `lacordobesa` (`iabpugtwgjqldlzjjgqj`, live) and `lacordobesa-staging`
-(`yfcpqyxonzjuflsqhasz`, created 2026-10-14). `.env.local` points at **staging**, and
-`src/lib/supabase/env.ts` throws if anything tries to query production while `VERCEL_ENV` is not
-`production`. So `npm run dev`, Playwright and any form you submit while testing land in staging.
+Install Docker and the Supabase CLI, then run `supabase start`. The local stack applies the checked-in
+migrations and seeds. `npm run dev`, `npm run build`, `npm run test:integration`, and `npm run test:e2e`
+use this local stack automatically; `npm run db:reset` recreates it. Database-writing tests reject every
+remote URL. Only the production Vercel deployment may connect to the production project, and the
+`ALLOW_PRODUCTION_DB=1` escape hatch is for deliberate one-off commands only.
 
-**Do not repoint `.env.local` at production to "see real data".** Reads look harmless and the writes are
-not: a few test reservations spend the site-wide quota in `request_reservation` (15/hour, 80/24 h) and hold
-seats, which turns real guests away. If you truly need live data for one command, prefix it with
-`ALLOW_PRODUCTION_DB=1` rather than editing `.env.local`.
-
-Credentials for staging (db password and URL, keys, the `paul` staff login) are in `.env.staging.local` in
-the repo root: gitignored, mode 600, not loaded by Next.js. Apply a migration to staging first, then
-production:
-
-```bash
-set -a && . ./.env.staging.local && set +a
-supabase db push --db-url "$STAGING_DB_URL" --yes    # staging
-supabase db push --db-url "$SUPABASE_DB_URL" --yes   # production, from .env.local
-```
+Apply migrations to local Supabase first, review them, then apply to production. Do not configure a shared
+staging project or store Supabase credentials in development/CI environments.
 
 ## Vercel: there are no previews, and never PATCH an env var's type
 
@@ -107,7 +96,7 @@ supabase db push --db-url "$SUPABASE_DB_URL" --yes   # production, from .env.loc
 project's Ignored Build Step skips anything that is not `VERCEL_ENV=production`. There is no `preview`
 environment and no preview environment variables. Do not add either back, do not wait for a deployment on a
 pull request, and do not offer a preview URL as evidence that something works: run `npm run dev` against
-staging instead. This is a deliberate standing decision, not an oversight.
+local Supabase instead. This is a deliberate standing decision, not an oversight.
 
 Two traps in `vercel env`, both hit on 2026-10-14:
 

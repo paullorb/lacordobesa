@@ -65,7 +65,7 @@ describe("the gallery refilters by moving the photos", () => {
       body: async ({ page, errors }) => {
         await page.waitForTimeout(2500); // the lazy chunk
         const chips = page.locator(".gallery-filters .chip");
-        if ((await chips.count()) < 2) return; // a staging gallery with one category proves nothing
+        if ((await chips.count()) < 2) return; // the local gallery with one category proves nothing
 
         // Narrow to a category, then widen back to all: that way tiles both leave and arrive.
         await chips.nth(1).click();
@@ -140,7 +140,7 @@ describe("the staff menu arranger moves the rows it reorders", () => {
     page.locator("[data-arrange-item]").evaluateAll((els) => els.map((e) => e.dataset.flipId));
 
   /**
-   * Reordering saves, and this suite does not write to staging: a reordered menu would outlive the
+   * Reordering saves, and this suite does not write to the local database: a reordered menu would outlive the
    * test run and is the shop's real carta.
    *
    * The Server Action is a POST to the page's own URL, so the POST is held open and never answered.

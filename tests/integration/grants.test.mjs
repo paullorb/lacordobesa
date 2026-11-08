@@ -16,7 +16,7 @@
  *    `menu_items` would undo that while every page kept working.
  *
  * Memory of this repo also records that production has drifted from these files before (a "staff
- * write FOR ALL" policy where staging has the split ones), so these tests are written against
+ * write FOR ALL" policy where local Supabase has the split ones), so these tests are written against
  * behaviour the migrations promise, and can be pointed at either project to compare.
  *
  * Nothing here writes anything that lasts: the write attempts are all expected to be refused.
