@@ -1,0 +1,33 @@
+name: PR overlap
+
+# Comments on a pull request with the other open pull requests that change the
+# same files, so whoever merges second knows what is in flight. The reasoning
+# and the incidents behind it are in the reusable workflow in paullorb/cicd.
+#
+# Informational on purpose: it never blocks a merge.
+on:
+  pull_request:
+    # `closed` too: the comments on the pull requests this one overlapped are
+    # rewritten without it once it merges.
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-overlap-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  overlap:
+    uses: paullorb/cicd/.github/workflows/pr-overlap.yml@86018ab77a3353da772ac1b63a5a4be9bf75767b
+    with:
+      # This repo registers no self-hosted app-ci runner, so the job goes to a
+      # hosted VM rather than queueing forever.
+      runs_on: '["ubuntu-latest"]'
+      ignore: |
+        package-lock.json
+    permissions:
+      contents: read
+      pull-requests: write
