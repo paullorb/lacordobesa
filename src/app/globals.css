@@ -177,6 +177,13 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .section-heading h1 { color: var(--ink); font-size: clamp(2.8rem, 5.6vw, 4.6rem); line-height: 1.05; text-wrap: balance; }
 .section-heading > p:last-child { margin-bottom: 0; color: var(--muted); line-height: 1.8; font-size: var(--fs-lg); }
 .intro-grid { display: block; }
+/* The story chapter carries the map of Córdoba behind its copy. The backdrop bleeds to the full
+   viewport width (the same 50vw trick as .menu-index) and never intercepts a click or a
+   selection; the copy keeps its place above it. */
+.story-section { position: relative; }
+.story-section .intro-grid { position: relative; z-index: 1; }
+.cordoba-backdrop { position: absolute; z-index: 0; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); display: flex; align-items: center; justify-content: center; overflow: hidden; pointer-events: none; }
+.cordoba-backdrop img { width: min(920px, 135%); max-width: none; height: auto; opacity: .1; filter: saturate(.8); user-select: none; }
 .intro-copy { max-width: 760px; margin: 0 auto; text-align: center; }
 .intro-copy .eyebrow { justify-content: center; }
 .intro-copy h2 { max-width: none; }
@@ -952,12 +959,20 @@ body::after {
     .photo-strip img { animation: photo-drift linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
 
     .footer-wordmark { animation: wordmark-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+
+    /* Córdoba drifts behind the story: it rises against the scroll, turns and grows a little,
+       and is clearest mid-chapter — present while the story is read, gone before and after. The
+       opacity lives in the keyframes so a browser without scroll timelines keeps the quiet .1
+       from the base rule rather than a map that never fades. */
+    .story-section { view-timeline-name: --story; }
+    .cordoba-backdrop img { animation: cordoba-drift linear both; animation-timeline: --story; animation-range: entry 0% exit 100%; }
   }
 }
 @keyframes hero-parallax { to { translate: 0 14%; scale: 1.28; } }
 @keyframes hero-leave { to { opacity: 0; translate: 0 -10%; } }
 @keyframes item-reveal { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
 @keyframes photo-drift { from { translate: 0 -5%; scale: 1.12; } to { translate: 0 5%; scale: 1.12; } }
+@keyframes cordoba-drift { from { translate: 0 9%; scale: 1; rotate: -1.6deg; opacity: .04; } 50% { opacity: .17; } to { translate: 0 -9%; scale: 1.12; rotate: 1.6deg; opacity: .04; } }
 @keyframes wordmark-rise { from { opacity: 0; translate: 0 30%; } to { opacity: 1; translate: 0 0; } }
 
 /* ------------------------------------------------------------------ page transitions
