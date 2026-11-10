@@ -9,6 +9,7 @@ import { HeroCursor } from "@/components/hero-cursor";
 import { Marquee } from "@/components/marquee";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
+import { CordobaBackdrop } from "@/components/cordoba-backdrop";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -153,7 +154,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
           </div>
         </Marquee>
 
-        <section className="section" id="geschichte">
+        <section className="section story-section" id="geschichte">
+          {/* The province behind the story: a quiet map that drifts with the scroll. */}
+          <CordobaBackdrop />
           <div className="intro-grid">
             <div className="intro-copy">
               <p className="eyebrow">{t.storyEyebrow}</p>
