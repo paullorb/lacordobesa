@@ -23,7 +23,9 @@ const csp = [
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
-const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname : null;
+// Local Supabase (`supabase start`) serves over plain http on a loopback port, not https like the
+// hosted project, so the protocol and port have to come from the URL too, not be assumed.
+const supabaseStorageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
@@ -40,14 +42,25 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   images: {
     remotePatterns: [
-      ...(supabaseHost
-        ? [{ protocol: "https" as const, hostname: supabaseHost, pathname: "/storage/v1/object/public/gallery/**" }]
+      ...(supabaseStorageUrl
+        ? [
+            {
+              protocol: supabaseStorageUrl.protocol.replace(":", "") as "http" | "https",
+              hostname: supabaseStorageUrl.hostname,
+              port: supabaseStorageUrl.port || undefined,
+              pathname: "/storage/v1/object/public/gallery/**",
+            },
+          ]
         : []),
       // Instagram serves media from per-region scontent hosts, so the hostname cannot be pinned to one.
       // `**` because those hosts nest (scontent.xx.fbcdn.net) and `*` matches one label only.
       { protocol: "https" as const, hostname: "**.cdninstagram.com" },
       { protocol: "https" as const, hostname: "**.fbcdn.net" },
     ],
+    // Next.js refuses to fetch images from loopback/private IPs by default (SSRF guard); local
+    // Supabase runs on 127.0.0.1, so dev needs the escape hatch. Never enabled in production, where
+    // the Supabase host above is always the hosted https project, never a private IP.
+    ...(isDev ? { dangerouslyAllowLocalIP: true } : {}),
   },
   experimental: {
     // The site has a root layout per language, so there is no single layout a 404 could be
