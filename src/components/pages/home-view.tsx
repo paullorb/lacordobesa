@@ -10,6 +10,7 @@ import { Marquee } from "@/components/marquee";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { CordobaBackdrop } from "@/components/cordoba-backdrop";
+import { CordobaFondo } from "@/components/cordoba-fondo";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -84,6 +85,8 @@ export async function HomeView({ locale }: { locale: Locale }) {
   return (
     <div className="site">
       <JsonLd data={restaurantJsonLd(hours, locale)} />
+      {/* Trial for the owners, off unless the URL says ?fondo=cordoba (see cordoba-fondo.tsx). */}
+      <CordobaFondo />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
       {/* Wide screens only (see .chapter-nav): the page chapters, with the current one marked. */}
