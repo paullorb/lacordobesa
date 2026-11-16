@@ -48,19 +48,19 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
       const copy = {
         de: {
           subject: "Bitte bestätige deine Anmeldung für La Cordobesa Specials",
-          intro: `Hola ${name}, bitte bestätige, dass du die Specials von La Cordobesa per E-Mail erhalten möchtest.`,
+          intro: `Hola, bitte bestätige, dass du die Specials von La Cordobesa per E-Mail erhalten möchtest.`,
           button: "E-Mail-Adresse bestätigen",
           ignore: "Wenn du dich nicht angemeldet hast, kannst du diese E-Mail ignorieren.",
         },
         es: {
           subject: "Confirmá tu suscripción a las novedades de La Cordobesa",
-          intro: `¡Hola ${name}! Confirmá que querés recibir por e-mail las novedades de La Cordobesa.`,
+          intro: `¡Hola! Confirmá que querés recibir por e-mail las novedades de La Cordobesa.`,
           button: "Confirmar mi e-mail",
           ignore: "Si no te anotaste, podés ignorar este e-mail.",
         },
         en: {
           subject: "Confirm your La Cordobesa specials subscription",
-          intro: `Hola ${name}, please confirm that you want to receive La Cordobesa specials by email.`,
+          intro: `Hola, please confirm that you want to receive La Cordobesa specials by email.`,
           button: "Confirm email address",
           ignore: "If you did not sign up, you can ignore this email.",
         },

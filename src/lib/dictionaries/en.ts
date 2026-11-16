@@ -227,6 +227,7 @@ export const en: Dictionary = {
     party_too_large: "For groups that large, please call us and we will find a solution.",
     slot_unavailable: "That time cannot be booked. Please pick another.",
     slot_full: "We are already full at that time, sorry. Please pick another time.",
+    form_check: "Please reload the page and send the form again.",
   },
   reservation: {
     errors: {

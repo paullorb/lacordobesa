@@ -231,6 +231,7 @@ export const de = {
     party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
     slot_unavailable: "Diese Uhrzeit ist nicht buchbar. Bitte wähle eine andere.",
     slot_full: "Zu dieser Zeit sind wir leider schon voll. Bitte wähle eine andere Uhrzeit.",
+    form_check: "Bitte lade die Seite neu und sende das Formular noch einmal ab.",
   },
   reservation: {
     errors: {
