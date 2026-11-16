@@ -2,7 +2,7 @@ import "server-only";
 import { CONTACT } from "@/lib/contact";
 import { fmtDate } from "@/lib/dates";
 import type { Locale } from "@/lib/i18n";
-import { escapeHtml, type Mail } from "@/lib/mail";
+import { escapeHtml, mailSafeName, type Mail } from "@/lib/mail";
 import { manageUrl } from "@/lib/site";
 
 /** Brand colours, inlined: mail clients drop <style> blocks and know nothing about CSS variables. */
@@ -45,8 +45,8 @@ const COPY: Record<
     when: (date, time) => `${fmtDate(date, "de", { weekday: "long" })} um ${time} Uhr`,
     people: (n) => `${n} ${n === 1 ? "Person" : "Personen"}`,
     subject: (date, time) => `Dein Tisch bei La Cordobesa: ${fmtDate(date, "de", { weekday: undefined })} um ${time} Uhr`,
-    hello: (name) => `Hola ${name}!`,
-    heading: (name) => `¡Hola ${name}! Dein Tisch ist bestätigt.`,
+    hello: (name) => `Hola${name ? ` ${name}` : ""}!`,
+    heading: (name) => `¡Hola${name ? ` ${name}` : ""}! Dein Tisch ist bestätigt.`,
     intro: "Dein Tisch bei La Cordobesa ist bestätigt:",
     labels: { when: "Wann", for: "Für", where: "Wo" },
     change: "Du kannst nicht kommen oder brauchst eine andere Zeit?",
@@ -60,8 +60,8 @@ const COPY: Record<
     when: (date, time) => `${fmtDate(date, "es", { weekday: "long" })} a las ${time}`,
     people: (n) => `${n} ${n === 1 ? "persona" : "personas"}`,
     subject: (date, time) => `Tu mesa en La Cordobesa: ${fmtDate(date, "es", { weekday: undefined })} a las ${time}`,
-    hello: (name) => `¡Hola ${name}!`,
-    heading: (name) => `¡Hola ${name}! Tu mesa está confirmada.`,
+    hello: (name) => `¡Hola${name ? ` ${name}` : ""}!`,
+    heading: (name) => `¡Hola${name ? ` ${name}` : ""}! Tu mesa está confirmada.`,
     intro: "Tu mesa en La Cordobesa está confirmada:",
     labels: { when: "Cuándo", for: "Para", where: "Dónde" },
     change: "¿No podés venir o necesitás otro horario?",
@@ -75,8 +75,8 @@ const COPY: Record<
     when: (date, time) => `${fmtDate(date, "en", { weekday: "long", month: "long" })} at ${time}`,
     people: (n) => `${n} ${n === 1 ? "person" : "people"}`,
     subject: (date, time) => `Your table at La Cordobesa: ${fmtDate(date, "en", { weekday: undefined })} at ${time}`,
-    hello: (name) => `¡Hola ${name}!`,
-    heading: (name) => `¡Hola ${name}! Your table is confirmed.`,
+    hello: (name) => `¡Hola${name ? ` ${name}` : ""}!`,
+    heading: (name) => `¡Hola${name ? ` ${name}` : ""}! Your table is confirmed.`,
     intro: "Your table at La Cordobesa is confirmed:",
     labels: { when: "When", for: "For", where: "Where" },
     change: "Can't make it, or need a different time?",
@@ -93,8 +93,10 @@ const COPY: Record<
  *  Single column, inline styles, no images and no web fonts, which is what survives Outlook, Gmail
  *  and Apple Mail alike. The management link is the point of the mail as much as the confirmation is:
  *  a guest who can cancel in one tap gives the seat back instead of not turning up. */
-export function reservationConfirmedMail({ name, date, time, partySize, manageToken, locale }: Confirmed): Omit<Mail, "to"> {
+export function reservationConfirmedMail({ name: rawName, date, time, partySize, manageToken, locale }: Confirmed): Omit<Mail, "to"> {
   const c = COPY[locale];
+  // Free text from the public form: single line, no links (see mailSafeName).
+  const name = mailSafeName(rawName);
   const when = c.when(date, time);
   const people = c.people(partySize);
   const link = manageToken ? manageUrl(manageToken, locale) : null;

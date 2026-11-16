@@ -65,3 +65,22 @@ export function escapeHtml(value: string) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+/** A guest-typed name as it may appear in a mail we send. One line, letters, spaces and ' . - only,
+ *  no link-like text, at most 40 characters.
+ *
+ *  The name arrives from a public form and ends up in a mail from the restaurant's own (DKIM-valid)
+ *  domain, in the specials case to an address nobody verified. Free text there is a phishing
+ *  channel: "Maria, your account is locked, call ..." must not survive. What is left is enough for a
+ *  greeting and little else. Returns "" when nothing usable remains. */
+export function mailSafeName(value: string) {
+  return value
+    .normalize("NFKC")
+    .replace(/(?:https?:|www\.)\S*/gi, " ")
+    .replace(/[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.\p{L}{2,}\S*/gu, " ")
+    .replace(/[^\p{L}\p{M} '.-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 40)
+    .trim();
+}
