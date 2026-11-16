@@ -84,7 +84,7 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
-      <JsonLd data={restaurantJsonLd(hours, locale)} />
+      <JsonLd data={restaurantJsonLd(hours, locale, reservation.enabled)} />
       {/* Trial for the owners, off unless the URL says ?fondo=cordoba (see cordoba-fondo.tsx). */}
       <CordobaFondo />
       {announcement && <div className="announcement">{announcement}</div>}
