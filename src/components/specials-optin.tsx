@@ -19,8 +19,10 @@ type Stage = "ask" | "form" | "declined";
 /** Opt-in for the weekly special. One contact detail, one explicit consent checkbox, nothing else:
  *  every extra field here costs sign-ups, and none of them would be used.
  *
- *  `ideas` are the "what we may offer" cards staff keep under /staff/specials. With none, the box is
- *  just the question and the form, as before. */
+ *  `ideas` are the "what we may offer" cards from the special_ideas table. There is deliberately no
+ *  staff editor for them (removed in #154): they are changed in the database, and because that does not
+ *  invalidate the cache, a change shows up within the getSpecialIdeas cache window (an hour). With none,
+ *  the box is just the question and the form, as before. */
 export function SpecialsOptin({ locale, ideas = [], emailEnabled = false }: { locale: Locale; ideas?: SpecialIdea[]; emailEnabled?: boolean }) {
   const [state, formAction, pending] = useActionState(subscribeToSpecials, null);
   useTrackForm("specials", state, pending);
