@@ -6,7 +6,7 @@ import { ActionForm, ConfirmSubmit, QuickForm, SubmitButton } from "@/components
 import { InviteForm } from "@/components/staff/invite-form";
 import { berlinClock, fmtStaffDate } from "@/lib/dates";
 import { staffDisplayName } from "@/lib/staff";
-import { INVITE_TTL_DAYS } from "@/lib/staff-signup";
+import { INVITE_TTL_DAYS, nowISO } from "@/lib/staff-signup";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { requireAdmin } from "@/lib/auth";
 
@@ -24,7 +24,7 @@ export default function TeamPage() {
 async function Team() {
   const { user } = await requireAdmin();
   const admin = createPrivilegedClient();
-  const now = new Date().toISOString();
+  const now = nowISO();
   const [{ data: members }, { data: users }, pendingResult, usedResult] = await Promise.all([
     admin.from("staff").select("user_id, role, added_at").order("added_at"),
     admin.auth.admin.listUsers({ perPage: 200 }),

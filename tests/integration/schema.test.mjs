@@ -172,6 +172,7 @@ describe("the grant matrix", () => {
     reservation_availability: "true,false,true",
     reservation_by_token: "true,false,true",
     reservation_settings: "true,true,true",
+    revoke_user_sessions: "false,false,true",
     set_updated_at: "true,true,true",
     subscribe_broadcast: "false,false,true",
     take_request_quota: "false,false,true",

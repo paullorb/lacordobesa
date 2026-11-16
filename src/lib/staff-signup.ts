@@ -35,6 +35,9 @@ export const hashInviteToken = (token: string): string => createHash("sha256").u
 export const inviteExpiry = (now: Date = new Date()): string =>
   new Date(now.getTime() + INVITE_TTL_DAYS * 86_400_000).toISOString();
 
+/** The current instant, for the pages that list live invites (a page body may not read the clock itself). */
+export const nowISO = (): string => new Date().toISOString();
+
 export const inviteUrl = (token: string): string => `${SITE_URL}/staff/signup?key=${token}`;
 
 /** Whether this token is a live invite, without using it. For the sign-up page; the action still

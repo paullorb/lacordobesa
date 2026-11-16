@@ -595,6 +595,48 @@ export async function deleteSpecial(formData: FormData): Promise<ActionResult> {
   return { ok: true };
 }
 
+// ---------------------------------------------------------------- special ideas
+// The "what we may offer" cards above the specials sign-up (migration 20261016050000). Any staff
+// member may edit them (RLS asks is_staff()), and they are cached with the rest of the public
+// content, so every write invalidates TAG.content.
+const IDEA_TITLE_MAX = 120;
+const IDEA_DESCRIPTION_MAX = 600;
+
+export async function saveSpecialIdea(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const id = str(formData, "id");
+  const row = {
+    title: str(formData, "title"),
+    description: str(formData, "description") || null,
+    title_es: str(formData, "title_es") || null,
+    title_en: str(formData, "title_en") || null,
+    description_es: str(formData, "description_es") || null,
+    description_en: str(formData, "description_en") || null,
+    sort_order: num(formData, "sort_order"),
+    is_active: bool(formData, "is_active"),
+  };
+  if (!row.title) return { ok: false, error: "El título (en alemán) es obligatorio." };
+  const titles = [row.title, row.title_es, row.title_en];
+  const descriptions = [row.description, row.description_es, row.description_en];
+  if (titles.some((t) => (t?.length ?? 0) > IDEA_TITLE_MAX) || descriptions.some((d) => (d?.length ?? 0) > IDEA_DESCRIPTION_MAX)) {
+    return { ok: false, error: "Un texto es demasiado largo. Acortalo un poco." };
+  }
+  const { error } = id ? await supabase.from("special_ideas").update(row).eq("id", id) : await supabase.from("special_ideas").insert(row);
+  if (error) return failed("saveSpecialIdea", error);
+  updateTag(TAG.content);
+  refresh();
+  return { ok: true };
+}
+
+export async function deleteSpecialIdea(formData: FormData): Promise<ActionResult> {
+  const { supabase } = await requireStaff();
+  const { error } = await supabase.from("special_ideas").delete().eq("id", str(formData, "id"));
+  if (error) return failed("deleteSpecialIdea", error);
+  updateTag(TAG.content);
+  refresh();
+  return { ok: true };
+}
+
 // ---------------------------------------------------------------- specials list
 /** The second opt-in step (migration 20261012215041): the guest's WhatsApp message arrived from the
  *  number they signed up with. Only confirmed rows are offered for sending. Throws rather than
