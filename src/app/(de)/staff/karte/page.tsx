@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteCategory, deleteMenuItem, saveCategory, saveMenuItem, toggleMenuItemAvailable } from "@/app/staff/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { ActionForm, ConfirmSubmit, QuickForm, SubmitButton } from "@/components/staff/form-bits";
 import { MenuArranger } from "@/components/staff/menu-arranger";
 import { requireStaff } from "@/lib/auth";
 import type { Tables } from "@/lib/database.types";
@@ -60,10 +60,10 @@ async function Menu() {
                 <div className="card mt-2 grid gap-4">
                   <CategoryForm cat={cat} />
                   {catItems.length === 0 && (
-                    <form action={deleteCategory} className="justify-self-start">
+                    <QuickForm action={deleteCategory} className="justify-self-start">
                       <input type="hidden" name="id" value={cat.id} />
                       <ConfirmSubmit message={`¿Eliminar la categoría «${cat.label}»?`}>Eliminar categoría</ConfirmSubmit>
-                    </form>
+                    </QuickForm>
                   )}
                 </div>
               </details>
@@ -147,11 +147,11 @@ function ItemRow({ item }: { item: Tables<"menu_items"> }) {
             without opening its card. Its own form, saved on its own, not with the edit form below.
             A click on a button inside a <summary> activates the button and not the summary, so the
             card does not open or close. */}
-        <form action={toggleMenuItemAvailable}>
+        <QuickForm action={toggleMenuItemAvailable}>
           <input type="hidden" name="id" value={item.id} />
           <input type="hidden" name="is_available" value={item.is_available ? "false" : "true"} />
           <button className="btn-ghost min-h-10">{item.is_available ? "Marcar agotado" : "Volver a ofrecer"}</button>
-        </form>
+        </QuickForm>
       </summary>
       <div className="border-t border-line px-3 pb-3">
         <ItemForm item={item} />
@@ -208,10 +208,10 @@ function ItemForm({
         </div>
       </ActionForm>
       {item && (
-        <form action={deleteMenuItem} className="justify-self-start">
+        <QuickForm action={deleteMenuItem} className="justify-self-start">
           <input type="hidden" name="id" value={item.id} />
           <ConfirmSubmit message={`¿Eliminar «${item.name}»?`}>Eliminar</ConfirmSubmit>
-        </form>
+        </QuickForm>
       )}
     </div>
   );

@@ -10,6 +10,8 @@
  *  markup that never changes after render. */
 import { waNumber, whatsappTo } from "@/lib/contact";
 import { ArrowIcon } from "@/components/icons";
+import { NotesField, QuickForm } from "@/components/staff/form-bits";
+import type { ActionResult } from "@/app/staff/actions";
 
 /** Posts one status change. The action and the status are the only things that ever differed. */
 export function StatusButton({
@@ -20,7 +22,7 @@ export function StatusButton({
   primary,
   danger,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<ActionResult>;
   id: string;
   status: string;
   label: string;
@@ -28,11 +30,11 @@ export function StatusButton({
   danger?: boolean;
 }) {
   return (
-    <form action={action}>
+    <QuickForm action={action}>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="status" value={status} />
       <button className={`${primary ? "btn-primary" : danger ? "btn-danger" : "btn-ghost"} min-h-10`}>{label}</button>
-    </form>
+    </QuickForm>
   );
 }
 
@@ -81,18 +83,14 @@ export function StaffNotesForm({
   value,
   placeholder,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (formData: FormData) => Promise<ActionResult>;
   id: string;
   value: string | null;
   placeholder: string;
 }) {
   return (
     <Disclosure summary="Nota" open={Boolean(value)}>
-      <form action={action} className="mt-1 flex gap-2">
-        <input type="hidden" name="id" value={id} />
-        <input name="staff_notes" defaultValue={value ?? ""} placeholder={placeholder} aria-label="Nota interna" />
-        <button className="btn-ghost min-h-10 shrink-0">OK</button>
-      </form>
+      <NotesField action={action} id={id} value={value} placeholder={placeholder} />
     </Disclosure>
   );
 }

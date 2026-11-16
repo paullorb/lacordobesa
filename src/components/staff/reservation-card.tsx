@@ -4,7 +4,8 @@ import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/com
 import { CopyButton } from "@/components/staff/copy-button";
 import { StartGate } from "@/components/staff/start-gate";
 import { fmtTime } from "@/lib/data";
-import { fmtDate, fmtStaffDate, hasStarted } from "@/lib/dates";
+import { berlinClock, fmtDate, fmtStaffDate, hasStarted } from "@/lib/dates";
+import { mailtoHref } from "@/lib/mailto";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { manageUrl } from "@/lib/site";
 import { RESERVATION_STATUS_LABEL } from "@/lib/statuses";
@@ -26,7 +27,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
           `Si necesitás cancelar o cambiar el horario: ${guestLink}`,
         ]
       : [
-          `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDate(r.date, "de", { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} Personen ist bestätigt. ¡Hasta pronto!`,
+          `Hola ${r.name}! Deine Reservierung bei La Cordobesa am ${fmtDate(r.date, "de", { weekday: undefined })} um ${fmtTime(r.start_time)} Uhr für ${r.party_size} ${r.party_size === 1 ? "Person" : "Personen"} ist bestätigt. ¡Hasta pronto!`,
           `Falls du absagen oder verschieben musst: ${guestLink}`,
         ]
   ).join("\n\n");
@@ -69,7 +70,7 @@ export function ReservationCard({ r, showDate = false }: { r: Tables<"reservatio
             {r.email && (
               <>
                 {" · "}
-                <a href={`mailto:${r.email}`} className="hover:text-blue-dark">
+                <a href={mailtoHref(r.email)} className="hover:text-blue-dark">
                   {r.email}
                 </a>
               </>
@@ -144,7 +145,7 @@ function MailState({ r }: { r: Tables<"reservations"> }) {
   if (r.confirmation_sent_at) {
     return (
       <p className="text-xs text-emerald-700">
-        Confirmación enviada por correo el {fmtStaffDate(r.confirmation_sent_at.slice(0, 10))}.
+        Confirmación enviada por correo el {fmtStaffDate(berlinClock(new Date(r.confirmation_sent_at)).date)}.
       </p>
     );
   }

@@ -1,4 +1,5 @@
 import { DEFAULT_RESERVATION_SETTINGS, type ReservationSettings } from "@/lib/data";
+import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
 
 /** The stored JSON with only the submitted keys replaced.
  *
@@ -21,6 +22,19 @@ export function mergeStored<T extends object>(stored: unknown, submitted: Partia
  *  nobody could book. Writing the effective object keeps every key present. */
 export function mergeReservationSettings(stored: unknown, submitted: Partial<ReservationSettings>): ReservationSettings {
   return { ...effectiveReservationSettings(stored), ...submitted };
+}
+
+/** The pre-order settings to store: submitted keys over stored keys over the defaults, for the same
+ *  reason as above. `request_preorder()` casts every key with `::int`, so a stored object that lacks
+ *  one makes that limit NULL and the lead time, horizon or caps stop being enforced. A key stored as
+ *  null or of the wrong type counts as missing. */
+export function mergePreorderSettings(stored: unknown, submitted: Partial<PreorderSettings>): PreorderSettings {
+  const base = mergeStored<PreorderSettings>(stored, {}) as Record<string, unknown>;
+  const kept: Partial<PreorderSettings> = {};
+  for (const key of Object.keys(DEFAULT_PREORDER_SETTINGS) as (keyof PreorderSettings)[]) {
+    if (typeof base[key] === typeof DEFAULT_PREORDER_SETTINGS[key]) (kept as Record<string, unknown>)[key] = base[key];
+  }
+  return { ...DEFAULT_PREORDER_SETTINGS, ...kept, ...submitted };
 }
 
 /** The reservation settings as they apply today: stored keys over the built-in defaults. */

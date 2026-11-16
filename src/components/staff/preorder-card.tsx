@@ -4,6 +4,7 @@ import { MenuIcon } from "@/components/icons";
 import { MoreActions, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { fmtTime } from "@/lib/data";
 import { fmtDate, fmtStaffDate } from "@/lib/dates";
+import { mailtoHref } from "@/lib/mailto";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import { preorderUrl } from "@/lib/site";
 import { isPreparation, PREPARATION_STAFF_LABEL } from "@/lib/preorder-preparation";
@@ -92,7 +93,7 @@ export function PreorderCard({ order: o }: { order: PreorderWithLines }) {
             {o.email && (
               <>
                 {" · "}
-                <a href={`mailto:${o.email}`} className="hover:text-blue-dark">
+                <a href={mailtoHref(o.email)} className="hover:text-blue-dark">
                   {o.email}
                 </a>
               </>

@@ -38,6 +38,7 @@ const SERVER_ONLY_RPCS = [
   ["request_broadcast_email", { p_name: "x", p_email: "x@example.test", p_consent_text: "x", p_confirmation_token: "x" }],
   ["track_event", { p_event: "pageview", p_detail: "", p_path: "/", p_referrer: "", p_device: "phone", p_browser: "chrome", p_lang: "de" }],
   ["take_request_quota", { p_bucket: "zz-test-grants", p_max_1h: 1, p_max_24h: 1 }],
+  ["revoke_user_sessions", { p_user_id: "00000000-0000-0000-0000-000000000000" }],
 ];
 
 /** Staff tools. `authenticated` plus an is_staff() check inside; never the anonymous key. */

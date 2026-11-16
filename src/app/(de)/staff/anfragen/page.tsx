@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { saveInquiryNotes, setInquiryStatus } from "@/app/staff/actions";
 import { MoreActions, StaffLoadError, StaffLoading, StaffNotesForm, StatusButton, WhatsAppButton } from "@/components/staff/card-bits";
 import { requireStaff } from "@/lib/auth";
-import { fmtStaffDate } from "@/lib/dates";
+import { berlinClock, fmtStaffDate } from "@/lib/dates";
+import { mailtoHref } from "@/lib/mailto";
 import { INQUIRY_STATUS_LABEL } from "@/lib/statuses";
 import type { Tables } from "@/lib/database.types";
 
@@ -99,13 +100,13 @@ function InquiryCard({ inquiry: i }: { inquiry: Tables<"event_inquiries"> }) {
             {i.email && (
               <>
                 {" · "}
-                <a href={`mailto:${i.email}`} className="hover:text-blue-dark">
+                <a href={mailtoHref(i.email)} className="hover:text-blue-dark">
                   {i.email}
                 </a>
               </>
             )}
           </div>
-          <div className="text-xs text-muted">Consulta recibida el {fmtStaffDate(i.created_at.slice(0, 10))}</div>
+          <div className="text-xs text-muted">Consulta recibida el {fmtStaffDate(berlinClock(new Date(i.created_at)).date)}</div>
         </div>
         <div className="flex flex-wrap items-start gap-1.5">
           {isLive && <WhatsAppButton phone={i.phone} text={greeting} />}

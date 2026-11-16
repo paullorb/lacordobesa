@@ -1,10 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SignupForm } from "@/app/staff/signup/signup-form";
-import { validStaffSignupToken } from "@/lib/staff-signup";
+import { inviteIsLive, isInviteToken } from "@/lib/staff-signup";
+import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { staffSession } from "@/lib/auth";
 
-export const metadata = { title: "Crear acceso al equipo", robots: { index: false, follow: false } };
+// no-referrer: the invite is in the URL, and a link clicked from this page must not carry it along.
+export const metadata = { title: "Crear acceso al equipo", robots: { index: false, follow: false }, referrer: "no-referrer" as const };
 
 export default function SignupPage(props: PageProps<"/staff/signup">) {
   return <Suspense fallback={null}><SignupWithToken searchParams={props.searchParams} /></Suspense>;
@@ -13,7 +15,8 @@ export default function SignupPage(props: PageProps<"/staff/signup">) {
 async function SignupWithToken({ searchParams }: Pick<PageProps<"/staff/signup">, "searchParams">) {
   const { key } = await searchParams;
   const token = typeof key === "string" ? key : "";
-  if (!validStaffSignupToken(token)) notFound();
+  // Looked at, not used: the invite is claimed by the form's Server Action.
+  if (!isInviteToken(token) || !(await inviteIsLive(createPrivilegedClient(), token))) notFound();
   const { isStaff } = await staffSession();
   if (isStaff) redirect("/staff");
 

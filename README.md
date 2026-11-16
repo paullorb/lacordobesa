@@ -98,11 +98,12 @@ So the way to see a change before it ships is `npm run dev` against the local Su
 
 ## Staff accounts
 
-Staff can create their own login at the shared team link, `/staff/signup?key=<STAFF_SIGNUP_TOKEN>`.
-Set `STAFF_SIGNUP_TOKEN` to a long random value in production and share the full URL with the venue team.
-The link is a bearer credential: anyone holding it can create a normal staff account, so keep it off public
-pages and rotate the environment variable if it is exposed. A new account is confirmed and allow-listed,
-then signed in to `/staff`. The token is checked again on every signup request.
+New team members get a personal sign-up link, made by an admin under `/staff/team` ("Invitar con un enlace").
+The link is shown once (only its SHA-256 is stored, table `staff_invites`), is valid for 7 days, works for a
+single account and can be revoked from the same page. It is a bearer credential until it is used, so send it
+to one person only. The invite is claimed atomically on every signup request. A new account is confirmed and
+allow-listed with the team role, then signed in to `/staff`. The old shared `STAFF_SIGNUP_TOKEN` link is retired
+and the variable is no longer read; delete it from the environments.
 
 Staff sign in with a short **name** and password (no e-mail). Supabase Auth is e-mail based, so each name maps
 to `<name>@staff.lacordobesa.local` (see [`src/lib/staff.ts`](src/lib/staff.ts)).

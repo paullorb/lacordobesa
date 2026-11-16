@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { addClosure, deleteClosureRange, saveOpeningHours } from "@/app/staff/actions";
-import { ActionForm, SubmitButton } from "@/components/staff/form-bits";
+import { ActionForm, QuickForm, SubmitButton } from "@/components/staff/form-bits";
 import { DateField, TimeField } from "@/components/staff/pickers";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime } from "@/lib/data";
@@ -98,11 +98,11 @@ async function Hours() {
                 </strong>
                 {r.reason && <span className="ml-2 text-muted">{r.reason}</span>}
               </span>
-              <form action={deleteClosureRange}>
+              <QuickForm action={deleteClosureRange}>
                 <input type="hidden" name="from" value={r.from} />
                 <input type="hidden" name="to" value={r.to} />
                 <button className="btn-ghost">Eliminar</button>
-              </form>
+              </QuickForm>
             </li>
           ))}
           {ranges.length === 0 && <li className="text-sm text-muted">No hay cierres próximos.</li>}
