@@ -40,6 +40,25 @@ const num = (fd: FormData, key: string, fallback = 0) => {
 };
 const bool = (fd: FormData, key: string) => fd.get(key) === "on" || fd.get(key) === "true";
 
+/** A failed write, as the typed result every staff control shows. The database's own message goes to
+ *  the log: it is English, it names constraints, and it is not something to read to a staff member
+ *  mid-service. */
+function failed(what: string, error: { message: string }): { ok: false; error: string } {
+  console.error(what, error);
+  return { ok: false, error: "No se pudo guardar. Intentá de nuevo." };
+}
+
+/** The `staff_notes_len` check on every table that has one (migrations 20261012054547 and siblings). */
+const STAFF_NOTES_MAX = 2000;
+
+/** The note to store, or the sentence to show. Checked here so an over-long note never reaches
+ *  Postgres, whose answer would be a constraint violation and a note that silently did not save. */
+function staffNotes(formData: FormData): { value: string | null } | { error: string } {
+  const value = str(formData, "staff_notes");
+  if (value.length > STAFF_NOTES_MAX) return { error: `La nota es demasiado larga (máximo ${STAFF_NOTES_MAX} caracteres).` };
+  return { value: value || null };
+}
+
 // ---------------------------------------------------------------- auth
 export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
@@ -66,19 +85,22 @@ export async function signOut() {
 // ---------------------------------------------------------------- reservations
 const STATUSES: Enums<"reservation_status">[] = ["pending", "confirmed", "cancelled", "no_show", "completed"];
 
-export async function setReservationStatus(formData: FormData) {
+export async function setReservationStatus(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
   const status = str(formData, "status") as Enums<"reservation_status">;
-  if (!STATUSES.includes(status)) return;
+  if (!STATUSES.includes(status)) return { ok: false, error: "La solicitud no es válida." };
 
-  const updated = await moveReservationStatus(supabase, id, status);
+  const moved = await moveReservationStatus(supabase, id, status);
+  if (moved.failed) return { ok: false, error: "No se pudo guardar. Intentá de nuevo." };
+  const updated = moved.row;
   if (status === "confirmed" && updated) await sendConfirmation(supabase, updated);
   // Always, including every way the move can decline. Each of those means the control came from a
   // view that is out of date, and the staff member is looking at exactly the card that has to be
   // re-rendered; returning without it left the losing browser showing the stale card and its
   // now-invalid buttons, so the click appeared to do nothing at all.
   refresh();
+  return { ok: true };
 }
 
 /**
@@ -105,26 +127,34 @@ async function moveReservationStatus(
   supabase: StaffClient,
   id: string,
   status: Enums<"reservation_status">,
-): Promise<Tables<"reservations"> | null> {
-  const { data: when } = await supabase
+): Promise<{ row: Tables<"reservations"> | null; failed: boolean }> {
+  const { data: when, error: readError } = await supabase
     .from("reservations")
     .select("date, start_time, status")
     .eq("id", id)
     .maybeSingle();
-  if (!when) return null;
+  if (readError) {
+    console.error("moveReservationStatus read", readError);
+    return { row: null, failed: true };
+  }
+  if (!when) return { row: null, failed: false };
 
   const started = when.status === "confirmed" && hasStarted(when.date, when.start_time);
-  if (status === "cancelled" && started) return null;
-  if ((status === "completed" || status === "no_show") && !started) return null;
+  if (status === "cancelled" && started) return { row: null, failed: false };
+  if ((status === "completed" || status === "no_show") && !started) return { row: null, failed: false };
 
-  const { data: updated } = await supabase
+  const { data: updated, error } = await supabase
     .from("reservations")
     .update({ status })
     .eq("id", id)
     .eq("status", when.status)
     .select("*")
     .maybeSingle();
-  return updated;
+  if (error) {
+    console.error("moveReservationStatus update", error);
+    return { row: null, failed: true };
+  }
+  return { row: updated, failed: false };
 }
 
 type StaffClient = Awaited<ReturnType<typeof requireStaff>>["supabase"];
@@ -162,7 +192,10 @@ async function sendConfirmation(supabase: StaffClient, r: Tables<"reservations">
     }),
   });
   // Released again on failure, so the card offers the retry button.
-  if (!result.ok) await supabase.from("reservations").update({ confirmation_sent_at: null }).eq("id", r.id);
+  if (!result.ok) {
+    const { error } = await supabase.from("reservations").update({ confirmation_sent_at: null }).eq("id", r.id);
+    if (error) console.error("sendConfirmation release", error);
+  }
 }
 
 /** Retry for the staff card, for when the first attempt failed or the guest asks for the mail again. */
@@ -187,18 +220,23 @@ export async function resendConfirmation(_prev: ActionResult, formData: FormData
   if (!result.ok) {
     return { ok: false, error: `No se pudo enviar el correo. ${result.detail ?? ""}`.trim() };
   }
-  await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
+  const { error } = await supabase.from("reservations").update({ confirmation_sent_at: new Date().toISOString() }).eq("id", r.id);
+  if (error) {
+    console.error("resendConfirmation record", error);
+    return { ok: false, error: "El correo se envió, pero no se pudo anotar. Revisá la reserva antes de reenviarlo." };
+  }
   refresh();
   return { ok: true };
 }
 
-export async function saveStaffNotes(formData: FormData) {
+export async function saveStaffNotes(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase
-    .from("reservations")
-    .update({ staff_notes: str(formData, "staff_notes") || null })
-    .eq("id", str(formData, "id"));
+  const notes = staffNotes(formData);
+  if ("error" in notes) return { ok: false, error: notes.error };
+  const { error } = await supabase.from("reservations").update({ staff_notes: notes.value }).eq("id", str(formData, "id"));
+  if (error) return failed("saveStaffNotes", error);
   refresh();
+  return { ok: true };
 }
 
 /** Walk-in / phone reservation entered by staff.
@@ -256,41 +294,47 @@ export async function createReservationManually(_prev: ActionResult, formData: F
 // ---------------------------------------------------------------- waitlist
 const WAITLIST_STATUSES: Enums<"waitlist_status">[] = ["waiting", "notified", "converted", "expired", "cancelled"];
 
-export async function setWaitlistStatus(formData: FormData) {
+export async function setWaitlistStatus(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const status = str(formData, "status") as Enums<"waitlist_status">;
-  if (!WAITLIST_STATUSES.includes(status)) return;
-  await supabase.from("waitlist_entries").update({ status }).eq("id", str(formData, "id"));
+  if (!WAITLIST_STATUSES.includes(status)) return { ok: false, error: "La solicitud no es válida." };
+  const { error } = await supabase.from("waitlist_entries").update({ status }).eq("id", str(formData, "id"));
+  if (error) return failed("setWaitlistStatus", error);
   refresh();
+  return { ok: true };
 }
 
-export async function saveWaitlistNotes(formData: FormData) {
+export async function saveWaitlistNotes(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase
-    .from("waitlist_entries")
-    .update({ staff_notes: str(formData, "staff_notes") || null })
-    .eq("id", str(formData, "id"));
+  const notes = staffNotes(formData);
+  if ("error" in notes) return { ok: false, error: notes.error };
+  const { error } = await supabase.from("waitlist_entries").update({ staff_notes: notes.value }).eq("id", str(formData, "id"));
+  if (error) return failed("saveWaitlistNotes", error);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- pre-orders
 const PREORDER_STATUSES: Enums<"preorder_status">[] = ["pending", "confirmed", "ready", "collected", "cancelled"];
 
-export async function setPreorderStatus(formData: FormData) {
+export async function setPreorderStatus(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const status = str(formData, "status") as Enums<"preorder_status">;
-  if (!PREORDER_STATUSES.includes(status)) return;
-  await supabase.from("preorders").update({ status }).eq("id", str(formData, "id"));
+  if (!PREORDER_STATUSES.includes(status)) return { ok: false, error: "La solicitud no es válida." };
+  const { error } = await supabase.from("preorders").update({ status }).eq("id", str(formData, "id"));
+  if (error) return failed("setPreorderStatus", error);
   refresh();
+  return { ok: true };
 }
 
-export async function savePreorderNotes(formData: FormData) {
+export async function savePreorderNotes(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase
-    .from("preorders")
-    .update({ staff_notes: str(formData, "staff_notes") || null })
-    .eq("id", str(formData, "id"));
+  const notes = staffNotes(formData);
+  if ("error" in notes) return { ok: false, error: notes.error };
+  const { error } = await supabase.from("preorders").update({ staff_notes: notes.value }).eq("id", str(formData, "id"));
+  if (error) return failed("savePreorderNotes", error);
   refresh();
+  return { ok: true };
 }
 
 /** A pre-order taken on the phone or at the counter.
@@ -354,21 +398,24 @@ export async function createPreorderManually(_prev: ActionResult, formData: Form
 // ---------------------------------------------------------------- event inquiries
 const INQUIRY_STATUSES: Enums<"inquiry_status">[] = ["new", "in_progress", "quoted", "won", "lost"];
 
-export async function setInquiryStatus(formData: FormData) {
+export async function setInquiryStatus(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const status = str(formData, "status") as Enums<"inquiry_status">;
-  if (!INQUIRY_STATUSES.includes(status)) return;
-  await supabase.from("event_inquiries").update({ status }).eq("id", str(formData, "id"));
+  if (!INQUIRY_STATUSES.includes(status)) return { ok: false, error: "La solicitud no es válida." };
+  const { error } = await supabase.from("event_inquiries").update({ status }).eq("id", str(formData, "id"));
+  if (error) return failed("setInquiryStatus", error);
   refresh();
+  return { ok: true };
 }
 
-export async function saveInquiryNotes(formData: FormData) {
+export async function saveInquiryNotes(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase
-    .from("event_inquiries")
-    .update({ staff_notes: str(formData, "staff_notes") || null })
-    .eq("id", str(formData, "id"));
+  const notes = staffNotes(formData);
+  if ("error" in notes) return { ok: false, error: notes.error };
+  const { error } = await supabase.from("event_inquiries").update({ staff_notes: notes.value }).eq("id", str(formData, "id"));
+  if (error) return failed("saveInquiryNotes", error);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- menu
@@ -445,21 +492,25 @@ export async function setMenuItemFeatured(id: string, featured: boolean): Promis
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 
-export async function deleteMenuItem(formData: FormData) {
+export async function deleteMenuItem(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase.from("menu_items").delete().eq("id", str(formData, "id"));
+  const { error } = await supabase.from("menu_items").delete().eq("id", str(formData, "id"));
+  if (error) return failed("deleteMenuItem", error);
   updateTag(TAG.content);
   refresh();
+  return { ok: true };
 }
 
-export async function toggleMenuItemAvailable(formData: FormData) {
+export async function toggleMenuItemAvailable(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase
+  const { error } = await supabase
     .from("menu_items")
     .update({ is_available: bool(formData, "is_available") })
     .eq("id", str(formData, "id"));
+  if (error) return failed("toggleMenuItemAvailable", error);
   updateTag(TAG.content);
   refresh();
+  return { ok: true };
 }
 
 export async function saveCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -494,11 +545,17 @@ export async function saveCategory(_prev: ActionResult, formData: FormData): Pro
 }
 
 /** Only empty categories can be deleted (FK is `on delete restrict`). */
-export async function deleteCategory(formData: FormData) {
+export async function deleteCategory(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase.from("menu_categories").delete().eq("id", str(formData, "id"));
+  const { error } = await supabase.from("menu_categories").delete().eq("id", str(formData, "id"));
+  // 23503: still holds dishes (the foreign key is `on delete restrict`).
+  if (error) {
+    if (error.code === "23503") return { ok: false, error: "La categoría todavía tiene platos. Movelos o eliminalos primero." };
+    return failed("deleteCategory", error);
+  }
   updateTag(TAG.content);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- specials
@@ -513,18 +570,28 @@ export async function saveSpecial(_prev: ActionResult, formData: FormData): Prom
     is_active: bool(formData, "is_active"),
   };
   if (!row.title || !row.starts_on) return { ok: false, error: "El título y la fecha de inicio son obligatorios." };
+  // Both dates are checked here, so a mistyped one is a sentence and not Postgres's check-constraint
+  // message (an end before the start violates the table's own check).
+  if (!isISODate(row.starts_on) || (row.ends_on !== null && !isISODate(row.ends_on))) {
+    return { ok: false, error: "La fecha no es válida." };
+  }
+  if (row.ends_on !== null && row.ends_on < row.starts_on) {
+    return { ok: false, error: "La fecha final es anterior a la fecha de inicio." };
+  }
   const { error } = id ? await supabase.from("specials").update(row).eq("id", id) : await supabase.from("specials").insert(row);
-  if (error) return { ok: false, error: error.message };
+  if (error) return failed("saveSpecial", error);
   updateTag(TAG.content);
   refresh();
   return { ok: true };
 }
 
-export async function deleteSpecial(formData: FormData) {
+export async function deleteSpecial(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase.from("specials").delete().eq("id", str(formData, "id"));
+  const { error } = await supabase.from("specials").delete().eq("id", str(formData, "id"));
+  if (error) return failed("deleteSpecial", error);
   updateTag(TAG.content);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- specials list
@@ -590,23 +657,27 @@ export async function addClosure(_prev: ActionResult, formData: FormData): Promi
 }
 
 /** Removes every closure in a contiguous range (used by the "Entfernen" button on a range). */
-export async function deleteClosureRange(formData: FormData) {
+export async function deleteClosureRange(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const from = str(formData, "from");
   const to = str(formData, "to") || from;
   // Validated for the same reason addClosure is, and because this one deletes: an unchecked bound
   // reaches the query as-is, and an empty string would widen the range rather than narrow it.
-  if (!isISODate(from) || !isISODate(to) || to < from) return;
-  await supabase.from("closures").delete().gte("date", from).lte("date", to);
+  if (!isISODate(from) || !isISODate(to) || to < from) return { ok: false, error: "La fecha no es válida." };
+  const { error } = await supabase.from("closures").delete().gte("date", from).lte("date", to);
+  if (error) return failed("deleteClosureRange", error);
   updateTag(TAG.hours);
   refresh();
+  return { ok: true };
 }
 
-export async function deleteClosure(formData: FormData) {
+export async function deleteClosure(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
-  await supabase.from("closures").delete().eq("id", str(formData, "id"));
+  const { error } = await supabase.from("closures").delete().eq("id", str(formData, "id"));
+  if (error) return failed("deleteClosure", error);
   updateTag(TAG.hours);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- settings
@@ -752,29 +823,33 @@ export async function saveGalleryItem(_prev: ActionResult, formData: FormData): 
   return { ok: true };
 }
 
-export async function deleteGalleryItem(formData: FormData) {
+export async function deleteGalleryItem(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
-  const { data } = await supabase.from("gallery_items").select("storage_path").eq("id", id).maybeSingle();
+  const { data, error: readError } = await supabase.from("gallery_items").select("storage_path").eq("id", id).maybeSingle();
+  if (readError) return failed("deleteGalleryItem read", readError);
   // Remove the object first: dropping the row before it would lose the path needed to retry the cleanup.
   if (data?.storage_path) {
     const { error: storageError } = await supabase.storage.from("gallery").remove([data.storage_path]);
-    if (storageError) return;
+    if (storageError) return failed("deleteGalleryItem storage", storageError);
   }
   const { error } = await supabase.from("gallery_items").delete().eq("id", id);
-  if (error) return;
+  if (error) return failed("deleteGalleryItem", error);
   updateTag(TAG.gallery);
   refresh();
+  return { ok: true };
 }
 
 /** Picks the big photo in the "Besuch uns" section, or clears it when called without an id.
  *  One choice, so it lives in site_settings rather than as a flag two rows could both carry. */
-export async function setHeroImage(formData: FormData) {
+export async function setHeroImage(formData: FormData): Promise<ActionResult> {
   const { supabase } = await requireStaff();
   const id = str(formData, "id");
-  await supabase.from("site_settings").upsert({ key: "hero", value: id ? { gallery_item_id: id } : {} });
+  const { error } = await supabase.from("site_settings").upsert({ key: "hero", value: id ? { gallery_item_id: id } : {} });
+  if (error) return failed("setHeroImage", error);
   updateTag(TAG.gallery);
   refresh();
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- team accounts
@@ -839,14 +914,17 @@ async function sniffImageType(file: File): Promise<string | null> {
   return null;
 }
 
-export async function deleteStaffAccount(formData: FormData) {
+export async function deleteStaffAccount(formData: FormData): Promise<ActionResult> {
   const { user } = await requireAdmin();
   const id = str(formData, "user_id");
-  if (!id || id === user.id) return;
+  if (!id || id === user.id) return { ok: false, error: "Esta cuenta no se puede eliminar acá." };
   const admin = createPrivilegedClient();
   // Admin accounts are not removable from here, so nobody locks the agency out by accident.
-  const { data: member } = await admin.from("staff").select("role").eq("user_id", id).maybeSingle();
-  if (!member || member.role !== "staff") return;
-  await admin.auth.admin.deleteUser(id);
+  const { data: member, error: readError } = await admin.from("staff").select("role").eq("user_id", id).maybeSingle();
+  if (readError) return failed("deleteStaffAccount read", readError);
+  if (!member || member.role !== "staff") return { ok: false, error: "Esta cuenta no se puede eliminar acá." };
+  const { error } = await admin.auth.admin.deleteUser(id);
+  if (error) return failed("deleteStaffAccount", error);
   refresh();
+  return { ok: true };
 }

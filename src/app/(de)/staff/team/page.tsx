@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { createStaffAccount, deleteStaffAccount, resetStaffPassword } from "@/app/staff/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { ActionForm, ConfirmSubmit, QuickForm, SubmitButton } from "@/components/staff/form-bits";
 import { staffDisplayName } from "@/lib/staff";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 import { requireAdmin } from "@/lib/auth";
@@ -51,12 +51,12 @@ async function Team() {
                   {m.user_id === user.id && <span className="ml-2 text-xs text-muted">(vos)</span>}
                 </span>
                 {m.role === "staff" && (
-                  <form action={deleteStaffAccount}>
+                  <QuickForm action={deleteStaffAccount}>
                     <input type="hidden" name="user_id" value={m.user_id} />
                     <ConfirmSubmit message="¿Seguro que querés eliminar este acceso?" className="btn-ghost text-red-700">
                       Eliminar
                     </ConfirmSubmit>
-                  </form>
+                  </QuickForm>
                 )}
               </div>
               {m.role === "staff" && (
