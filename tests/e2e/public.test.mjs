@@ -123,6 +123,11 @@ describe("the reservation calendar", () => {
         await page.locator(".slots.times .slot").first().waitFor({ timeout: 20_000 });
         const times = await page.locator(".slots.times .slot").count();
         assert.ok(times > 0, "a bookable day offered no times");
+        // The step is remounted, so focus has to be moved to the new step's heading explicitly, and
+        // the step announcement has to be a live region.
+        const focused = await page.evaluate(() => document.activeElement?.className ?? "");
+        assert.match(focused, /wizard-title/, "focus was not moved to the new step's heading");
+        assert.equal(await page.locator('.wizard [role="status"][aria-live="polite"]').count() >= 1, true);
       },
     });
   });

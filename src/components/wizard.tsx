@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
 
 export type WizardStep = {
   /** The question this step asks, shown as the heading. */
@@ -39,13 +39,29 @@ type Props = {
  */
 export function Wizard({ step, setStep, steps, stepLabel, footer, headingLevel = 3 }: Props) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const shownStep = useRef(step);
+  // The step's body is remounted on every change, which drops the focused control (the button that was
+  // just pressed disappears) and leaves keyboard and screen-reader users at the top of the document.
+  // Moving focus to the new step's heading puts them where the new question is. Not on first render:
+  // the page must not grab focus on load. Focus itself never animates, so reduced motion needs nothing.
+  useEffect(() => {
+    if (shownStep.current === step) return;
+    shownStep.current = step;
+    headingRef.current?.focus();
+  }, [step]);
+
   const total = steps.length;
   const current = steps[step - 1];
   if (!current) return null;
 
   return (
     <div className="form wizard">
-      <p className="sr-only">{stepLabel(step, total)}</p>
+      {/* A live region, so a screen reader hears "Schritt 2 von 4" when the step changes; it stays
+          mounted across steps (only the body below is keyed), which is what makes it announce. */}
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {stepLabel(step, total)}
+      </p>
       <div className="wizard-dots" aria-hidden="true">
         {steps.map((s, i) => (
           <span key={s.title} className={i + 1 <= step ? "on" : undefined} />
@@ -65,7 +81,9 @@ export function Wizard({ step, setStep, steps, stepLabel, footer, headingLevel =
         </div>
       )}
 
-      <Heading className="wizard-title">{current.title}</Heading>
+      <Heading className="wizard-title" ref={headingRef} tabIndex={-1}>
+        {current.title}
+      </Heading>
 
       {/* Keyed on the step so React remounts rather than reusing the node, which is what makes the
           wizard-step-in animation replay instead of firing once on first render. */}
