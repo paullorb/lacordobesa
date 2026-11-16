@@ -98,7 +98,7 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.105.0
+          version: 3.1.0
       - run: npm ci --prefer-offline
       - name: Start local Supabase and apply migrations and seeds
         run: supabase start
