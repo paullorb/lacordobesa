@@ -21,7 +21,7 @@ export function LocalTime({ locale }: { locale: Locale }) {
   useEffect(() => {
     const update = () => setNow(new Date());
     update();
-    // On the minute, so the displayed time is never a minute behind for long.
+    // Polled every 15 s, not aligned to the minute, so the shown minute is at most 15 s late.
     const timer = window.setInterval(update, 15_000);
     return () => window.clearInterval(timer);
   }, []);

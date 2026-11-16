@@ -70,6 +70,24 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_email_send_attempts: {
+        Row: {
+          created_at: string
+          email_hash: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          email_hash: string
+          id?: never
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string
+          id?: never
+        }
+        Relationships: []
+      }
       broadcast_optins: {
         Row: {
           channel: Database["public"]["Enums"]["broadcast_channel"]
@@ -268,8 +286,8 @@ export type Database = {
           is_featured: boolean
           is_preorderable: boolean
           name: string
-          preorder_unit: string
           preorder_step: number
+          preorder_unit: string
           price_label: string | null
           sort_order: number
           subtitle: string | null
@@ -286,8 +304,8 @@ export type Database = {
           is_featured?: boolean
           is_preorderable?: boolean
           name: string
-          preorder_unit?: string
           preorder_step?: number
+          preorder_unit?: string
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -304,8 +322,8 @@ export type Database = {
           is_featured?: boolean
           is_preorderable?: boolean
           name?: string
-          preorder_unit?: string
           preorder_step?: number
+          preorder_unit?: string
           price_label?: string | null
           sort_order?: number
           subtitle?: string | null
@@ -698,8 +716,8 @@ export type Database = {
           is_featured: boolean | null
           is_preorderable: boolean | null
           name: string | null
-          preorder_unit: string | null
           preorder_step: number | null
+          preorder_unit: string | null
           price_label: string | null
           sort_order: number | null
           subtitle: string | null
@@ -740,8 +758,21 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
-      is_staff: { Args: never; Returns: boolean }
+      confirm_broadcast_email: { Args: { p_token: string }; Returns: boolean }
+      create_preorder_manually: {
+        Args: {
+          p_lines: Json
+          p_name: string
+          p_notes: string
+          p_phone: string
+          p_pickup_date: string
+          p_pickup_time: string
+          p_preparation: string
+        }
+        Returns: string
+      }
       is_admin: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
       join_waitlist: {
         Args: {
           p_date: string
@@ -777,6 +808,15 @@ export type Database = {
         }[]
       }
       preorder_settings: { Args: never; Returns: Json }
+      request_broadcast_email: {
+        Args: {
+          p_confirmation_token: string
+          p_consent_text: string
+          p_email: string
+          p_name: string
+        }
+        Returns: boolean
+      }
       request_event_inquiry: {
         Args: {
           p_budget_band: string
@@ -789,18 +829,6 @@ export type Database = {
           p_phone: string
         }
         Returns: undefined
-      }
-      create_preorder_manually: {
-        Args: {
-          p_lines: Json
-          p_name: string
-          p_notes: string
-          p_phone: string
-          p_pickup_date: string
-          p_pickup_time: string
-          p_preparation: string
-        }
-        Returns: string
       }
       request_preorder: {
         Args: {
@@ -849,11 +877,6 @@ export type Database = {
         }[]
       }
       reservation_settings: { Args: never; Returns: Json }
-      request_broadcast_email: {
-        Args: { p_confirmation_token: string; p_consent_text: string; p_email: string; p_name: string }
-        Returns: boolean
-      }
-      confirm_broadcast_email: { Args: { p_token: string }; Returns: boolean }
       subscribe_broadcast: {
         Args: {
           p_channel: string
@@ -863,6 +886,10 @@ export type Database = {
           p_phone?: string
         }
         Returns: undefined
+      }
+      take_request_quota: {
+        Args: { p_bucket: string; p_max_1h: number; p_max_24h: number }
+        Returns: boolean
       }
       track_event: {
         Args: {
@@ -875,10 +902,6 @@ export type Database = {
           p_referrer: string
         }
         Returns: undefined
-      }
-      take_request_quota: {
-        Args: { p_bucket: string; p_max_1h: number; p_max_24h: number }
-        Returns: boolean
       }
       unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
     }
