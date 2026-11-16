@@ -12,7 +12,7 @@
  */
 import { test, describe, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { escapeHtml, mailConfigured, sendMail } from "@/lib/mail";
+import { escapeHtml, mailConfigured, mailSafeName, sendMail } from "@/lib/mail";
 
 const realFetch = globalThis.fetch;
 const realKey = process.env.RESEND_API_KEY;
@@ -182,5 +182,23 @@ describe("sendMail", () => {
     }) as typeof fetch;
 
     assert.deepEqual(await sendMail(mail), { ok: false, reason: "failed", detail: "unknown error" });
+  });
+});
+
+describe("mailSafeName", () => {
+  test("keeps ordinary names, including accents, apostrophes and hyphens", () => {
+    for (const name of ["María", "Jean-Luc", "D'Arcy", "Dr. Müller", "Ñandú Pérez"]) assert.equal(mailSafeName(name), name);
+  });
+
+  test("drops newlines, links and anything that is not a name", () => {
+    assert.equal(mailSafeName("Ana\nhttps://evil.example/x"), "Ana");
+    assert.equal(mailSafeName("Ana www.evil.com"), "Ana");
+    assert.equal(mailSafeName("Ana evil.example/pay"), "Ana");
+    assert.equal(mailSafeName("Ana <b>1234</b> $$$"), "Ana b b");
+    assert.equal(mailSafeName("https://evil.example"), "");
+  });
+
+  test("caps the length", () => {
+    assert.ok(mailSafeName("a".repeat(100)).length <= 40);
   });
 });

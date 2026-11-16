@@ -107,8 +107,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
   if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const { supabase, allowed } = await publicFormClient("reservation");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("reservation", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { data, error } = await supabase.rpc("request_reservation", {
     p_name: name,
     p_phone: phone,
@@ -143,8 +143,8 @@ export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Pr
   if (!isISODate(date)) return { ok: false, error: errorFor("invalid_date") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const { supabase, allowed } = await publicFormClient("waitlist");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("waitlist", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { error } = await supabase.rpc("join_waitlist", {
     p_name: name,
     p_phone: phone,

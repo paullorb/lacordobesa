@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { subscribeToSpecials } from "@/app/specials/actions";
+import { useFormGuard } from "@/components/form-guard";
 import { PhoneNote } from "@/components/phone-note";
 import { CHANNEL_LABEL, OPEN_CHANNELS, type BroadcastChannel } from "@/lib/broadcast";
 import { whatsappHref } from "@/lib/contact";
@@ -27,6 +28,13 @@ export function SpecialsOptin({ locale, ideas = [], emailEnabled = false }: { lo
   const [channel, setChannel] = useState<BroadcastChannel>(OPEN_CHANNELS[0]);
   const t = getDictionary(locale).optin;
   const [stage, setStage] = useState<Stage>("ask");
+  // Controlled, so a refused submission leaves what the guest typed (React 19 clears uncontrolled
+  // fields after every action, failed ones too).
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const guard = useFormGuard("specials");
   const nameRef = useRef<HTMLInputElement>(null);
   const reopenRef = useRef<HTMLButtonElement>(null);
   const moveFocusTo = useRef<"name" | "reopen" | null>(null);
@@ -135,10 +143,11 @@ export function SpecialsOptin({ locale, ideas = [], emailEnabled = false }: { lo
               )}
               <input type="hidden" name="channel" value={channel} />
               <input type="hidden" name="locale" value={locale} />
+              {guard}
 
               <div>
                 <label htmlFor="optin-name">{t.name}</label>
-                <input id="optin-name" ref={nameRef} name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" />
+                <input id="optin-name" ref={nameRef} name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               {channel === "whatsapp" ? (
@@ -152,17 +161,19 @@ export function SpecialsOptin({ locale, ideas = [], emailEnabled = false }: { lo
                     autoComplete="tel"
                     required
                     placeholder="+49 …"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
               ) : (
                 <div>
                   <label htmlFor="optin-email">{t.emailLabel}</label>
-                  <input id="optin-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" required />
+                  <input id="optin-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
               )}
 
               <label className="optin-consent">
-                <input type="checkbox" name="consent" required />
+                <input type="checkbox" name="consent" required checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>{t.consent[channel]}</span>
               </label>
 

@@ -6,12 +6,29 @@ import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { formErrors, formLocale } from "@/lib/form-errors";
 import { escapeHtml, mailConfigured, sendMail } from "@/lib/mail";
-import { publicFormClient } from "@/lib/public-forms";
+import { publicFormClient, rpcUntyped } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken, SITE_URL } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
 
-export type SubscribeState = { ok: true; channel: "whatsapp" | "email" } | { ok: false; error: string } | null;
+/** Remembers the sign-up language for the unsubscribe link (migration 20261116110200). Best effort:
+ *  without it the link is the German one every row used to get. */
+async function saveLocale(
+  supabase: Parameters<typeof rpcUntyped>[0],
+  channel: "email" | "whatsapp",
+  contact: { email?: string; phone?: string },
+  locale: string,
+) {
+  const { error } = await rpcUntyped(supabase, "set_broadcast_optin_locale", {
+    p_channel: channel,
+    p_email: contact.email ?? "",
+    p_phone: contact.phone ?? "",
+    p_locale: locale,
+  });
+  if (error) console.error(`could not store the specials sign-up language: ${error.message}`);
+}
+
+export type SubscribeState ={ ok: true; channel: "whatsapp" | "email" } | { ok: false; error: string } | null;
 
 export async function subscribeToSpecials(_prev: SubscribeState, formData: FormData): Promise<SubscribeState> {
   const channel = String(formData.get("channel") ?? "");
@@ -31,8 +48,8 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
     return { ok: false, error: errorFor("field_too_long") };
   }
 
-  const { supabase, allowed } = await publicFormClient("specials");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("specials", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const consentText = getDictionary(locale).optin.consent[channel];
   if (channel === "email") {
     const token = randomBytes(32).toString("hex");
@@ -43,6 +60,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
       p_confirmation_token: token,
     });
     if (error) return { ok: false, error: errorFor(error.message) };
+    await saveLocale(supabase, "email", { email }, locale);
     if (data) {
       const confirmUrl = `${SITE_URL}/specials/confirm?token=${token}&lang=${locale}`;
       const copy = {
@@ -72,7 +90,13 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
         html: `<div style="max-width:520px;margin:24px auto;padding:28px;background:#f3f8fb;color:#17384b;font-family:Arial,Helvetica,sans-serif;line-height:1.6"><p>${escapeHtml(copy.intro)}</p><p><a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:12px 20px;background:#17384b;color:#ffffff;text-decoration:none">${escapeHtml(copy.button)}</a></p><p>${escapeHtml(copy.ignore)}</p><p>La Cordobesa · Frankfurt am Main</p></div>`,
         replyTo: CONTACT.email,
       });
-      if (!result.ok) return { ok: false, error: errorFor("generic") };
+      if (!result.ok) {
+        // The RPC already recorded this attempt for its resend cooldown. Give it back, or the guest's
+        // retry would hit the cooldown and be told "sent" although nothing ever left.
+        const released = await rpcUntyped(supabase, "release_broadcast_email_attempt", { p_email: email });
+        if (released.error) console.error(`could not release the specials mail attempt: ${released.error.message}`);
+        return { ok: false, error: errorFor("generic") };
+      }
     }
     return { ok: true, channel: "email" };
   }
@@ -86,6 +110,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
     p_phone: phone,
   });
   if (error) return { ok: false, error: errorFor(error.message) };
+  await saveLocale(supabase, "whatsapp", { phone }, locale);
   return { ok: true, channel: "whatsapp" };
 }
 

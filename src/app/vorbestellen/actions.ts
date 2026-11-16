@@ -48,8 +48,8 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
   const lines = readLines(formData);
   if (lines.length === 0) return { ok: false, error: errorFor("empty_order") };
 
-  const { supabase, allowed } = await publicFormClient("preorder");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("preorder", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { data, error } = await supabase.rpc("request_preorder", {
     p_name: name,
     p_phone: phone,

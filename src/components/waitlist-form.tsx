@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { useFormGuard } from "@/components/form-guard";
 import { useTrackForm } from "@/components/analytics";
 import { joinWaitlist } from "@/app/reservierung/actions";
 import { PhoneNote } from "@/components/phone-note";
@@ -27,6 +28,14 @@ export function WaitlistForm({
   const [state, formAction, pending] = useActionState(joinWaitlist, null);
   useTrackForm("waitlist", state, pending);
   const t = getDictionary(locale).waitlist;
+  // Controlled, so a refused submission keeps what the guest typed (React 19 clears uncontrolled
+  // fields after every action, failed ones too).
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [party, setParty] = useState(String(partySize ?? 2));
+  const [preference, setPreference] = useState("");
+  const guard = useFormGuard("waitlist");
 
   if (state?.ok) {
     return (
@@ -44,17 +53,18 @@ export function WaitlistForm({
         <p className="manage-hint">{t.explain}</p>
         <input type="hidden" name="date" value={date} />
         <input type="hidden" name="locale" value={locale} />
+        {guard}
         <div>
           <label htmlFor="wl-name">{t.name}</label>
-          <input id="wl-name" name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" required />
+          <input id="wl-name" name="name" maxLength={FIELD_LIMITS.name} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
           <label htmlFor="wl-phone">{t.phone}</label>
-          <input id="wl-phone" name="phone" type="tel" maxLength={FIELD_LIMITS.phone} autoComplete="tel" required />
+          <input id="wl-phone" name="phone" type="tel" maxLength={FIELD_LIMITS.phone} autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
         <div>
           <label htmlFor="wl-email">{t.email}</label>
-          <input id="wl-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" />
+          <input id="wl-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="preorder-when">
           <div>
@@ -65,13 +75,14 @@ export function WaitlistForm({
               type="number"
               min={1}
               max={maxPartySize}
-              defaultValue={partySize ?? 2}
+              value={party}
+              onChange={(e) => setParty(e.target.value)}
               required
             />
           </div>
           <div>
             <label htmlFor="wl-pref">{t.preference}</label>
-            <input id="wl-pref" name="time_preference" maxLength={120} placeholder={t.preferencePlaceholder} />
+            <input id="wl-pref" name="time_preference" maxLength={120} placeholder={t.preferencePlaceholder} value={preference} onChange={(e) => setPreference(e.target.value)} />
           </div>
         </div>
 
