@@ -14,7 +14,24 @@
  */
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, WEEKDAYS_DE } from "@/lib/data";
+import { DEFAULT_RESERVATION_SETTINGS, fmtTime, TAG, unwrap, WEEKDAYS_DE } from "@/lib/data";
+
+describe("unwrap", () => {
+  test("hands back the data of a successful read, null included", () => {
+    assert.deepEqual(unwrap({ data: [1, 2], error: null }, "t"), [1, 2]);
+    assert.equal(unwrap({ data: null, error: null }, "t"), null);
+  });
+
+  test("throws on an error, naming the read, so a `use cache` entry is never filled with a fallback", () => {
+    // The cached getters used to return [] or the defaults here, and that wrong answer was then
+    // cached for an hour (every weekday shown closed). A throw is not stored by Next.
+    assert.throws(() => unwrap({ data: null, error: { message: "timeout" } }, "opening_hours"), /opening_hours.*timeout/);
+  });
+
+  test("throws even when the error arrives together with data", () => {
+    assert.throws(() => unwrap({ data: [], error: { message: "boom" } }, "x"));
+  });
+});
 
 describe("fmtTime", () => {
   test('turns a Postgres time into what a guest reads: "09:00:00" -> "09:00"', () => {

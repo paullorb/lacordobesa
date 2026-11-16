@@ -18,8 +18,11 @@ npm test                  # all three
 on. That is also how the browser suite came to rot: for three commits in a row nobody ran it, and
 twelve of its tests had been failing against a selector that a UI change had removed. **`check` is
 the commit gate; `check:full` is the one to run before a release.** CI (`.github/workflows/tests.yml`)
-runs `check` on every push and pull request, and the database and browser suites against a fresh local Supabase stack every
-night; only `check` is required to merge.
+runs `check` and, as a second job, the database and browser suites against a fresh local Supabase stack on every push to
+`main`, every pull request and nightly. Which of them a merge requires is branch-protection configuration, not part of the
+repository. `.github/assert-ran.mjs` runs after each suite and fails the job when fewer than a floor of tests passed
+(unit 300, database 175, browser 600) or any failed, because `node --test` exits 0 when every test skips. The floors count
+passes only, so a suite that skipped is red in CI.
 
 Browsers are not installed by `npm install`. Once per machine:
 
@@ -40,6 +43,11 @@ What is pinned: calendar arithmetic in the shop's timezone, the locale routing r
 dictionaries having the same keys in the same shapes, the numbers page's aggregations, the guest
 link and token shapes, the WhatsApp number normalisation, the schema.org output, the production-database
 guard, the confirmation mail's escaping, and the bot and browser detection behind the numbers page.
+
+`cache-invalidation.test.ts` reads source text rather than running Next: every `use cache` getter in `lib/data.ts` and
+`lib/preorders.ts` carries one `TAG.*`, every `updateTag(...)` in `staff/actions.ts` names a tag that exists, every tag a
+getter uses is invalidated by some staff action, and no getter swallows a failed read (`unwrap()` in `lib/data.ts`). It
+cannot prove that a *particular* action invalidates the right tag for what it wrote; that needs a running server.
 
 ### coverage.test.ts, and why a percentage is not enough
 
@@ -64,7 +72,7 @@ The four modules that are excused are the ones that cannot be imported outside a
 with `@supabase/supabase-js`, which is the same path the app takes, so the
 grants and the row level security policies are part of what is exercised rather than mocked away.
 
-There are twenty-six RPCs and seventeen tables with RLS on all of them, and before these files none
+There are twenty-six RPCs and eighteen tables with RLS on all of them, and before these files none
 of it had a test. What is pinned:
 
 | file | what it is for |
@@ -88,7 +96,10 @@ Two things follow:
   hardcoded and no escape hatch. `src/lib/supabase/env.ts` guards the app; it cannot guard these
   files, because they are not the app.
 
-When local Supabase is stopped, database tests skip with instructions; the package script uses only the local CLI stack and never loads remote credentials.
+Run directly with `node --test` and no local credentials in the environment, the files skip with instructions
+(`skip` in `harness.mjs`). `npm run test:integration` does not skip: `scripts/with-local-supabase.mjs` exits non-zero when
+`supabase status` fails, so a stopped stack is an error, not a green run. The script uses only the local CLI stack and never
+loads remote credentials.
 
 ## e2e/ — a real browser against a real server
 
@@ -118,7 +129,9 @@ quota allowance back.
 | `token-routes.test.mjs` | The twelve pages whose URL is a credential, in all three languages: that they open, that the language switch keeps the token (#134 broke the build here), that they are noindex and send no referrer, and that a dead link is answered rather than crashed on. The one file under `e2e/` that writes: it arranges one reservation, one order and one sign-up locally and deletes them afterwards, because a token page cannot be opened without a row to open. |
 
 Tests skip rather than fail when there is no server listening or no `STAFF_USER` / `STAFF_PASS` in
-the environment, so `npm run check` stays runnable on a laptop with nothing else going on.
+the environment (`npm run test:e2e` itself still needs the local stack, because it goes through
+`with-local-supabase.mjs`, which also supplies those credentials). `npm run check` does not run them. A skipped
+suite is not a pass in CI: see `assert-ran.mjs` above.
 
 **One sign-in per run, cached on disk.** `node --test` runs every file in its own process, so a
 module-level cache saved one sign-in *per file*: a full run signed in about thirteen times, and two
