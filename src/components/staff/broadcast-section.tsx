@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
 import { addDays, fmtStaffDate, todayISO } from "@/lib/dates";
+import { mailtoHref } from "@/lib/mailto";
 import { SITE_URL, unsubscribeUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
 
@@ -29,8 +30,7 @@ function messageFor(special: Tables<"specials">, unsubscribe: string) {
 
 function emailFor(address: string, special: Tables<"specials">, unsubscribe: string) {
   const subject = `La Cordobesa Specials: ${special.title}`;
-  const recipient = encodeURIComponent(address).replace("%40", "@");
-  return `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageFor(special, unsubscribe))}`;
+  return mailtoHref(address, { subject, body: messageFor(special, unsubscribe) });
 }
 
 /** Staff prepare one message per confirmed WhatsApp or email guest so each gets their own
