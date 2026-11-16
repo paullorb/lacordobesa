@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, localeHref, type Locale } from "@/lib/i18n";
+import { DEFAULT_LOCALE, isLocale, localeHref, type Locale } from "@/lib/i18n";
 
 /** The site's own absolute URL, and links built from it.
  *
@@ -33,7 +33,10 @@ export const isManageToken = (token: string) => MANAGE_TOKEN.test(token);
  *  ended up being the only one of the three that could be changed in one place. */
 export const preorderUrl = (token: string, locale: Locale = DEFAULT_LOCALE) =>
   `${SITE_URL}${localeHref(locale, `/vorbestellung/${token}`)}`;
-export const unsubscribeUrl = (token: string) => `${SITE_URL}/abmelden/${token}`;
+/** `locale` is what broadcast_optins.locale holds (the language the guest signed up in). Anything that
+ *  is not a known language, including a row from before the column existed, gets the German page. */
+export const unsubscribeUrl = (token: string, locale?: string | null) =>
+  `${SITE_URL}${localeHref(locale && isLocale(locale) ? locale : DEFAULT_LOCALE, `/abmelden/${token}`)}`;
 
 /** The link-preview picture (WhatsApp, Instagram, iMessage). Kept under 300 KB because WhatsApp drops larger ones. */
 export const OG_IMAGE = { url: "/assets/og-image.jpg", width: 1200, height: 600, alt: "La Cordobesa" };
