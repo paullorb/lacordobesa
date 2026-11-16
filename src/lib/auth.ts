@@ -14,6 +14,18 @@ import { createClient } from "@/lib/supabase/server";
  * answer, and getClaims() checks the token's signature locally against the project's published
  * key (both projects sign with ES256) instead of asking the Auth server.
  *
+ * What getClaims() does NOT do (read in @supabase/auth-js 2.117, GoTrueClient.getClaims): with an
+ * asymmetric key it only checks the signature and `exp`. It never asks the Auth server whether the
+ * session still exists, so a session that was revoked, or a stolen one after a password reset,
+ * keeps passing here until its access token expires (the project's JWT expiry, one hour by default).
+ * Two things bound that: removing a person deletes their `staff` row, which the query below reads
+ * under their own token and which therefore stops them at once; and requireAdmin() below asks the
+ * Auth server (getUser()) as well, so the admin-only pages and actions, which include resetting a
+ * password and issuing invites, never run on a session the server has revoked. The residual risk is
+ * a revoked non-admin session that is still on the allowlist: for at most one JWT lifetime it can
+ * keep using the ordinary staff pages. resetStaffPassword() removes its refresh tokens
+ * (revoke_user_sessions, migration 20261116100300) so it cannot be extended past that.
+ *
  * The staff row says both things at once: there is one (on the allowlist, migration 20261012074936) and its
  * role (admin or staff, migration 20261016030801). RLS lets a user read only their own row.
  */
@@ -49,5 +61,14 @@ export async function requireStaff() {
 export async function requireAdmin() {
   const ctx = await requireStaff();
   if (!ctx.isAdmin) redirect("/staff");
+  // The one place a round trip to the Auth server is worth it: getClaims() above would accept a
+  // session that has been revoked, and these are the pages and actions that create accounts, reset
+  // passwords and write admin-only settings. Once per request, and only for admins.
+  if (!(await serverVerifiedUser(ctx.supabase))) redirect("/staff/login");
   return ctx;
 }
+
+const serverVerifiedUser = cache(async (supabase: Awaited<ReturnType<typeof createClient>>) => {
+  const { data, error } = await supabase.auth.getUser();
+  return !error && !!data.user;
+});

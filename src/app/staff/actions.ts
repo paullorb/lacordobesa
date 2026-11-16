@@ -13,9 +13,10 @@ import { GALLERY_MAX_BYTES, GALLERY_MIME_TYPES, isGalleryCategory } from "@/lib/
 import { mailConfigured, sendMail } from "@/lib/mail";
 import { reservationConfirmedMail } from "@/lib/mail-templates";
 import { isPreparation } from "@/lib/preorder-preparation";
-import { MAX_PREORDER_QUANTITY, type PreorderSettings } from "@/lib/preorders";
-import { effectiveReservationSettings, mergeReservationSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
+import { MAX_PREORDER_QUANTITY } from "@/lib/preorders";
+import { effectiveReservationSettings, mergePreorderSettings, mergeReservationSettings, reservationFormError } from "@/lib/settings-merge";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
+import { hashInviteToken, inviteExpiry, inviteUrl, MAX_PENDING_INVITES, newInviteToken } from "@/lib/staff-signup";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n";
 import {
   parseReviewScores,
@@ -708,7 +709,7 @@ export async function saveSettings(_prev: ActionResult, formData: FormData): Pro
     { key: "announcement", value: { text: str(formData, "announcement") } },
     {
       key: "preorders",
-      value: mergeStored<PreorderSettings>(stored("preorders"), { enabled: bool(formData, "preorders_enabled") }),
+      value: mergePreorderSettings(stored("preorders"), { enabled: bool(formData, "preorders_enabled") }),
     },
   ]);
   if (error) return { ok: false, error: error.message };
@@ -901,6 +902,63 @@ export async function resetStaffPassword(_prev: ActionResult, formData: FormData
   if (member.role !== "staff" && id !== user.id) return { ok: false, error: "No se puede cambiar la contraseña de otro administrador acá." };
   const { error } = await admin.auth.admin.updateUserById(id, { password });
   if (error) return { ok: false, error: "No se pudo cambiar la contraseña." };
+  // GoTrue keeps a user's other sessions after a password change, a stolen one included, and its
+  // admin API cannot end them by id. This does (migration 20261116100300).
+  const { error: revokeError } = await admin.rpc("revoke_user_sessions", { p_user_id: id });
+  if (revokeError) {
+    console.error("resetStaffPassword revoke_user_sessions", revokeError);
+    return { ok: false, error: "La contraseña cambió, pero no se pudieron cerrar las sesiones abiertas de esa cuenta." };
+  }
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------- staff invites
+export type InviteResult = { ok: true; url: string } | { ok: false; error: string } | null;
+
+/** Makes a sign-up link for a new team member. The URL is in this response and nowhere else: only
+ *  its hash is stored, so closing the page loses it and the answer is to make another. */
+export async function createStaffInvite(_prev: InviteResult, formData: FormData): Promise<InviteResult> {
+  const { user } = await requireAdmin();
+  const note = str(formData, "note");
+  if (note.length > 80) return { ok: false, error: "La nota es demasiado larga (máximo 80 caracteres)." };
+
+  const admin = createPrivilegedClient();
+  const { count, error: countError } = await admin
+    .from("staff_invites")
+    .select("id", { count: "exact", head: true })
+    .is("used_at", null)
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString());
+  if (countError) return failed("createStaffInvite count", countError);
+  if ((count ?? 0) >= MAX_PENDING_INVITES) {
+    return { ok: false, error: `Ya hay ${MAX_PENDING_INVITES} invitaciones abiertas. Revocá alguna antes de crear otra.` };
+  }
+
+  const token = newInviteToken();
+  // The role is fixed here, by the admin, and is always the team role: an admin account is not
+  // something a link should be able to create.
+  const { error } = await admin.from("staff_invites").insert({
+    token_hash: hashInviteToken(token),
+    role: "staff",
+    note: note || null,
+    created_by: user.id,
+    expires_at: inviteExpiry(),
+  });
+  if (error) return failed("createStaffInvite", error);
+  refresh();
+  return { ok: true, url: inviteUrl(token) };
+}
+
+export async function revokeStaffInvite(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const admin = createPrivilegedClient();
+  const { error } = await admin
+    .from("staff_invites")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("id", str(formData, "id"))
+    .is("used_at", null);
+  if (error) return failed("revokeStaffInvite", error);
+  refresh();
   return { ok: true };
 }
 

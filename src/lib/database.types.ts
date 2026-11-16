@@ -640,6 +640,45 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_invites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          note: string | null
+          revoked_at: string | null
+          role: string
+          token_hash: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          note?: string | null
+          revoked_at?: string | null
+          role?: string
+          token_hash: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          note?: string | null
+          revoked_at?: string | null
+          role?: string
+          token_hash?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       waitlist_entries: {
         Row: {
           created_at: string
@@ -849,6 +888,7 @@ export type Database = {
         }[]
       }
       reservation_settings: { Args: never; Returns: Json }
+      revoke_user_sessions: { Args: { p_user_id: string }; Returns: number }
       request_broadcast_email: {
         Args: { p_confirmation_token: string; p_consent_text: string; p_email: string; p_name: string }
         Returns: boolean

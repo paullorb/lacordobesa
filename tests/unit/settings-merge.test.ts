@@ -10,7 +10,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { DEFAULT_RESERVATION_SETTINGS } from "@/lib/data";
 import { DEFAULT_PREORDER_SETTINGS, type PreorderSettings } from "@/lib/preorders";
-import { effectiveReservationSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
+import { effectiveReservationSettings, mergePreorderSettings, mergeStored, reservationFormError } from "@/lib/settings-merge";
 import type { ReservationSettings } from "@/lib/data";
 
 const stored: ReservationSettings = {
@@ -65,6 +65,26 @@ describe("effectiveReservationSettings", () => {
     const e = effectiveReservationSettings({ capacity_seats: 33 });
     assert.equal(e.capacity_seats, 33);
     assert.equal(e.slot_minutes, DEFAULT_RESERVATION_SETTINGS.slot_minutes);
+  });
+});
+
+describe("mergePreorderSettings", () => {
+  test("a first save on an absent row writes every key, so no limit is NULL in SQL", () => {
+    assert.deepEqual(mergePreorderSettings(undefined, { enabled: false }), { ...DEFAULT_PREORDER_SETTINGS, enabled: false });
+  });
+
+  test("a partial stored object keeps its own keys and takes defaults for the rest", () => {
+    const merged = mergePreorderSettings({ enabled: true, min_lead_hours: 48 }, { enabled: false });
+    assert.equal(merged.min_lead_hours, 48);
+    assert.equal(merged.max_lines, DEFAULT_PREORDER_SETTINGS.max_lines);
+    assert.equal(merged.max_quantity, DEFAULT_PREORDER_SETTINGS.max_quantity);
+    assert.equal(merged.enabled, false);
+  });
+
+  test("null or wrongly typed stored values count as missing", () => {
+    const merged = mergePreorderSettings({ max_days_ahead: null, max_lines: "many" }, {});
+    assert.equal(merged.max_days_ahead, DEFAULT_PREORDER_SETTINGS.max_days_ahead);
+    assert.equal(merged.max_lines, DEFAULT_PREORDER_SETTINGS.max_lines);
   });
 });
 
