@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DM_Sans, Playfair_Display } from "next/font/google";
 import { RootDocument, rootMetadata } from "@/app/root-document";
 import { PhoneNote } from "@/components/phone-note";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,6 +9,16 @@ import { whatsappHref } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { DEFAULT_LOCALE, localeHref } from "@/lib/i18n";
 import "@/app/globals.css";
+
+// Self-hosted at build time, so no request goes to Google Fonts from the visitor's browser. See
+// root-document.tsx for why this is declared here rather than shared across root layouts.
+const sans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
+const serif = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+});
 
 // Spread over the site defaults, because a global-not-found bypasses both root layouts and so gets
 // none of their metadata: without this a shared dead link has no og:image and no metadataBase.
@@ -33,7 +44,7 @@ export default function GlobalNotFound() {
   const href = (path: string) => localeHref(DEFAULT_LOCALE, path);
 
   return (
-    <RootDocument locale={DEFAULT_LOCALE}>
+    <RootDocument locale={DEFAULT_LOCALE} fontVariables={`${sans.variable} ${serif.variable}`}>
       <div className="site">
         <SiteHeader whatsappHref={whatsappHref()} locale={DEFAULT_LOCALE} />
         <main id="main">

@@ -1,21 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { DM_Sans, Playfair_Display } from "next/font/google";
 import { Analytics } from "@/components/analytics";
 import { APPS, ICONS } from "@/lib/brand";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
 import { OG_IMAGE, SITE_URL } from "@/lib/site";
-
-// Self-hosted at build time, so no request goes to Google Fonts from the visitor's browser.
-// Declared once here rather than in each root layout, so both groups load the same two files.
-const sans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sans" });
-const serif = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-});
 
 export const viewport: Viewport = { themeColor: APPS.public.themeColor };
 
@@ -27,10 +16,25 @@ export const viewport: Viewport = { themeColor: APPS.public.themeColor };
  * per top-level route group, so `(de)` and `(es)` each own a document and `lang` follows the group
  * the URL fell into. The cost is a full page load when crossing between them, which happens exactly
  * once per visit: when somebody switches language.
+ *
+ * `fontVariables` comes from the caller rather than being declared here: a single `next/font/google`
+ * call shared by multiple root layouts (and global-not-found.tsx) made Turbopack dev resolve the
+ * same generated font module from more than one entry at once on a cold request, which trips its
+ * "next/font/google queries have exactly one entry" assertion (500s the very first `GET /`, every
+ * requester races to compile the same shared module). Each caller declaring its own, identically
+ * configured font (see lib/font-config.ts) keeps every font module owned by exactly one entry.
  */
-export function RootDocument({ locale, children }: { locale: Locale; children: ReactNode }) {
+export function RootDocument({
+  locale,
+  fontVariables,
+  children,
+}: {
+  locale: Locale;
+  fontVariables: string;
+  children: ReactNode;
+}) {
   return (
-    <html lang={INTL_LOCALE[locale]} data-scroll-behavior="smooth" className={`${sans.variable} ${serif.variable}`}>
+    <html lang={INTL_LOCALE[locale]} data-scroll-behavior="smooth" className={fontVariables}>
       <body>
         {children}
         <Analytics />
