@@ -103,8 +103,8 @@ describe("row level security", () => {
       where t.schemaname = 'public'
         and not exists (select 1 from pg_policies p where p.schemaname = 'public' and p.tablename = t.tablename)
       order by 1`).flat();
-    // These internal counters have RLS on with no policies: only the service role may touch them.
-    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "request_quota"], "the set of policy-less tables changed");
+    // These internal tables have RLS on with no policies: only the service role may touch them.
+    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "request_quota", "staff_invites"], "the set of policy-less tables changed");
   });
 
   test("no policy is open to anon for writing", { skip }, async () => {
