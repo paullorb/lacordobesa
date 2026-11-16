@@ -54,9 +54,24 @@ const nextConfig: NextConfig = {
         : []),
       // Instagram serves media from per-region scontent hosts, so the hostname cannot be pinned to one.
       // `**` because those hosts nest (scontent.xx.fbcdn.net) and `*` matches one label only.
-      { protocol: "https" as const, hostname: "**.cdninstagram.com" },
-      { protocol: "https" as const, hostname: "**.fbcdn.net" },
+      // Only while the feed is configured (src/lib/instagram.ts needs both variables; read at build
+      // time, so enabling the feed means a redeploy), and only the `/v/` media path those hosts use
+      // for post images. Otherwise anyone could push arbitrary URLs under these domains through
+      // /_next/image and run up transformations. The query string stays open on purpose: Instagram's
+      // signed parameters (`oh`, `oe`, `_nc_*`) differ per post and expire.
+      ...(process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_USER_ID
+        ? [
+            { protocol: "https" as const, hostname: "**.cdninstagram.com", pathname: "/v/**" },
+            { protocol: "https" as const, hostname: "**.fbcdn.net", pathname: "/v/**" },
+          ]
+        : []),
     ],
+    // The optimizer follows redirects without re-checking remotePatterns, so a pattern host that
+    // redirects elsewhere would be an open proxy. None of the allowed sources redirect.
+    maximumRedirects: 0,
+    // Source images are small (gallery uploads are resized in the browser, Instagram stills are well
+    // under 1 MB), so a large hostile file cannot be pulled through the optimizer.
+    maximumResponseBody: 10_000_000,
     // Next.js refuses to fetch images from loopback/private IPs by default (SSRF guard); local
     // Supabase runs on 127.0.0.1, so dev needs the escape hatch. Never enabled in production, where
     // the Supabase host above is always the hosted https project, never a private IP.

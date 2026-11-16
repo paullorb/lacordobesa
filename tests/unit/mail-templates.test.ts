@@ -62,16 +62,32 @@ describe("reservationConfirmedMail", () => {
     assert.match(reservationConfirmedMail({ ...booking, partySize: 3, locale: "en" }).text, /3 people/);
   });
 
-  test("escapes the guest's name in the HTML body", () => {
+  test("does not let markup through the guest's name", () => {
     const mail = reservationConfirmedMail({ ...booking, name: '<script>alert("x")</script>' });
     assert.ok(!mail.html.includes("<script"), "a guest's name can inject markup into the mail");
-    assert.ok(mail.html.includes("&lt;script&gt;"), "the name should appear escaped");
+    assert.ok(!/alert\(|<\/?script/.test(mail.text), "markup reached the text part");
   });
 
   test("leaves the name unescaped in the plain-text part, where an entity would be read out", () => {
-    const mail = reservationConfirmedMail({ ...booking, name: "Mark & Ana" });
-    assert.ok(mail.text.includes("Mark & Ana"), "the text part should carry the characters, not entities");
-    assert.ok(!mail.text.includes("&amp;"), "an HTML entity leaked into the plain-text part");
+    const mail = reservationConfirmedMail({ ...booking, name: "D'Arcy" });
+    assert.ok(mail.text.includes("D'Arcy"), "the text part should carry the characters, not entities");
+    assert.ok(!mail.text.includes("&#39;"), "an HTML entity leaked into the plain-text part");
+    assert.ok(mail.html.includes("D&#39;Arcy"), "the HTML part should escape the apostrophe");
+  });
+
+  test("reduces a hostile name to a single link-free line", () => {
+    const mail = reservationConfirmedMail({
+      ...booking,
+      name: "Ana\n\nYour account is locked, visit https://evil.example/login or evil.example now",
+    });
+    assert.ok(!mail.text.includes("evil"), "a link survived in the text part");
+    assert.ok(!mail.html.includes("evil"), "a link survived in the HTML part");
+    assert.equal(mail.text.split("\n")[0], "Hola Ana Your account is locked visit or now!");
+  });
+
+  test("greets without a name when nothing usable is left of it", () => {
+    const mail = reservationConfirmedMail({ ...booking, name: "https://evil.example" });
+    assert.equal(mail.text.split("\n")[0], "Hola!");
   });
 
   test("carries the management link in both parts when there is a token", () => {

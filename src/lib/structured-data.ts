@@ -77,7 +77,9 @@ function openingHours(hours: Tables<"opening_hours">[]) {
 
 /** The business itself. Referenced by @id from the menu, so both graphs describe one place. The `@id`
  *  is the same in every language: it is one business, however many pages describe it. */
-export function restaurantJsonLd(hours: Tables<"opening_hours">[], locale: Locale = "de") {
+/** `reservationsEnabled` is the Einstellungen switch: with online booking off the home page hides the form,
+ *  so the graph must not keep advertising a reservation URL. */
+export function restaurantJsonLd(hours: Tables<"opening_hours">[], locale: Locale = "de", reservationsEnabled = true) {
   return {
     "@context": "https://schema.org",
     "@type": "Restaurant",
@@ -99,7 +101,7 @@ export function restaurantJsonLd(hours: Tables<"opening_hours">[], locale: Local
     // hasMenu is the schema.org name; Google's LocalBusiness docs still read the older `menu`.
     hasMenu: pageUrl(locale, "/karte"),
     menu: pageUrl(locale, "/karte"),
-    acceptsReservations: pageUrl(locale, "/#reservieren"),
+    ...(reservationsEnabled ? { acceptsReservations: pageUrl(locale, "/#reservieren") } : {}),
     currenciesAccepted: "EUR",
     sameAs: [CONTACT.instagram, ...REVIEW_PLATFORMS.map((r) => r.url)],
     hasMap: CONTACT.mapsUrl,
@@ -115,7 +117,10 @@ export function menuJsonLd(menu: MenuCategoryWithItems[], locale: Locale = "de")
     "@id": `${pageUrl(locale, "/karte")}#menu`,
     name: COPY[locale].menuName,
     url: pageUrl(locale, "/karte"),
-    inLanguage: INTL_LOCALE[locale],
+    // Only where the content really is in that language. Section names and most descriptions are
+    // written in German and only partly translated, so the es and en graphs claim no language
+    // rather than a wrong one.
+    ...(locale === "de" ? { inLanguage: INTL_LOCALE.de } : {}),
     provider: { "@id": `${SITE_URL}/#restaurant` },
     hasMenuSection: menu
       .filter((c) => c.items.length > 0)

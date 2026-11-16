@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useSyncExternalStore } from "react";
 import { useTrackForm } from "@/components/analytics";
+import { useFormGuard } from "@/components/form-guard";
 import { requestPreorder } from "@/app/vorbestellen/actions";
 import { ArrowIcon, MenuIcon } from "@/components/icons";
 import { CalendarDay } from "@/components/calendar-day";
@@ -62,6 +63,7 @@ function pickupSlots(window: PickupWindow, earliest: string | undefined) {
  */
 export function PreorderForm({ locale, items, windows, closedDates, minDate, maxDate, maxQuantity, maxLines, leadHours }: Props) {
   const [state, formAction, pending] = useActionState(requestPreorder, null);
+  const guard = useFormGuard("preorder");
   useTrackForm("preorder", state, pending);
   const dict = getDictionary(locale);
   const t = dict.preorderForm;
@@ -346,6 +348,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
     body: (
       <form className="wizard-body wizard-contact" action={formAction}>
         <input type="hidden" name="locale" value={locale} />
+        {guard}
         <input type="hidden" name="pickup_date" value={date} />
         <input type="hidden" name="pickup_time" value={time} />
         {hasEmpanadas && <input type="hidden" name="preparation" value={preparation} />}

@@ -39,6 +39,9 @@ const SERVER_ONLY_RPCS = [
   ["track_event", { p_event: "pageview", p_detail: "", p_path: "/", p_referrer: "", p_device: "phone", p_browser: "chrome", p_lang: "de" }],
   ["take_request_quota", { p_bucket: "zz-test-grants", p_max_1h: 1, p_max_24h: 1 }],
   ["revoke_user_sessions", { p_user_id: "00000000-0000-0000-0000-000000000000" }],
+  ["form_under_pressure", { p_form: "reservation" }],
+  ["release_broadcast_email_attempt", { p_email: "x@example.test" }],
+  ["set_broadcast_optin_locale", { p_channel: "email", p_email: "x@example.test", p_phone: "", p_locale: "de" }],
 ];
 
 /** Staff tools. `authenticated` plus an is_staff() check inside; never the anonymous key. */
