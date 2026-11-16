@@ -553,6 +553,15 @@ export const es: Dictionary = {
     againLink: "inicio",
     againAfter: " cuando quieras. ¿Dudas? ",
   },
+  specialsConfirm: {
+    pageTitle: "Confirmar e-mail",
+    title: "Confirmar e-mail",
+    text: "Confirmá que querés recibir las novedades de La Cordobesa por e-mail.",
+    submit: "Confirmar suscripción",
+    done: "Gracias, confirmamos tu e-mail. Podés darte de baja cuando quieras desde el enlace de cada mensaje.",
+    invalid: "Este enlace no es válido o ya se usó.",
+    badLink: "El enlace de confirmación no es válido.",
+  },
   share: {
     button: "Compartir",
     shared: "¡Gracias por compartir!",

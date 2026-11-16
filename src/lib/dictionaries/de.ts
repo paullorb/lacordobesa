@@ -562,6 +562,16 @@ export const de = {
     againLink: "Startseite",
     againAfter: " jederzeit wieder anmelden. Fragen? ",
   },
+  /** The page a guest lands on from the confirmation mail of the specials e-mail sign-up. */
+  specialsConfirm: {
+    pageTitle: "E-Mail bestätigen",
+    title: "E-Mail-Adresse bestätigen",
+    text: "Bestätige, dass du die Specials von La Cordobesa per E-Mail erhalten möchtest.",
+    submit: "Anmeldung bestätigen",
+    done: "Danke, deine E-Mail-Adresse ist bestätigt. Du kannst dich jederzeit über den Link in einer Nachricht abmelden.",
+    invalid: "Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet.",
+    badLink: "Der Bestätigungslink ist ungültig.",
+  },
   share: {
     button: "Seite teilen",
     shared: "Danke fürs Teilen!",

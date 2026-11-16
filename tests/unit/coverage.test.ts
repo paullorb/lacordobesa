@@ -154,6 +154,8 @@ describe("every page under src/app is opened by the browser suite", () => {
     "/es/vorbestellung/[token]": "tests/e2e/token-routes.test.mjs",
     "/es/abmelden/[token]": "tests/e2e/token-routes.test.mjs",
     "/specials/confirm": "The one-time email token is covered by the Supabase RPC grant matrix; live delivery needs Resend configuration.",
+    "/es/specials/confirm": "Same page as /specials/confirm in Spanish.",
+    "/en/specials/confirm": "Same page as /specials/confirm in English.",
     "/staff/offline": "The service worker's offline fallback. Opened by tests/e2e/pwa.test.mjs rather than as a page.",
   };
 

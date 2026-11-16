@@ -8,6 +8,7 @@ import { formErrors, formLocale } from "@/lib/form-errors";
 import { escapeHtml, mailConfigured, sendMail } from "@/lib/mail";
 import { publicFormClient, rpcUntyped } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
+import { localeHref } from "@/lib/i18n";
 import { isManageToken, SITE_URL } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -62,7 +63,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
     if (error) return { ok: false, error: errorFor(error.message) };
     await saveLocale(supabase, "email", { email }, locale);
     if (data) {
-      const confirmUrl = `${SITE_URL}/specials/confirm?token=${token}&lang=${locale}`;
+      const confirmUrl = `${SITE_URL}${localeHref(locale, "/specials/confirm")}?token=${token}`;
       const copy = {
         de: {
           subject: "Bitte bestätige deine Anmeldung für La Cordobesa Specials",
@@ -114,7 +115,18 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
   return { ok: true, channel: "whatsapp" };
 }
 
-export type UnsubscribeState = { ok: true } | { ok: false; error: string } | null;
+export type ConfirmEmailState = { ok: true } | { ok: false } | null;
+
+/** The confirmation link opens a page first. Mail security scanners therefore cannot confirm a
+ *  subscription just by fetching its URL; the guest has to submit this form. */
+export async function confirmSpecialsEmail(_prev: ConfirmEmailState, formData: FormData): Promise<ConfirmEmailState> {
+  const token = String(formData.get("token") ?? "");
+  if (!/^[0-9a-f]{64}$/.test(token)) return { ok: false };
+  const { data, error } = await createPublicClient().rpc("confirm_broadcast_email", { p_token: token });
+  return !error && data ? { ok: true } : { ok: false };
+}
+
+export type UnsubscribeState ={ ok: true } | { ok: false; error: string } | null;
 
 /** Withdrawing consent. Reports success for any token, valid or not: the RPC is idempotent and
  *  deliberately says nothing about whether the token was ever valid, so this page cannot be used to
