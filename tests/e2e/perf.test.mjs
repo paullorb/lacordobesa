@@ -141,7 +141,8 @@ describe("images are loaded when they are needed", () => {
   test("the hero is not deferred", { skip }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        const hero = page.locator(".hero img").first();
+        // The hero backdrop is a CSS map now; only a photo placed straight in .hero counts (not the logo).
+        const hero = page.locator(".hero > img").first();
         if ((await hero.count()) === 0) return;
         assert.notEqual(await hero.getAttribute("loading"), "lazy", "the largest image on the page is lazy");
       },
