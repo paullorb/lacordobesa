@@ -50,6 +50,13 @@ export const HOME_PATH = "/";
 const PHRASES = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
 const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `${i}-${p}`, text: p }))).flat();
 
+const FAVOURITE_PHOTOS = [
+  { src: "/assets/home/empanadas-close.jpg", alt: { de: "Frisch geformte Empanadas mit gedrehtem Rand", en: "Freshly shaped empanadas with a crimped edge", es: "Empanadas recién armadas con repulgue" } },
+  { src: "/assets/home/medialunas-cafe.jpg", alt: { de: "Medialuna und Kaffee im Morgenlicht", en: "A medialuna and coffee in morning light", es: "Medialuna y café a la luz de la mañana" } },
+  { src: "/assets/home/hands-dough.jpg", alt: { de: "Hände formen Empanadas aus Teig", en: "Hands shaping empanadas from dough", es: "Manos armando empanadas" } },
+  { src: "/assets/home/tarta.jpg", alt: { de: "Kuchenstücke, Croissants und Säfte auf einem Holztisch", en: "Cake slices, croissants and juices on a wooden table", es: "Porciones de torta, medialunas y jugos sobre una mesa de madera" } },
+];
+
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
@@ -95,16 +102,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
-          {/* The largest thing above the fold, so it is the LCP element and worth preloading.
-              alt="" on purpose: it is the backdrop to the heading, not information of its own. */}
-          <Image
-            className="hero-image"
-            src="/assets/hero-pasteleria.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 1392px) 100vw, 1392px"
-          />
+          {/* The province of Córdoba behind the headline. Decoration only (aria-hidden); the scrim in
+              .hero::before keeps the copy readable on top of it. */}
+          <div className="hero-map" aria-hidden="true" />
           <div className="hero-content">
             {/* One span, so the sentence is a single flex item that wraps like text. */}
             <p className="eyebrow">
@@ -203,6 +203,14 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </article>
               ))}
             </div>
+            {/* Four of the staged photographs, between the favourites and the full menu. */}
+            <ul className="menu-photos">
+              {FAVOURITE_PHOTOS.map((p) => (
+                <li key={p.src}>
+                  <Image src={p.src} alt={p.alt[locale === "de" ? "de" : locale === "es" ? "es" : "en"]} fill sizes="(max-width: 800px) 50vw, 270px" />
+                </li>
+              ))}
+            </ul>
             <p className="menu-more">
               <Link className="button" href={href("/karte")}>
                 {t.menuFull} <ArrowIcon direction="right" />
