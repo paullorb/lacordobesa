@@ -98,8 +98,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .menu-toggle svg { display: block; transition: transform .2s; }
 .menu-close { font-size: 2rem; line-height: 1; }
 .hero { width: min(1392px, calc(100% - 48px)); min-height: 640px; margin: 24px auto 0; overflow: hidden; position: relative; border-radius: 8px; display: flex; align-items: center; background: #263b42; }
-.hero-image { position: absolute; inset: 0; z-index: 0; object-fit: cover; }
-.hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(13,35,45,.91) 0%, rgba(13,35,45,.77) 34%, rgba(13,35,45,.18) 77%, rgba(13,35,45,.04) 100%); }
+.hero-map { position: absolute; inset: 0; z-index: 0; background: url("/assets/cordoba-map.svg") 72% center / auto 135% no-repeat; opacity: .7; filter: saturate(.9); }
+.hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(13,35,45,.88) 0%, rgba(13,35,45,.72) 45%, rgba(13,35,45,.45) 100%); }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(0deg, rgba(14,35,45,.3), transparent 35%); pointer-events: none; }
 .hero-content { z-index: 2; position: relative; max-width: 820px; padding: 5.5rem 4rem; color: var(--paper); }
 /* The readable-on-light colour is the default, and the two dark sections opt out. It used to be
@@ -275,6 +275,11 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .menu-item-body small { display: block; max-width: 520px; margin-top: .3rem; color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; }
 .menu-items .menu-icon { margin-top: .3rem; }
 .menu-cta { margin: 2.2rem 0 0; text-align: center; }
+.menu-photos { list-style: none; margin: 4.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; }
+.menu-photos li { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 4px; background: var(--paper); }
+.menu-photos li:nth-child(even) { margin-top: 26px; }
+.menu-photos img { object-fit: cover; }
+@media (max-width: 800px) { .menu-photos { grid-template-columns: 1fr 1fr; margin-top: 3rem; } .menu-photos li:nth-child(even) { margin-top: 0; } }
 .menu-more { margin: 3rem 0 0; text-align: center; }
 .menu-note { max-width: 620px; margin: 2.8rem auto 0; text-align: center; color: var(--muted); font-size: var(--fs-xs); line-height: 1.8; }
 .specials { display: grid; gap: .8rem; max-width: 720px; margin: 0 auto 3rem; }
@@ -733,7 +738,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .hero { width: calc(100% - 24px); min-height: 630px; margin-top: 12px; }
   /* Narrow screens need a heavier wash for the text to hold up; the photo itself is the <img>. */
   .hero::before { background-image: linear-gradient(90deg, rgba(13,35,45,.88), rgba(13,35,45,.36)); }
-  .hero-image { object-position: 58% center; }
+  .hero-map { background-position: 60% center; }
   .hero-content { padding: 4rem 2rem; }
   .section { width: calc(100% - 40px); padding: 82px 0; }
   .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
@@ -841,7 +846,7 @@ body::after {
 
   /* The hero settles rather than arrives: a slow drift out of a slight over-scale. Runs once, so
      it reads as the page composing itself, not as an effect. */
-  .hero-image { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both; }
+  .hero-map { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both; }
 
   /* Sections lift into place as they enter the viewport. Scroll-driven, so there is no observer,
      no hydration cost, and nothing to get stuck if JavaScript never arrives. */
@@ -950,7 +955,7 @@ body::after {
     /* The photograph falls behind the scroll and grows as it goes, which is what keeps its edges
        inside the frame while it lags. The settle from above runs on the clock; this one runs on
        the hero's own timeline, and the two compose. */
-    .hero-image { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both, hero-parallax linear both; animation-timeline: auto, --hero; animation-range: normal, exit 0% exit 100%; }
+    .hero-map { animation: hero-settle 2.4s cubic-bezier(.16,.72,.3,1) both, hero-parallax linear both; animation-timeline: auto, --hero; animation-range: normal, exit 0% exit 100%; }
     .hero-content { animation: hero-leave linear both; animation-timeline: --hero; animation-range: exit 0% exit 55%; }
 
     /* Cards and rows lift into place one by one. Neighbours in a row enter the viewport together,
