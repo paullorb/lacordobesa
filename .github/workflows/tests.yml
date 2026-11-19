@@ -31,15 +31,14 @@ permissions:
   contents: read
 
 concurrency:
-  # One group per branch, and nothing in it is cancelled. `cancel-in-progress` cancels the whole
-  # *workflow run*, and job-level `cancel-in-progress: false` cannot save a job once its run is
-  # gone: a push to a pull request would kill the database job between a mutation and its cleanup
-  # hook, leaving fixtures in the shared database. The hermetic `check` job supersedes its own
-  # earlier run in a group of its own instead, which is the only job where a cancel costs nothing.
-  # A scheduled run is never superseded either: a nightly cancelled by a push looks identical to a
-  # nightly that was never run.
-  group: tests-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # A superseded run on a branch or pull request is cancelled, newest wins. Every `local` job starts
+  # its own disposable Supabase on the runner, so there is no shared database for a cancelled run to
+  # leave fixtures in. On main every commit gets its own group and is never cancelled, so a push
+  # cannot drop the previous commit's run, and a scheduled run (also on main) is never superseded:
+  # a nightly cancelled by a push looks identical to a nightly that was never run. The group keeps
+  # its `tests-` prefix, and the required check `check` is a job name, which this does not change.
+  group: tests-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   # Node 22.18 is the floor (tests/require-node.mjs: type stripping and module.registerHooks). 24 is

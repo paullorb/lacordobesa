@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "if [ \"$VERCEL_ENV\" != \"production\" ]; then exit 0; fi; if [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ]; then exit 1; fi; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . ':(exclude).github' ':(exclude).claude' ':(exclude)scripts' ':(exclude)supabase' ':(exclude)tests' ':(exclude).oxlintrc.json' ':(exclude,glob)*.md'",
   "git": {
     "deploymentEnabled": {
       "**": false,
