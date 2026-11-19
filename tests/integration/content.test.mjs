@@ -135,18 +135,26 @@ describe("getOpeningHours", () => {
 });
 
 describe("getClosures and getUpcomingClosures", () => {
-  test("both return lists", { skip }, async () => {
-    assert.ok(Array.isArray(await getClosures()));
-    assert.ok(Array.isArray(await getUpcomingClosures()));
+  // Both return plain ISO date strings, and getClosures needs a range: called without one it used to
+  // swallow the database's error and return [], which made these tests pass on nothing.
+  const wide = ["2000-01-01", "2100-01-01"];
+
+  test("both return lists of dates", { skip }, async () => {
+    const all = await getClosures(...wide);
+    const upcoming = await getUpcomingClosures();
+    assert.ok(Array.isArray(all) && Array.isArray(upcoming));
+    for (const date of [...all, ...upcoming]) assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
   });
 
-  test("the upcoming ones are a subset of all of them, and none has passed", { skip }, async () => {
+  test("the upcoming ones are a subset of all of them, within the window around today", { skip }, async () => {
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(new Date());
+    const day = (offset) => new Date(Date.parse(`${today}T12:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
     const upcoming = await getUpcomingClosures();
-    const all = new Set((await getClosures()).map((c) => c.date));
-    for (const closure of upcoming) {
-      assert.ok(closure.date >= today, `${closure.date} has passed and is still called upcoming`);
-      assert.ok(all.has(closure.date), `${closure.date} is upcoming but not among all closures`);
+    const all = new Set(await getClosures(...wide));
+    for (const date of upcoming) {
+      // The window starts yesterday on purpose (a late-evening visitor's "today" can lag), see getUpcomingClosures.
+      assert.ok(date >= day(-1) && date <= day(14), `${date} is outside the upcoming window`);
+      assert.ok(all.has(date), `${date} is upcoming but not among all closures`);
     }
   });
 });

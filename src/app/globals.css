@@ -385,6 +385,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .wizard-dots { display: flex; gap: .35rem; }
 .wizard-dots span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); transition: background .35s ease; }
 .wizard-dots span.on { background: var(--blue-dark); }
+.wizard-title:focus { outline: none; } /* Focus lands here on a step change (wizard.tsx); it is not a control. */
 .wizard-title { margin: 0; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; }
 .wizard-summary { display: flex; flex-wrap: wrap; gap: .4rem; }
 .chip { font: inherit; font-size: var(--fs-xs); font-weight: 600; padding: .35rem .75rem; border: 1px solid var(--line); border-radius: 999px; background: var(--mint); color: var(--ink); cursor: pointer; }

@@ -226,6 +226,12 @@ describe("restaurantJsonLd", () => {
   test("serialises, which is all the page does with it", () => {
     assert.doesNotThrow(() => JSON.stringify(jsonLd));
   });
+
+  test("advertises reservations only while they are switched on", () => {
+    const rows = hours as Parameters<typeof restaurantJsonLd>[0];
+    assert.ok("acceptsReservations" in jsonLd);
+    assert.ok(!("acceptsReservations" in restaurantJsonLd(rows, "de", false)));
+  });
 });
 
 describe("menuJsonLd", () => {
@@ -245,5 +251,12 @@ describe("menuJsonLd", () => {
   test("serialises to something with the dish names in it", () => {
     const json = JSON.stringify(jsonLd);
     assert.ok(json.includes("Empanada Criolla"));
+  });
+
+  test("declares German only where the content is German", () => {
+    const parts = menu as unknown as Parameters<typeof menuJsonLd>[0];
+    assert.equal(menuJsonLd(parts, "de").inLanguage, "de-DE");
+    assert.ok(!("inLanguage" in menuJsonLd(parts, "es")), "the Spanish graph claims a language its sections are not in");
+    assert.ok(!("inLanguage" in menuJsonLd(parts, "en")), "the English graph claims a language its sections are not in");
   });
 });

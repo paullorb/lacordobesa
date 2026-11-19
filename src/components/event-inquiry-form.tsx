@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTrackForm } from "@/components/analytics";
+import { useFormGuard } from "@/components/form-guard";
 import { requestEventInquiry } from "@/app/catering/actions";
 import { ArrowIcon, OccasionIcon } from "@/components/icons";
 import { PhoneNote } from "@/components/phone-note";
@@ -29,6 +30,7 @@ const NEVER_CHANGES = () => () => {};
  */
 export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate: string }) {
   const [state, formAction, pending] = useActionState(requestEventInquiry, null);
+  const guard = useFormGuard("inquiry");
   useTrackForm("inquiry", state, pending);
   const t = getDictionary(locale).inquiryForm;
   const stepOf = getDictionary(locale).wizard.stepOf;
@@ -237,6 +239,7 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
         <form className="wizard-body wizard-contact" action={formAction}>
           <input type="hidden" name="occasion" value={occasion ?? "andere"} />
           <input type="hidden" name="locale" value={locale} />
+          {guard}
           <input type="hidden" name="event_date" value={eventDate ?? ""} />
           <input type="hidden" name="guests" value={guests ?? ""} />
           <input type="hidden" name="budget_band" value={budget ?? "unsicher"} />

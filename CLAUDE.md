@@ -30,8 +30,12 @@ supabase db push --db-url "$SUPABASE_DB_URL" --yes
 (`node -e 'console.log(encodeURIComponent(process.argv[1]))' '<password>'`), or copy the
 already-encoded string from the dashboard. A raw `@` silently changes the host and the push fails.
 
-The project ref is `iabpugtwgjqldlzjjgqj`. There is still no `supabase/config.toml`, and with
-`--db-url` you do not need one.
+The project ref is `iabpugtwgjqldlzjjgqj`. `supabase/config.toml` exists, but it configures the
+**local** stack only (`project_id = "lacordobesa-local"`, API on port 54421, DB on 54422, seeds
+`seed.sql` and `seed_menu.sql`), not the hosted project. Nothing here is linked to production, so
+pushing to it still goes through `--db-url`. Local work needs no URL at all: `npm run dev`,
+`build:local`, `test:integration` and `test:e2e` run through `scripts/with-local-supabase.mjs`,
+which reads `supabase status`, refuses anything but a loopback API, and injects the local keys.
 
 **Two host gotchas, because they fail in different ways:**
 
@@ -47,7 +51,10 @@ The project ref is `iabpugtwgjqldlzjjgqj`. There is still no `supabase/config.to
     > src/lib/database.types.ts
   ```
 
-`gen types` needs Docker running either way.
+`gen types` needs Docker running either way. Against a local stack that has the checked-in
+migrations applied (`supabase start`, or `npm run db:reset`), `supabase gen types typescript --local`
+needs no password and is the safest way to regenerate `src/lib/database.types.ts`; do not edit that
+file by hand.
 
 ## Content lives behind the staff UI, not behind SQL
 
@@ -56,6 +63,10 @@ Public content (menu, specials, opening hours, the announcement banner, gallery)
 `UPDATE` straight into `site_settings` changes the row and nothing else** — the cached copy
 survives and the site keeps serving the old text. Edit that content under `/staff`, which is
 what the pages are for.
+
+The cached getters in `src/lib/data.ts` and `src/lib/preorders.ts` must **throw** on a failed read
+(`unwrap()`), never return an empty fallback: a fallback is cached for the whole profile. A getter
+that bakes "today" into its entry (`getActiveSpecials`) uses the `minutes` profile, not `hours`.
 
 ## Do not use the MCP connector for writes
 

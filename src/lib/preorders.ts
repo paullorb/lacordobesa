@@ -1,6 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
-import { TAG } from "@/lib/data";
+import { TAG, unwrap } from "@/lib/data";
 import { addDays, dateAfterHours, todayISO } from "@/lib/dates";
 import type { Tables } from "@/lib/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -31,7 +31,7 @@ export async function getPreorderSettings(): Promise<PreorderSettings> {
   cacheLife("hours");
   cacheTag(TAG.hours);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("site_settings").select("value").eq("key", "preorders").maybeSingle();
+  const data = unwrap(await supabase.from("site_settings").select("value").eq("key", "preorders").maybeSingle(), "site_settings/preorders");
   return { ...DEFAULT_PREORDER_SETTINGS, ...((data?.value as Partial<PreorderSettings>) ?? {}) };
 }
 
@@ -61,13 +61,13 @@ export type PreorderableItem = Pick<Tables<"menu_items">, "id" | "name" | "descr
 };
 
 /** The dishes staff marked as pre-orderable, grouped under their category label.
- *  Returns [] when the migration is not applied yet, so /vorbestellen degrades to its closed state. */
+ *  A failed read throws (see unwrap() in data.ts) rather than caching [] as "nothing to order". */
 export async function getPreorderableItems(): Promise<PreorderableItem[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const [{ data, error }, { data: categories }] = await Promise.all([
+  const [itemsRes, categoriesRes] = await Promise.all([
     supabase
       .from("menu_items_public")
       .select("id, category_id, name, description, description_es, description_en, price_label, preorder_unit, preorder_step, category_label, category_sort")
@@ -75,7 +75,8 @@ export async function getPreorderableItems(): Promise<PreorderableItem[]> {
       .order("sort_order"),
     supabase.from("menu_categories").select("id, slug"),
   ]);
-  if (error) return [];
+  const data = unwrap(itemsRes, "menu_items_public preorderable");
+  const categories = unwrap(categoriesRes, "menu_categories");
   const slugOf = new Map((categories ?? []).map((c) => [c.id, c.slug]));
   // Menu order: by category, then the dish's place in it. Stable, so the second key survives.
   return (data ?? [])

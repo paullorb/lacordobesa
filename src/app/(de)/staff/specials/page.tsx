@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteSpecial, saveSpecial } from "@/app/staff/actions";
 import { BroadcastSection } from "@/components/staff/broadcast-section";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { ActionForm, ConfirmSubmit, QuickForm, SubmitButton } from "@/components/staff/form-bits";
 import { DateField } from "@/components/staff/pickers";
 import { requireStaff } from "@/lib/auth";
 import { fmtStaffDate, todayISO } from "@/lib/dates";
@@ -53,10 +53,10 @@ async function Specials() {
             </summary>
             <div className="mt-4 grid gap-4">
               <SpecialForm today={today} special={s} />
-              <form action={deleteSpecial} className="justify-self-start">
+              <QuickForm action={deleteSpecial} className="justify-self-start">
                 <input type="hidden" name="id" value={s.id} />
                 <ConfirmSubmit message={`¿Eliminar «${s.title}»?`}>Eliminar</ConfirmSubmit>
-              </form>
+              </QuickForm>
             </div>
           </details>
         ))}

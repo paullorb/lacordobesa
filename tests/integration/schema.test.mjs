@@ -103,8 +103,8 @@ describe("row level security", () => {
       where t.schemaname = 'public'
         and not exists (select 1 from pg_policies p where p.schemaname = 'public' and p.tablename = t.tablename)
       order by 1`).flat();
-    // These internal counters have RLS on with no policies: only the service role may touch them.
-    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "request_quota"], "the set of policy-less tables changed");
+    // These internal tables have RLS on with no policies: only the service role may touch them.
+    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "request_quota", "staff_invites"], "the set of policy-less tables changed");
   });
 
   test("no policy is open to anon for writing", { skip }, async () => {
@@ -157,6 +157,7 @@ describe("the grant matrix", () => {
     cancel_reservation_by_token: "true,false,true",
     confirm_broadcast_email: "true,false,true",
     create_preorder_manually: "false,true,true",
+    form_under_pressure: "false,false,true",
     is_admin: "false,true,true",
     is_staff: "false,true,true",
     join_waitlist: "false,false,true",
@@ -166,12 +167,15 @@ describe("the grant matrix", () => {
     preorder_by_token: "true,false,true",
     preorder_settings: "true,true,true",
     request_event_inquiry: "false,false,true",
+    release_broadcast_email_attempt: "false,false,true",
     request_broadcast_email: "false,false,true",
     request_preorder: "false,false,true",
     request_reservation: "false,false,true",
     reservation_availability: "true,false,true",
     reservation_by_token: "true,false,true",
     reservation_settings: "true,true,true",
+    revoke_user_sessions: "false,false,true",
+    set_broadcast_optin_locale: "false,false,true",
     set_updated_at: "true,true,true",
     subscribe_broadcast: "false,false,true",
     take_request_quota: "false,false,true",

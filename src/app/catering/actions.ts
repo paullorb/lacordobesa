@@ -40,8 +40,8 @@ export async function requestEventInquiry(_prev: InquiryState, formData: FormDat
     return { ok: false, error: errorFor("invalid_guests") };
   }
 
-  const { supabase, allowed } = await publicFormClient("inquiry");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("inquiry", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { error } = await supabase.rpc("request_event_inquiry", {
     p_name: name,
     p_phone: phone,

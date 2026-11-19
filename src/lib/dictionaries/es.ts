@@ -222,6 +222,7 @@ export const es: Dictionary = {
     party_too_large: "Para grupos tan grandes, llamanos y buscamos una solución.",
     slot_unavailable: "Ese horario no está disponible. Elegí otro, por favor.",
     slot_full: "A esa hora ya estamos completos. Elegí otro horario, por favor.",
+    form_check: "Recargá la página y enviá el formulario de nuevo, por favor.",
   },
   reservation: {
     errors: {
@@ -551,6 +552,15 @@ export const es: Dictionary = {
     againBefore: "¿Fue sin querer? Podés volver a anotarte en el ",
     againLink: "inicio",
     againAfter: " cuando quieras. ¿Dudas? ",
+  },
+  specialsConfirm: {
+    pageTitle: "Confirmar e-mail",
+    title: "Confirmar e-mail",
+    text: "Confirmá que querés recibir las novedades de La Cordobesa por e-mail.",
+    submit: "Confirmar suscripción",
+    done: "Gracias, confirmamos tu e-mail. Podés darte de baja cuando quieras desde el enlace de cada mensaje.",
+    invalid: "Este enlace no es válido o ya se usó.",
+    badLink: "El enlace de confirmación no es válido.",
   },
   share: {
     button: "Compartir",

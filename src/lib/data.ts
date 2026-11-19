@@ -12,6 +12,21 @@ export const TAG = {
   gallery: "gallery",
 } as const;
 
+/** Unwraps a Supabase result inside a `use cache` function, throwing on `error`.
+ *
+ *  Why throw: a cached function that swallows a failed read and returns `[]` or the defaults gets that
+ *  *wrong* answer cached for the whole `hours` profile (every weekday shown closed, an empty menu).
+ *  A throw is never stored: when it happens during a background revalidation Next keeps serving the
+ *  last good entry and retries on the next request; only a first fill with nothing to fall back on
+ *  surfaces as an error (the route's error boundary, or a failed build when the database is
+ *  unreachable, which is the right outcome: it refuses to ship an empty site).
+ *
+ *  Pure on purpose, so it is unit-tested without a database. */
+export function unwrap<D>(result: { data: D; error: { message: string } | null }, what: string): D {
+  if (result.error) throw new Error(`Supabase read failed (${what}): ${result.error.message}`);
+  return result.data;
+}
+
 export type ReservationSettings = {
   enabled: boolean;
   slot_minutes: number;
@@ -41,10 +56,12 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const [{ data: categories }, { data: items }] = await Promise.all([
+  const [categoriesRes, itemsRes] = await Promise.all([
     supabase.from("menu_categories").select("*").order("sort_order"),
     supabase.from("menu_items_public").select("*").order("sort_order"),
   ]);
+  const categories = unwrap(categoriesRes, "menu_categories");
+  const items = unwrap(itemsRes, "menu_items_public");
   return (categories ?? []).map((c) => ({
     ...c,
     // Blanked here, not in the UI, so a hidden price can't leak through any public page. `!== false` keeps
@@ -58,19 +75,23 @@ export async function getMenu(): Promise<MenuCategoryWithItems[]> {
 
 export async function getActiveSpecials(): Promise<Tables<"specials">[]> {
   "use cache";
-  cacheLife("hours");
+  // "minutes", not "hours": "today" is baked into the entry, and an entry is served stale while it
+  // revalidates and is only dropped after `expire`. With "hours" that is a day, so the first visitor
+  // of a quiet morning saw yesterday's special. "minutes" (revalidate 1 min, expire 1 h) bounds it to
+  // one stale view at most, the same as dateBounds() on the home page, and stays prerenderable
+  // (expire is over the 5-minute short-lived threshold in the cacheLife docs). The staff actions
+  // also invalidate it on every change.
+  cacheLife("minutes");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  // "today" is baked into the cached entry; cacheLife("hours") revalidates it, and the staff area
-  // actions invalidate it on every change, so a special lingers at most an hour past ends_on.
   const today = todayISO();
-  const { data } = await supabase
+  const data = unwrap(await supabase
     .from("specials")
     .select("*")
     .eq("is_active", true)
     .lte("starts_on", today)
     .or(`ends_on.is.null,ends_on.gte.${today}`)
-    .order("starts_on", { ascending: false });
+    .order("starts_on", { ascending: false }), "specials");
   return data ?? [];
 }
 
@@ -81,12 +102,10 @@ export async function getSpecialIdeas(): Promise<Tables<"special_ideas">[]> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const { data } = await supabase
-    .from("special_ideas")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order")
-    .order("created_at");
+  const data = unwrap(
+    await supabase.from("special_ideas").select("*").eq("is_active", true).order("sort_order").order("created_at"),
+    "special_ideas",
+  );
   return data ?? [];
 }
 
@@ -95,7 +114,7 @@ export async function getAnnouncement(): Promise<string> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("site_settings").select("value").eq("key", "announcement").maybeSingle();
+  const data = unwrap(await supabase.from("site_settings").select("value").eq("key", "announcement").maybeSingle(), "site_settings/announcement");
   const value = data?.value as { text?: string } | null;
   return value?.text ?? "";
 }
@@ -107,7 +126,7 @@ export async function getReviewScores(): Promise<unknown> {
   cacheLife("hours");
   cacheTag(TAG.content);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle();
+  const data = unwrap(await supabase.from("site_settings").select("value").eq("key", REVIEW_SCORES_KEY).maybeSingle(), "site_settings/review scores");
   return data?.value ?? null;
 }
 
@@ -116,7 +135,7 @@ export async function getOpeningHours(): Promise<Tables<"opening_hours">[]> {
   cacheLife("hours");
   cacheTag(TAG.hours);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("opening_hours").select("*").order("weekday");
+  const data = unwrap(await supabase.from("opening_hours").select("*").order("weekday"), "opening_hours");
   return data ?? [];
 }
 
@@ -126,7 +145,7 @@ export async function getClosures(from: string, to: string): Promise<string[]> {
   cacheLife("hours");
   cacheTag(TAG.hours);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("closures").select("date").gte("date", from).lte("date", to).order("date");
+  const data = unwrap(await supabase.from("closures").select("date").gte("date", from).lte("date", to).order("date"), "closures");
   return (data ?? []).map((c) => c.date);
 }
 
@@ -145,7 +164,7 @@ export async function getReservationSettings(): Promise<ReservationSettings> {
   cacheLife("hours");
   cacheTag(TAG.hours);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("site_settings").select("value").eq("key", "reservations").maybeSingle();
+  const data = unwrap(await supabase.from("site_settings").select("value").eq("key", "reservations").maybeSingle(), "site_settings/reservations");
   return { ...DEFAULT_RESERVATION_SETTINGS, ...((data?.value as Partial<ReservationSettings>) ?? {}) };
 }
 
@@ -154,7 +173,7 @@ export async function getGalleryItems(): Promise<Tables<"gallery_items">[]> {
   cacheLife("hours");
   cacheTag(TAG.gallery);
   const supabase = createPublicClient();
-  const { data } = await supabase.from("gallery_items").select("*").order("created_at", { ascending: false }).limit(200);
+  const data = unwrap(await supabase.from("gallery_items").select("*").order("created_at", { ascending: false }).limit(200), "gallery_items");
   return data ?? [];
 }
 
@@ -162,22 +181,23 @@ export async function getGalleryItems(): Promise<Tables<"gallery_items">[]> {
  *
  *  The hero is one choice, so it is stored as a gallery_items id in site_settings under key 'hero'
  *  and resolved here; if that photo is later deleted, or the migration is not applied, the caller
- *  falls back to the bundled JPEG rather than rendering a broken image. */
+ *  falls back to the bundled JPEG rather than rendering a broken image. A failed read throws instead
+ *  (see unwrap()): an error is not "no photos", and must not be cached as if it were. */
 export async function getHomePhotos(): Promise<{ hero: Tables<"gallery_items"> | null; featured: Tables<"gallery_items">[] }> {
   "use cache";
   cacheLife("hours");
   cacheTag(TAG.gallery);
   const supabase = createPublicClient();
-  const [{ data: setting }, { data: featured, error }] = await Promise.all([
+  const [settingRes, featuredRes] = await Promise.all([
     supabase.from("site_settings").select("value").eq("key", "hero").maybeSingle(),
     supabase.from("gallery_items").select("*").eq("is_featured", true).order("created_at", { ascending: false }).limit(8),
   ]);
-  // No is_featured column yet (migration 20261012101400): no strip, no hero, bundled image stays.
-  if (error) return { hero: null, featured: [] };
+  const setting = unwrap(settingRes, "site_settings/hero");
+  const featured = unwrap(featuredRes, "gallery_items featured");
 
   const heroId = (setting?.value as { gallery_item_id?: string } | null)?.gallery_item_id;
   const hero = heroId
-    ? ((await supabase.from("gallery_items").select("*").eq("id", heroId).maybeSingle()).data ?? null)
+    ? (unwrap(await supabase.from("gallery_items").select("*").eq("id", heroId).maybeSingle(), "gallery_items hero") ?? null)
     : null;
   return { hero, featured: featured ?? [] };
 }

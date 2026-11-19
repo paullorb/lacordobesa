@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
 import { deleteGalleryItem, saveGalleryItem, setHeroImage } from "@/app/staff/actions";
-import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/staff/form-bits";
+import { ActionForm, ConfirmSubmit, QuickForm, SubmitButton } from "@/components/staff/form-bits";
 import { GalleryUpload } from "@/components/staff/gallery-upload";
 import { requireStaff } from "@/lib/auth";
 import { GALLERY_CATEGORIES, STAFF_GALLERY_LABELS } from "@/lib/gallery";
@@ -75,21 +75,21 @@ async function StaffGallery() {
             </ActionForm>
             <div className="flex flex-wrap gap-2">
               {item.id !== heroId && (
-                <form action={setHeroImage}>
+                <QuickForm action={setHeroImage}>
                   <input type="hidden" name="id" value={item.id} />
                   <button className="btn-ghost">Usar como imagen principal</button>
-                </form>
+                </QuickForm>
               )}
               {item.id === heroId && (
-                <form action={setHeroImage}>
+                <QuickForm action={setHeroImage}>
                   {/* No id clears the choice, so the bundled image comes back. */}
                   <button className="btn-ghost">Quitar imagen principal</button>
-                </form>
+                </QuickForm>
               )}
-              <form action={deleteGalleryItem}>
+              <QuickForm action={deleteGalleryItem}>
                 <input type="hidden" name="id" value={item.id} />
                 <ConfirmSubmit message="¿Eliminar esta foto?">Eliminar</ConfirmSubmit>
-              </form>
+              </QuickForm>
             </div>
           </div>
         ))}

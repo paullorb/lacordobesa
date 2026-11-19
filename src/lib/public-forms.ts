@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
+import { checkTicket } from "@/lib/form-ticket";
 import { createPrivilegedClient, secretKey } from "@/lib/supabase/privileged";
 
 /** Per-visitor limits for the public forms (migrations 20261012215042 and 20261014072715).
@@ -8,7 +9,8 @@ import { createPrivilegedClient, secretKey } from "@/lib/supabase/privileged";
  *  The RPCs already limit per phone number and site-wide. Neither stops a script that rotates phone
  *  numbers: it fills the evenings with fake pending bookings, then trips the site-wide cap, and from
  *  then on every real guest is turned away. A limit per visitor stops one source long before it can
- *  reach the site-wide cap.
+ *  reach the site-wide cap, and the checks below (honeypot, signed form ticket, circuit breaker)
+ *  keep a handful of sources from reaching it together.
  *
  *  Generous on purpose. Mobile carriers put many customers behind one address, and a guest who
  *  fumbles the form a few times must not be locked out. The per-phone limits inside the RPCs stay
@@ -22,6 +24,22 @@ const LIMITS = {
 } as const;
 
 export type PublicForm = keyof typeof LIMITS;
+
+export const isPublicForm = (value: string): value is PublicForm => Object.hasOwn(LIMITS, value);
+
+/** Why a submission was turned away, as the form-error code the guest sees. */
+export type Refusal = "too_many_requests" | "form_check";
+
+type PrivilegedClient = ReturnType<typeof createPrivilegedClient>;
+
+/** Calls an RPC that src/lib/database.types.ts does not know yet (the migrations of 2026-11-16).
+ *  Drop this and call `supabase.rpc` directly once the types are regenerated. */
+export function rpcUntyped(supabase: PrivilegedClient, fn: string, args: Record<string, unknown>) {
+  const client = supabase as unknown as {
+    rpc(fn: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message: string } | null }>;
+  };
+  return client.rpc(fn, args);
+}
 
 /** The visitor's address, or null where it cannot be trusted.
  *
@@ -39,13 +57,35 @@ async function visitorAddress() {
 /** The client a public form calls its RPC with, and whether this visitor may submit right now.
  *
  *  Always the secret-key client: since 20261014072715 the five form RPCs are not granted to anon, so
- *  there is no publishable fallback left to take. A failing quota check lets the request through
- *  rather than turning every guest away over a database hiccup; the RPC's own limits still apply. */
-export async function publicFormClient(form: PublicForm) {
+ *  there is no publishable fallback left to take. Pass the submitted FormData: it carries the
+ *  honeypot and the signed ticket (src/components/form-guard.tsx).
+ *
+ *  In order:
+ *   1. a filled honeypot or a forged/too-fast ticket is refused (`form_check`);
+ *   2. while the site is under pressure (form_under_pressure(), migration 20261116110300) only a
+ *      submission with a valid ticket passes, so the site-wide cap degrades to "must have come
+ *      through the page" before it ever turns everybody away;
+ *   3. the per-visitor quota.
+ *  A failing database check lets the request through rather than turning every guest away over a
+ *  hiccup; the RPC's own limits still apply. */
+export async function publicFormClient(
+  form: PublicForm,
+  formData: FormData,
+): Promise<{ supabase: PrivilegedClient; refusal: Refusal | null }> {
   const supabase = createPrivilegedClient();
 
+  if (String(formData.get("website") ?? "").trim() !== "") return { supabase, refusal: "form_check" };
+  const verdict = checkTicket(secretKey(), form, formData.get("ticket"));
+  if (verdict === "invalid" || verdict === "too_fast") return { supabase, refusal: "form_check" };
+
+  if (verdict !== "ok") {
+    const { data, error } = await rpcUntyped(supabase, "form_under_pressure", { p_form: form });
+    // Not deployed yet or unreachable: no pressure signal, so no extra requirement.
+    if (!error && data === true) return { supabase, refusal: "form_check" };
+  }
+
   const address = await visitorAddress();
-  if (!address) return { supabase, allowed: true };
+  if (!address) return { supabase, refusal: null };
 
   // Only a keyed hash is stored, never the address itself. The key keeps it from being reversed by
   // hashing every IPv4 address, which takes minutes.
@@ -58,7 +98,7 @@ export async function publicFormClient(form: PublicForm) {
   });
   if (error) {
     console.error(`request quota check failed for ${form}: ${error.message}`);
-    return { supabase, allowed: true };
+    return { supabase, refusal: null };
   }
-  return { supabase, allowed: data !== false };
+  return { supabase, refusal: data === false ? "too_many_requests" : null };
 }

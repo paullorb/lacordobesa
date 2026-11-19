@@ -28,8 +28,13 @@ describe("guest links", () => {
     assert.equal(preorderUrl(TOKEN, "en"), `${SITE_URL}/en/vorbestellung/${TOKEN}`);
   });
 
-  test("unsubscribe is language-neutral", () => {
+  test("unsubscribe follows the language the guest signed up in, German when unknown", () => {
     assert.equal(unsubscribeUrl(TOKEN), `${SITE_URL}/abmelden/${TOKEN}`);
+    assert.equal(unsubscribeUrl(TOKEN, "de"), `${SITE_URL}/abmelden/${TOKEN}`);
+    assert.equal(unsubscribeUrl(TOKEN, "es"), `${SITE_URL}/es/abmelden/${TOKEN}`);
+    assert.equal(unsubscribeUrl(TOKEN, "en"), `${SITE_URL}/en/abmelden/${TOKEN}`);
+    assert.equal(unsubscribeUrl(TOKEN, "fr"), `${SITE_URL}/abmelden/${TOKEN}`);
+    assert.equal(unsubscribeUrl(TOKEN, null), `${SITE_URL}/abmelden/${TOKEN}`);
   });
 
   test("all of them parse as URLs", () => {

@@ -32,7 +32,15 @@ export async function getAvailability(date: string, ownToken?: string): Promise<
   if (slots.length > 0) return { slots: ownToken ? await withOwnSeats(slots, date, ownToken) : slots, reason: null };
 
   // Switched off under Einstellungen: the home page hides the form, the manage page does not.
-  if (!(await getReservationSettings()).enabled) return { slots: [], reason: "paused" };
+  // getReservationSettings() throws when its first cache fill fails (src/lib/data.ts `unwrap`): answer
+  // "error" instead of letting the Server Action throw.
+  let settings: Awaited<ReturnType<typeof getReservationSettings>>;
+  try {
+    settings = await getReservationSettings();
+  } catch {
+    return { slots: [], reason: "error" };
+  }
+  if (!settings.enabled) return { slots: [], reason: "paused" };
 
   const supabase = createPublicClient();
   const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -53,7 +61,10 @@ export async function getAvailability(date: string, ownToken?: string): Promise<
 async function withOwnSeats(slots: Slot[], date: string, token: string): Promise<Slot[]> {
   const own = await getReservationByToken(token);
   if (!own || own.date !== date || (own.status !== "pending" && own.status !== "confirmed")) return slots;
-  const { duration_minutes: duration, capacity_seats: capacity } = await getReservationSettings();
+  // Settings unavailable: show the slots as the RPC reported them rather than failing the picker.
+  const settings = await getReservationSettings().catch(() => null);
+  if (!settings) return slots;
+  const { duration_minutes: duration, capacity_seats: capacity } = settings;
   const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
   const start = minutes(own.time);
   return slots.map((s) => {
@@ -107,8 +118,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
   if (!isISODate(date) || !isTime(time)) return { ok: false, error: errorFor("invalid_datetime") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const { supabase, allowed } = await publicFormClient("reservation");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("reservation", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { data, error } = await supabase.rpc("request_reservation", {
     p_name: name,
     p_phone: phone,
@@ -143,8 +154,8 @@ export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Pr
   if (!isISODate(date)) return { ok: false, error: errorFor("invalid_date") };
   if (!Number.isInteger(partySize) || partySize < 1) return { ok: false, error: errorFor("invalid_party_size") };
 
-  const { supabase, allowed } = await publicFormClient("waitlist");
-  if (!allowed) return { ok: false, error: errorFor("too_many_requests") };
+  const { supabase, refusal } = await publicFormClient("waitlist", formData);
+  if (refusal) return { ok: false, error: errorFor(refusal) };
   const { error } = await supabase.rpc("join_waitlist", {
     p_name: name,
     p_phone: phone,

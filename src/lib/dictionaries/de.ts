@@ -231,6 +231,7 @@ export const de = {
     party_too_large: "Für so große Gruppen ruf uns bitte kurz an, wir finden eine Lösung.",
     slot_unavailable: "Diese Uhrzeit ist nicht buchbar. Bitte wähle eine andere.",
     slot_full: "Zu dieser Zeit sind wir leider schon voll. Bitte wähle eine andere Uhrzeit.",
+    form_check: "Bitte lade die Seite neu und sende das Formular noch einmal ab.",
   },
   reservation: {
     errors: {
@@ -560,6 +561,16 @@ export const de = {
     againBefore: "Versehen? Du kannst dich auf der ",
     againLink: "Startseite",
     againAfter: " jederzeit wieder anmelden. Fragen? ",
+  },
+  /** The page a guest lands on from the confirmation mail of the specials e-mail sign-up. */
+  specialsConfirm: {
+    pageTitle: "E-Mail bestätigen",
+    title: "E-Mail-Adresse bestätigen",
+    text: "Bestätige, dass du die Specials von La Cordobesa per E-Mail erhalten möchtest.",
+    submit: "Anmeldung bestätigen",
+    done: "Danke, deine E-Mail-Adresse ist bestätigt. Du kannst dich jederzeit über den Link in einer Nachricht abmelden.",
+    invalid: "Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet.",
+    badLink: "Der Bestätigungslink ist ungültig.",
   },
   share: {
     button: "Seite teilen",

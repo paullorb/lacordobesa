@@ -4,8 +4,13 @@ import { requireStaff } from "@/lib/auth";
 import { whatsappTo } from "@/lib/contact";
 import { getActiveSpecials } from "@/lib/data";
 import { addDays, fmtStaffDate, todayISO } from "@/lib/dates";
+import { mailtoHref } from "@/lib/mailto";
 import { SITE_URL, unsubscribeUrl } from "@/lib/site";
 import type { Tables } from "@/lib/database.types";
+
+/** broadcast_optins.locale (migration 20261116110200), read loosely until database.types.ts is
+ *  regenerated. Picks the language of the guest's unsubscribe link. */
+const optinLocale = (row: object) => (row as { locale?: string }).locale;
 
 /** A sign-up whose WhatsApp never arrived is not going to; after this long it stops being listed.
  *  Signing up again renews consented_at (subscribe_broadcast), which brings the row back. */
@@ -29,8 +34,7 @@ function messageFor(special: Tables<"specials">, unsubscribe: string) {
 
 function emailFor(address: string, special: Tables<"specials">, unsubscribe: string) {
   const subject = `La Cordobesa Specials: ${special.title}`;
-  const recipient = encodeURIComponent(address).replace("%40", "@");
-  return `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(messageFor(special, unsubscribe))}`;
+  return mailtoHref(address, { subject, body: messageFor(special, unsubscribe) });
 }
 
 /** Staff prepare one message per confirmed WhatsApp or email guest so each gets their own
@@ -113,7 +117,7 @@ export async function BroadcastSection() {
               <li key={o.id} className="flex flex-wrap items-center gap-2 border-b border-line pb-1.5 text-sm">
                 <span className="min-w-0 flex-1"><strong>{o.name ?? "Sin nombre"}</strong> <span className="text-muted">{o.email}</span></span>
                 {special && (
-                  <a className="btn-ghost !py-1" href={emailFor(o.email!, special, unsubscribeUrl(o.unsubscribe_token))}>
+                  <a className="btn-ghost !py-1" href={emailFor(o.email!, special, unsubscribeUrl(o.unsubscribe_token, optinLocale(o)))}>
                     Preparar correo <ArrowIcon direction="up-right" size={14} />
                   </a>
                 )}
@@ -146,7 +150,7 @@ export async function BroadcastSection() {
                 {special && (
                   <a
                     className="btn-ghost !py-1"
-                    href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o.unsubscribe_token)))}
+                    href={whatsappTo(o.phone!, messageFor(special, unsubscribeUrl(o.unsubscribe_token, optinLocale(o))))}
                     target="_blank"
                     rel="noreferrer"
                   >

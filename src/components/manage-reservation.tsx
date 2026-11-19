@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import { getAvailability, type Slot, type UnavailableReason } from "@/app/reservierung/actions";
 import { cancelReservation, moveReservation, type GuestReservation, type ManageState } from "@/app/reservierung/actions";
 import { fmtDate } from "@/lib/dates";
@@ -11,6 +11,7 @@ export function ManageReservation({
   locale,
   token,
   reservation,
+  started,
   maxPartySize,
   minDate,
   maxDate,
@@ -18,6 +19,8 @@ export function ManageReservation({
   locale: Locale;
   token: string;
   reservation: GuestReservation;
+  /** The booking's start time has passed on the shop's clock (hasStarted), computed on the server. */
+  started: boolean;
   maxPartySize: number;
   minDate: string;
   maxDate: string;
@@ -40,13 +43,18 @@ export function ManageReservation({
   const partySize = Math.max(1, Number(party) || reservation.partySize);
   const slots = daySlots.filter((s) => s.seatsLeft >= partySize);
   const [loading, startLoading] = useTransition();
+  // Only the newest availability answer may land: a slow answer for an earlier date would otherwise
+  // replace the slots of the date now selected.
+  const request = useRef(0);
 
   // The booking the server last told us about. After a successful move the old summary is stale, so the
   // result banner carries the new values instead of re-rendering the row from props.
   const done: ManageState = cancelState?.ok ? cancelState : moveState?.ok ? moveState : null;
   const error = (!cancelState?.ok && cancelState?.error) || (!moveState?.ok && moveState?.error) || null;
 
-  const open = reservation.status === "pending" || reservation.status === "confirmed";
+  // Open and still ahead of us. Once the start time has passed, staff settle the booking (no-show or
+  // completed) and the RPCs refuse a cancel or a move, so the page stops offering them.
+  const open = (reservation.status === "pending" || reservation.status === "confirmed") && !started;
   const changeable = open && reservation.changesLeft > 0 && reservation.date >= minDate;
 
   function chooseDate(value: string) {
@@ -54,8 +62,10 @@ export function ManageReservation({
     setTime("");
     setDaySlots([]);
     setReason(null);
+    const id = ++request.current;
     startLoading(async () => {
       const result = await getAvailability(value, token);
+      if (id !== request.current) return;
       setDaySlots(result.slots);
       setReason(result.reason);
     });

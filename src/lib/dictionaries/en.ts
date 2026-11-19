@@ -227,6 +227,7 @@ export const en: Dictionary = {
     party_too_large: "For groups that large, please call us and we will find a solution.",
     slot_unavailable: "That time cannot be booked. Please pick another.",
     slot_full: "We are already full at that time, sorry. Please pick another time.",
+    form_check: "Please reload the page and send the form again.",
   },
   reservation: {
     errors: {
@@ -559,6 +560,15 @@ export const en: Dictionary = {
     againBefore: "By mistake? You can sign up again on the ",
     againLink: "home page",
     againAfter: " at any time. Questions? ",
+  },
+  specialsConfirm: {
+    pageTitle: "Confirm your email",
+    title: "Confirm your email address",
+    text: "Confirm that you want to receive La Cordobesa specials by email.",
+    submit: "Confirm subscription",
+    done: "Thanks, your email address is confirmed. You can unsubscribe at any time using the link in a message.",
+    invalid: "This confirmation link is invalid or has already been used.",
+    badLink: "The confirmation link is not valid.",
   },
   share: {
     button: "Share this page",

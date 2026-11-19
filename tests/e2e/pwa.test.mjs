@@ -107,6 +107,15 @@ describe(`${label}: the pages advertise it where they should`, () => {
     const response = await fetch(`${BASE}/staff/offline`, { redirect: "manual" });
     assert.equal(response.status, 200, "the service worker precaches this page while logged out");
   });
+
+  test("the service worker re-fetches the offline page, so it cannot keep stale asset URLs", { skip }, async () => {
+    // The worker file never changes between deploys, so `install` does not run again; the cached
+    // page (hashed CSS/JS URLs) is kept current by the refresh on activation and on navigation.
+    const source = await (await fetch(`${BASE}/sw.js`)).text();
+    assert.match(source, /async function refreshOffline/);
+    assert.match(source, /addEventListener\("activate"[\s\S]*refreshOffline/);
+    assert.match(source, /addEventListener\("fetch"[\s\S]*refreshOffline/);
+  });
 });
 
 describe(`${label}: once installed (display-mode: standalone)`, () => {

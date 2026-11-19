@@ -98,17 +98,18 @@ So the way to see a change before it ships is `npm run dev` against the local Su
 
 ## Staff accounts
 
-Staff can create their own login at the shared team link, `/staff/signup?key=<STAFF_SIGNUP_TOKEN>`.
-Set `STAFF_SIGNUP_TOKEN` to a long random value in production and share the full URL with the venue team.
-The link is a bearer credential: anyone holding it can create a normal staff account, so keep it off public
-pages and rotate the environment variable if it is exposed. A new account is confirmed and allow-listed,
-then signed in to `/staff`. The token is checked again on every signup request.
+New team members get a personal sign-up link, made by an admin under `/staff/team` ("Invitar con un enlace").
+The link is shown once (only its SHA-256 is stored, table `staff_invites`), is valid for 7 days, works for a
+single account and can be revoked from the same page. It is a bearer credential until it is used, so send it
+to one person only. The invite is claimed atomically on every signup request. A new account is confirmed and
+allow-listed with the team role, then signed in to `/staff`. The old shared `STAFF_SIGNUP_TOKEN` link is retired
+and the variable is no longer read; delete it from the environments.
 
 Staff sign in with a short **name** and password (no e-mail). Supabase Auth is e-mail based, so each name maps
 to `<name>@staff.lacordobesa.local` (see [`src/lib/staff.ts`](src/lib/staff.ts)).
 
 Being signed in is not enough: the account also needs a row in `public.staff` (the allowlist from migration
-0004, which `is_staff()` checks). The shared signup link and admin-only Team page create this row together with
+`20261012074936`, which `is_staff()` checks). The shared signup link and admin-only Team page create this row together with
 the Auth user. For manual recovery, adding a staff member in the Supabase dashboard is two steps:
 
 1. **Authentication → Users → Add user**, e-mail `maria@staff.lacordobesa.local`, a password, **Auto Confirm** on.
@@ -120,8 +121,8 @@ the Auth user. For manual recovery, adding a staff member in the Supabase dashbo
    on conflict do nothing;
    ```
 
-Skipping step 2 leaves an account that logs in and is then rejected everywhere ("Dieser Zugang ist nicht für
-das Team freigeschaltet"). To revoke access, delete the `public.staff` row (the login itself keeps working but
+Skipping step 2 leaves an account that logs in and is then rejected everywhere ("Esta cuenta no tiene acceso
+al equipo.", the staff app is in Spanish). To revoke access, delete the `public.staff` row (the login itself keeps working but
 sees nothing). Keep "Allow new users to sign up" turned off under Authentication → Providers → Email: the shared
 link uses the server-side admin API and does not require public Supabase signup.
 
@@ -146,20 +147,22 @@ How reservations work:
 - Guests call the `request_reservation` RPC (via a Server Action). It checks opening hours, closures, lead time,
   party size and seat capacity (overlapping reservations × duration) inside one transaction and inserts a
   `pending` row. Guests can never read the reservations table.
-- Abuse limits live inside `request_reservation` (migrations 0005 and 0009): text length caps, max 3 requests per
+- Abuse limits live inside `request_reservation` (migrations `20261012054547` and `20261012085300`): text length caps, max 3 requests per
   phone/e-mail per 24 h, one open booking per phone per day, and a site-wide cap of 15/hour and 80/24 h. The quota
-  checks, the capacity check and the insert all run under one site-wide advisory lock (0009), so a concurrent burst
+  checks, the capacity check and the insert all run under one site-wide advisory lock (`20261012085300`), so a concurrent burst
   cannot slip past the counts. Guest moves (`move_reservation_by_token`) take the same lock since `20261012215040`.
   Tune the constants at the top of the function.
 - Per-visitor limits sit in front of every public form (`src/lib/public-forms.ts`, migrations `20261012215042` and
   `20261014072715`). The phone limits alone do not stop a script that rotates numbers: it fills the evenings with
   fake pending bookings and then trips the site-wide cap, which turns real guests away. The Server Actions hash the
   visitor's address (keyed SHA-256, kept 24 h) and take a unit from `take_request_quota` before calling the RPC.
-- The limit binds because the five form RPCs no longer accept the publishable key. That key ships in every browser,
-  so until `20261014072715` a script could call `request_reservation` and its siblings directly and never pass the
-  quota; now they are granted to `service_role` only and anon gets `permission denied for function`. What anon still
-  reaches on purpose: `reservation_availability` (read-only, feeds the date picker under `use cache`) and the
-  manage-link RPCs, where the guest's token is the credential. There is no Vercel firewall rule in front of the forms.
+- The limit binds because the six form RPCs (`request_reservation`, `request_preorder`, `request_event_inquiry`,
+  `join_waitlist`, `subscribe_broadcast`, and `request_broadcast_email` since `20261029074029`) no longer accept the
+  publishable key. That key ships in every browser, so until `20261014072715` a script could call
+  `request_reservation` and its siblings directly and never pass the quota; now they are granted to `service_role`
+  only and anon gets `permission denied for function`. What anon still reaches on purpose: `reservation_availability`
+  (read-only; the booking Server Action calls it uncached, per request, on the publishable key), the manage-link RPCs,
+  where the guest's token is the credential, and `confirm_broadcast_email`, where the emailed one-time token is. There is no Vercel firewall rule in front of the forms.
 - **`SUPABASE_SECRET_KEY` is therefore required, not optional.** Without it `createPrivilegedClient()` throws and
   every public form fails to submit; it no longer degrades to "no per-visitor limit". It is set for `production` in
   Vercel; local development gets its local secret key from the Supabase CLI. A new deployment environment needs it before the forms work.
@@ -170,19 +173,23 @@ How reservations work:
   is `noindex` with `referrer: no-referrer`. `cancel_reservation_by_token` and `move_reservation_by_token` re-run the
   same capacity and lead-time checks as `request_reservation`, and a moved booking goes back to `pending` so the
   restaurant confirms the new time. A cancellation hands the seats straight back to `reservation_availability`.
-- Rules (capacity, slot size, lead time, …) are edited under *Einstellungen* and stored in `site_settings`.
+- Rules live in `site_settings` under key `reservations`. The *Einstellungen* form only carries bookings on/off, seats
+  (`capacity_seats`) and maximum party size; slot size, sitting length, lead time, horizon and last seating keep their
+  defaults (`DEFAULT_RESERVATION_SETTINGS` in `src/lib/data.ts`, mirrored in `reservation_settings()`) unless the row is
+  edited directly, and saving the form preserves any such stored value.
 
 How pre-orders work (migration `20261012094815`): the public form calls `request_preorder`, which validates the pickup
 window against opening hours and closures, enforces the same per-phone and site-wide quotas as `request_reservation`,
 and checks every line against `menu_items.is_preorderable`. `preorder_lines` **snapshots** the dish name, unit and price
 at order time, so a later menu edit or a deleted dish cannot rewrite what a guest ordered. Guests see and cancel their
 order at `/vorbestellung/<manage_token>`; `ready` orders are deliberately not cancellable online, because they are
-already baked. Rules live under *Einstellungen* in `site_settings` under key `preorders`. No money changes hands online,
+already baked. Rules live in `site_settings` under key `preorders`; *Einstellungen* only switches pre-orders on or off (lead time,
+horizon and line limits keep their stored values or the defaults). No money changes hands online,
 guests pay at pickup.
 
 Specials list (migrations `20261012100835`, `20261012215041`, `20261029074029`): `specials` had no distribution channel, so only a
-visitor who happened to open the site ever saw one. Guests opt in on the landing page, right under the specials, and
-staff send from the "An Gäste verschicken" section of `/staff/specials` (`/staff/broadcast` redirects there) with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
+visitor who happened to open the site ever saw one. Guests opt in on the menu page (`/karte#specials`, right under the specials), and
+staff send from the "Enviar a clientes" section of `/staff/specials` (`/staff/broadcast` redirects there) with a per-guest `wa.me` link. **Double opt-in:** a sign-up is stored unconfirmed,
 the guest then sends the restaurant a prefilled WhatsApp from that number, and staff press "bestätigen" when it
 arrives. Only confirmed rows are offered for sending, so a stranger's number entered by someone else never gets a
 message. E-mail sign-ups appear only when the transactional mail sender is configured. They receive a one-time
@@ -191,7 +198,7 @@ page, so mail link scanners do not subscribe them. Confirmed e-mail addresses ar
 **Not an automated sender**: the WhatsApp Cloud
 API needs a Meta Business account, a verified number and approved templates, none of which exist yet; swapping the
 sender later does not change the table. Consent is stored as evidence, not a boolean: `consent_text` snapshots the exact
-wording shown ([`src/lib/broadcast.ts`](src/lib/broadcast.ts)), with `consented_at` and `source`, and every message
+wording shown (`optin.consent` in [`src/lib/dictionaries/`](src/lib/dictionaries), one sentence per channel and language), with `consented_at` and `source`, and every message
 carries a one-click `/abmelden/<token>` link. Subscribing an already-subscribed contact returns silently rather than
 erroring, so the endpoint cannot be used to test whether a number is on the list.
 
@@ -216,7 +223,7 @@ rows could both carry; if that photo is deleted the bundled JPEG comes back. The
 back to the featured photos, and is absent entirely when there is neither. An expired token hides the section rather
 than breaking the page.
 
-Gallery: `gallery_items` (migration 0007) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
+Gallery: `gallery_items` (migration `20261012085100`) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
 The seed rows point at illustrations in `public/assets/gallery/` — staff can delete them once real photos are in.
 
@@ -236,7 +243,10 @@ their own. A "cover" counts seats, not bookings, and never counts a cancelled or
 denominator ("3 von 48") and report `null` rather than 0 % when there is nothing to divide by.
 
 Public content (menu, specials, hours, gallery) is cached with `use cache` and invalidated from the staff actions, so the
-landing page stays a static shell served from the CDN.
+landing page stays a static shell served from the CDN. The cached getters in `src/lib/data.ts` and
+`src/lib/preorders.ts` throw when a Supabase read fails (`unwrap()`), so an outage never caches an empty menu or
+"closed every day"; Next keeps serving the last good entry and retries. `getActiveSpecials` uses the `minutes`
+profile because "today" is part of its entry.
 
 Confirmation mail: when staff confirm a reservation, `setReservationStatus` mails the guest through Resend
 ([`src/lib/mail.ts`](src/lib/mail.ts), template in [`src/lib/mail-templates.ts`](src/lib/mail-templates.ts)) and records
@@ -265,8 +275,11 @@ npm run check:full       # all of the above, before a release
 npm run test:matrix      # the browser suite as Chrome, Firefox, Safari and four phones/tablets (a few minutes)
 ```
 
-CI (`.github/workflows/tests.yml`) runs `check` on every push and pull request, and both suites plus a production build nightly against local Supabase at 05:10 UTC as a canary. Only `check` gates a merge; a red
-nightly is read in the morning, so look at it. `tests/README.md` has the detail.
+CI (`.github/workflows/tests.yml`) runs two jobs on every push to `main`, every pull request and nightly at 05:10 UTC:
+`check` (hermetic) and `local` (a production build, then the database and browser suites against a fresh local
+Supabase stack). Each suite is followed by `.github/assert-ran.mjs`, which fails the job when too few tests passed, so a
+suite that skipped everything is red, not green. Which job a merge requires is branch-protection configuration, not
+something in the repository; the nightly run is read in the morning, so look at it. `tests/README.md` has the detail.
 
 Node's own test runner drives both suites and no test dependency was added: the unit tests use
 native TypeScript stripping with a small resolver hook for the `@/` alias, and the browser tests

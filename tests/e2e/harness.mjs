@@ -285,6 +285,30 @@ const freshStateOnDisk = () => {
   }
 };
 
+/**
+ * A cached session can outlive the account's session on the Auth server: scripts/with-local-supabase.mjs
+ * resets the test user's password on every start, and password changes end the user's sessions. The admin
+ * pages check the session server-side (requireAdmin), so cookies from before that bounce to the login
+ * page and a "staff" test fails for a reason that has nothing to do with it. One request to the admin
+ * Team page, looking for its account form, tells a live session from a dead one before anything relies on it.
+ */
+async function cachedSessionStillWorks(state) {
+  try {
+    const cookie = state.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+    const res = await fetch(`${BASE}/staff/team`, { headers: { cookie }, redirect: "manual" });
+    // The page streams, so a failed server-side check redirects inside a 200 response: read the body.
+    if (res.status === 200 && (await res.text()).includes('id="new-username"')) return true;
+  } catch {
+    /* the server is not reachable: fall through, signing in will say so properly */
+  }
+  try {
+    rmSync(STAFF_STATE_FILE, { force: true });
+  } catch {
+    /* nothing to do about it */
+  }
+  return false;
+}
+
 /** One sign-in, then the cookies, so no staff page logs in again. */
 export async function staffStorageState() {
   if (staffState) return staffState;
@@ -292,7 +316,8 @@ export async function staffStorageState() {
   if (!user || !pass) throw new Error("staff tests need STAFF_USER and STAFF_PASS");
 
   staffState = freshStateOnDisk();
-  if (staffState) return staffState;
+  if (staffState && (await cachedSessionStillWorks(staffState))) return staffState;
+  staffState = null;
 
   // Whoever does not get the lock waits for the holder's file, and only ever signs in while
   // holding the lock itself: the waiter re-tries acquisition rather than clearing a lock it does

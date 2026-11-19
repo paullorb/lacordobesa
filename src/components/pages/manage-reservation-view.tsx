@@ -8,7 +8,7 @@ import { TokenSiteHeader } from "@/components/token-site-header";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { getReservationSettings } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
-import { addDays, todayISO } from "@/lib/dates";
+import { addDays, hasStarted, todayISO } from "@/lib/dates";
 import { localeHref, type Locale } from "@/lib/i18n";
 
 export const MANAGE_PATH = "/reservierung";
@@ -70,6 +70,7 @@ async function Booking({ locale, params }: { locale: Locale; params: PageProps<"
       locale={locale}
       token={token}
       reservation={reservation}
+      started={hasStarted(reservation.date, reservation.time)}
       maxPartySize={settings.max_party_size}
       minDate={today}
       maxDate={addDays(today, settings.max_days_ahead)}
