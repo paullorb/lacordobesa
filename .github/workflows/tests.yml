@@ -40,6 +40,14 @@ concurrency:
   group: tests-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+defaults:
+  run:
+    # Named so that it carries `-o pipefail`: the default shell does not, and three steps pipe a
+    # suite into `tee`. Without it a failing suite left its own step green and the red landed on
+    # the "Assert ... actually ran" step after it, which is how #198 came to read as "the browser
+    # suite did not run" when it had run and one or two tests had failed.
+    shell: bash
+
 env:
   # Node 22.18 is the floor (tests/require-node.mjs: type stripping and module.registerHooks). 24 is
   # the version the suite is developed against.
@@ -99,8 +107,13 @@ jobs:
         with:
           version: 3.1.0
       - run: npm ci --prefer-offline
+      # Without the containers nothing here talks to: the dashboard, image transforms, the log
+      # pipeline, edge functions (there are none) and the pooler. The job shares a two-core hosted
+      # VM with `next dev` and three browsers, and its failed runs (#198) were pages that took over
+      # 90 seconds to answer; every one of them also logged "error from registry: Rate exceeded"
+      # while pulling images. Fewer containers is less of both.
       - name: Start local Supabase and apply migrations and seeds
-        run: supabase start
+        run: supabase start --exclude studio,imgproxy,logflare,vector,edge-runtime,supavisor
 
       - name: Build with the local database
         run: node scripts/with-local-supabase.mjs npm run build
