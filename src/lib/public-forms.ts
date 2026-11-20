@@ -30,16 +30,7 @@ export const isPublicForm = (value: string): value is PublicForm => Object.hasOw
 /** Why a submission was turned away, as the form-error code the guest sees. */
 export type Refusal = "too_many_requests" | "form_check";
 
-type PrivilegedClient = ReturnType<typeof createPrivilegedClient>;
-
-/** Calls an RPC that src/lib/database.types.ts does not know yet (the migrations of 2026-11-16).
- *  Drop this and call `supabase.rpc` directly once the types are regenerated. */
-export function rpcUntyped(supabase: PrivilegedClient, fn: string, args: Record<string, unknown>) {
-  const client = supabase as unknown as {
-    rpc(fn: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message: string } | null }>;
-  };
-  return client.rpc(fn, args);
-}
+export type PrivilegedClient = ReturnType<typeof createPrivilegedClient>;
 
 /** The visitor's address, or null where it cannot be trusted.
  *
@@ -79,7 +70,7 @@ export async function publicFormClient(
   if (verdict === "invalid" || verdict === "too_fast") return { supabase, refusal: "form_check" };
 
   if (verdict !== "ok") {
-    const { data, error } = await rpcUntyped(supabase, "form_under_pressure", { p_form: form });
+    const { data, error } = await supabase.rpc("form_under_pressure", { p_form: form });
     // Not deployed yet or unreachable: no pressure signal, so no extra requirement.
     if (!error && data === true) return { supabase, refusal: "form_check" };
   }
