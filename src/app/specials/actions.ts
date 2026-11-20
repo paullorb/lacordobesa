@@ -6,7 +6,7 @@ import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { formErrors, formLocale } from "@/lib/form-errors";
 import { escapeHtml, mailConfigured, sendMail } from "@/lib/mail";
-import { publicFormClient, rpcUntyped } from "@/lib/public-forms";
+import { publicFormClient, type PrivilegedClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { localeHref } from "@/lib/i18n";
 import { isManageToken, SITE_URL } from "@/lib/site";
@@ -15,12 +15,12 @@ import { createPublicClient } from "@/lib/supabase/public";
 /** Remembers the sign-up language for the unsubscribe link (migration 20261116110200). Best effort:
  *  without it the link is the German one every row used to get. */
 async function saveLocale(
-  supabase: Parameters<typeof rpcUntyped>[0],
+  supabase: PrivilegedClient,
   channel: "email" | "whatsapp",
   contact: { email?: string; phone?: string },
   locale: string,
 ) {
-  const { error } = await rpcUntyped(supabase, "set_broadcast_optin_locale", {
+  const { error } = await supabase.rpc("set_broadcast_optin_locale", {
     p_channel: channel,
     p_email: contact.email ?? "",
     p_phone: contact.phone ?? "",
@@ -94,7 +94,7 @@ export async function subscribeToSpecials(_prev: SubscribeState, formData: FormD
       if (!result.ok) {
         // The RPC already recorded this attempt for its resend cooldown. Give it back, or the guest's
         // retry would hit the cooldown and be told "sent" although nothing ever left.
-        const released = await rpcUntyped(supabase, "release_broadcast_email_attempt", { p_email: email });
+        const released = await supabase.rpc("release_broadcast_email_attempt", { p_email: email });
         if (released.error) console.error(`could not release the specials mail attempt: ${released.error.message}`);
         return { ok: false, error: errorFor("generic") };
       }
