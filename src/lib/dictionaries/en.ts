@@ -36,6 +36,7 @@ export const en: Dictionary = {
     contact: "Contact",
     imprint: "Legal notice",
     privacy: "Privacy",
+    staffLogin: "Staff login",
     back: "Back to home",
     backHome: "Go to home",
     madeWithBefore: "Con mucho ",

@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { removePushToken, savePushToken } from "@/app/staff/push-actions";
 import {
-  onPushTap,
   pushPermission,
   pushPlugin,
   requestPushToken,
@@ -111,11 +109,4 @@ export function NativePushCard() {
       )}
     </section>
   );
-}
-
-/** Opens the page a tapped notification points at. Mounted once in the staff layout. */
-export function NativePushTapHandler() {
-  const router = useRouter();
-  useEffect(() => onPushTap((url) => router.push(url)), [router]);
-  return null;
 }
