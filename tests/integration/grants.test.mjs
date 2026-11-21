@@ -51,6 +51,9 @@ const STAFF_ONLY_RPCS = [
   ["arrange_menu_items", { p_category: "00000000-0000-0000-0000-000000000000", p_ids: [] }],
   ["create_preorder_manually", { p_name: "x", p_phone: "+4915111111111", p_pickup_date: berlinToday(), p_pickup_time: "12:00", p_notes: null, p_preparation: null, p_lines: [] }],
   ["is_admin", {}],
+  // The iPhone app's device registration (migration 20261121135841).
+  ["register_push_token", { p_token: "a".repeat(64), p_platform: "ios" }],
+  ["unregister_push_token", { p_token: "a".repeat(64) }],
 ];
 
 /** What the public pages and the guest links genuinely need. */
@@ -166,6 +169,7 @@ describe("what the publishable key may write", () => {
     ["broadcast_optins", { channel: "whatsapp", consent_text: "ZZ test" }],
     ["staff", { user_id: "00000000-0000-0000-0000-000000000000" }],
     ["analytics_daily", { day: berlinToday() }],
+    ["staff_push_tokens", { token: "a".repeat(64), user_id: "00000000-0000-0000-0000-000000000000" }],
   ];
 
   for (const [table, row] of TABLES) {

@@ -1,0 +1,53 @@
+name: Native build
+
+# Does the staff iPhone app still compile? (capacitor.config.ts, docs/mobile-app.md)
+#
+# An unsigned Release archive through the reusable workflow muk.events uses for its Capacitor shell
+# (paullorb/cicd app-native-build.yml). Unsigned on purpose: it proves the project compiles, links
+# and carries the right bundle id and name without any certificate, profile or App Store Connect
+# key, so it runs on a pull request. Uploading to TestFlight stays a person's job in Xcode.
+#
+# Only when something it is built from changes. The app loads the deployed /staff pages, so an
+# ordinary web change reaches the owners' phones with the next Vercel deploy and needs no build.
+#
+# On GitHub's hosted macOS image: this repository registers no self-hosted runner, and hosted
+# minutes are free for a public repository.
+on:
+  pull_request:
+    paths:
+      - "ios/**"
+      - "mobile/**"
+      - "capacitor.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".nvmrc"
+      - ".github/workflows/native-build.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - "mobile/**"
+      - "capacitor.config.ts"
+      - ".github/workflows/native-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS app (unsigned)
+    uses: paullorb/cicd/.github/workflows/app-native-build.yml@4828b730670a9eb1fd928a6aa620a470a7400916
+    with:
+      node_version_file: .nvmrc
+      app_id: de.lacordobesa.staff
+      display_name: La Cordobesa
+      build_android: false
+      ios_runs_on: '"macos-latest"'
+      artifact_retention_days: ${{ github.event_name == 'pull_request' && 1 || 7 }}
+      # A dependency's install script has no business running in a native build.
+      npm_ignore_scripts: true
