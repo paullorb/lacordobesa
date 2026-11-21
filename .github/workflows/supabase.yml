@@ -1,0 +1,32 @@
+name: Supabase deploy
+
+# Applies supabase/migrations/ to this project's own Supabase database when
+# main moves, through the workflow every paullorb repo shares, in its `push`
+# mode: `supabase db push --include-all --db-url`, the same command CLAUDE.md
+# has you run by hand. The pull request's Tests workflow has already replayed
+# the migrations on a local Supabase before the merge.
+#
+# Off until the SUPABASE_PROJECT_REF repository variable and the
+# SUPABASE_DB_URL secret are set; until then a run reports "nothing deployed"
+# and stays green, and migrations are applied by hand as before.
+# paullorb/cicd's README, "Supabase deploy".
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    uses: paullorb/cicd/.github/workflows/app-supabase.yml@f3accf1d4299ed5692924b24bb7bd6d2d8dd9f16
+    with:
+      project_ref: ${{ vars.SUPABASE_PROJECT_REF }}
+      mode: push
+    secrets:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

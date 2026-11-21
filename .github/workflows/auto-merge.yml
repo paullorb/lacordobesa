@@ -1,0 +1,25 @@
+name: Auto-merge
+
+# Arms GitHub auto-merge (squash) on every non-draft PR into main opened from
+# a branch of this repo, through the workflow every paullorb repo shares. The
+# merge still waits for the checks main's ruleset requires, and GitHub deletes
+# the branch afterwards. Forks' and Dependabot's PRs are never armed, and
+# without the automation app's secrets (or AUTO_MERGE_TOKEN) the job arms
+# nothing and says so: paullorb/cicd's README, "Auto-merge", has the reasons.
+on:
+  pull_request:
+    # `edited` re-arms a PR whose base was changed to main; the shared job
+    # ignores edits to the title or body.
+    types: [opened, reopened, ready_for_review, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    uses: paullorb/cicd/.github/workflows/app-auto-merge.yml@f3accf1d4299ed5692924b24bb7bd6d2d8dd9f16
+    secrets:
+      AUTOMATION_APP_ID: ${{ secrets.AUTOMATION_APP_ID }}
+      AUTOMATION_APP_PRIVATE_KEY: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
+      AUTO_MERGE_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN }}

@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   overlap:
-    uses: paullorb/cicd/.github/workflows/pr-overlap.yml@86018ab77a3353da772ac1b63a5a4be9bf75767b
+    uses: paullorb/cicd/.github/workflows/pr-overlap.yml@f3accf1d4299ed5692924b24bb7bd6d2d8dd9f16
     with:
       # This repo registers no self-hosted app-ci runner, so the job goes to a
       # hosted VM rather than queueing forever.

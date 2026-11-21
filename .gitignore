@@ -41,8 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude desktop
-/.claude/
 
 # Screenshots from `npm run shots`
 .shots/
@@ -50,3 +48,11 @@ next-env.d.ts
 
 # Supabase CLI scratch state (linked project, versions)
 supabase/.temp/
+
+# Claude Code worktrees, scratch and runtime state. A worktree under .claude/
+# otherwise shows up as untracked in the main checkout, where `git add -A`
+# would take it. The shared settings stay tracked.
+.claude/*
+!.claude/settings.json
+!.claude/launch.json
+!.claude/hooks/

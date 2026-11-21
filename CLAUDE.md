@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Database changes go through the CLI, not the MCP connector
 
 `supabase/migrations/` is the source of truth for this project's schema. To change it:
@@ -5,6 +7,10 @@
 1. Write a new file in `supabase/migrations/` named `<UTC timestamp>_<name>.sql`
    (`date -u +%Y%m%d%H%M%S`) — the version must sort after every existing file.
 2. Apply it with `supabase db push --db-url "$SUPABASE_DB_URL"`.
+
+`.github/workflows/supabase.yml` runs that same push when `main` moves, once the
+`SUPABASE_PROJECT_REF` variable and the `SUPABASE_DB_URL` secret are set in the repository.
+Until they are, its runs say "nothing deployed" and step 2 is done by hand.
 
 Use timestamps, not sequential numbers. `db push` matches local filenames against the
 versions recorded in the remote `supabase_migrations.schema_migrations`, and it refuses to
