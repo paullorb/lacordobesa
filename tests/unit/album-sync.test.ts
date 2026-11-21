@@ -8,7 +8,6 @@
  */
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import sharp from "sharp";
 import { parseAlbumCaption, syncAuthorized, isSourceId, isJpeg } from "@/lib/album-sync";
 import { albumToken, albumHost, bestDerivative, normalisePhotos, readAlbum, photoUrls } from "../../scripts/lib/icloud-album.mjs";
@@ -123,8 +122,8 @@ describe("endpoint guards", () => {
 describe("branding", () => {
   test("the output carries the venue's name and none of the camera's metadata", async () => {
     // A source with GPS and a device name in it, as a phone would write.
-    const source = await sharp(readFileSync(new URL("../../photos/tarta.jpg", import.meta.url)))
-      .resize(900)
+    // Generated rather than read from disk: the repo holds no stock photos to borrow.
+    const source = await sharp({ create: { width: 900, height: 600, channels: 3, background: { r: 230, g: 200, b: 160 } } })
       .withExif({ IFD0: { Make: "Apple", Model: "iPhone 17" }, IFD3: { GPSLatitudeRef: "N", GPSLatitude: "50/1 8/1 0/1" } })
       .jpeg()
       .toBuffer();
