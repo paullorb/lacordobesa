@@ -25,7 +25,9 @@ const config: CapacitorConfig = {
     allowNavigation: ["lacordobesa.vercel.app", "lacordobesa.de", "*.lacordobesa.de"],
   },
   ios: {
-    contentInset: "never",
+    // The site does not pad for the notch (no viewport-fit=cover / safe-area insets), so the
+    // WebView keeps the page below the status bar instead of drawing the header under the clock.
+    contentInset: "always",
   },
   plugins: {
     // Without this iOS shows nothing for a push that arrives while the app is open, and drops it
