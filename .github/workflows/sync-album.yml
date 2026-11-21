@@ -1,0 +1,77 @@
+# New photos from the owners' shared iCloud album into the site's gallery, twice a day.
+#
+# The owners add a photo (with a caption) to one shared album on their phones; this picks it up,
+# brands it and hands it to the site. Nothing here signs in to iCloud: the album is read through
+# its public link, which opens that one album and nothing else (scripts/lib/icloud-album.mjs).
+#
+# Secrets (Settings, Secrets and variables, Actions):
+#   ICLOUD_ALBUM_URL    the album's public link, https://www.icloud.com/sharedalbum/#...
+#   GALLERY_SYNC_TOKEN  the same value as GALLERY_SYNC_TOKEN on Vercel (production)
+# Variable, optional:
+#   SITE_URL            defaults to https://lacordobesa.vercel.app
+#
+# Until ICLOUD_ALBUM_URL is set the script says so and exits green.
+name: Sync album
+
+on:
+  schedule:
+    # 06:40 and 15:40 UTC: once before the shop opens and once in the afternoon. A photo is not
+    # news, so twice a day is plenty, and off the hour because GitHub queues everything scheduled on it.
+    - cron: "40 6,15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Two runs would only race each other to the same photos (the site would still add each once).
+  group: sync-album
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Import new album photos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --prefer-offline
+
+      - name: Import
+        env:
+          ICLOUD_ALBUM_URL: ${{ secrets.ICLOUD_ALBUM_URL }}
+          GALLERY_SYNC_TOKEN: ${{ secrets.GALLERY_SYNC_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://lacordobesa.vercel.app' }}
+        run: node scripts/sync-album.mjs
+
+      # Unattended, so a red run reaches nobody by itself. A failure becomes one issue (not one per
+      # run), and the first run that passes closes it again.
+      - name: File or close the tracking issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OUTCOME: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Album sync is failing"
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -n "$number" ]; then gh issue close "$number" --comment "Passing again: $RUN_URL"; fi
+          elif [ -n "$number" ]; then
+            gh issue comment "$number" --body "Still failing: $RUN_URL"
+          else
+            gh issue create --title "$title" --body "The twice-daily import from the owners' shared iCloud album failed, so new photos are not reaching the gallery. Nothing already on the site is affected.
+
+          Run: $RUN_URL
+
+          Usual causes: \"Public Website\" was switched off for the album (or the album was re-created, which changes its link), the \`GALLERY_SYNC_TOKEN\` secret no longer matches Vercel, or Apple changed the album's web format (\`scripts/lib/icloud-album.mjs\`)."
+          fi
