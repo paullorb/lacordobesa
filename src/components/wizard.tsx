@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 export type WizardStep = {
   /** The question this step asks, shown as the heading. */
@@ -31,7 +31,7 @@ type Props = {
 /**
  * One question at a time, with the answers so far kept as chips you can go back to.
  *
- * Shared by the table booking and the celebration inquiry. Both ask a short series of questions and
+ * Shared by the table booking, the pre-order and the celebration inquiry. Both ask a short series of questions and
  * only want contact details once the guest has decided something, so they were always the same shape;
  * the inquiry had simply been written as one long form. This component owns the chrome (progress,
  * chips, heading, the animation between steps) and nothing about what is being asked, so neither
@@ -39,6 +39,12 @@ type Props = {
  */
 export function Wizard({ step, setStep, steps, stepLabel, footer, headingLevel = 3 }: Props) {
   const Heading = headingLevel === 2 ? "h2" : "h3";
+  // The progress bar waits until the guest has answered the first question. Shown up front it is a
+  // count of chores before anything has happened; shown once a step is done it is progress already
+  // made. It stays from then on, also when a chip takes them back to step 1. Set during render, the
+  // documented way to derive state from a prop change, so it appears with the step and not a frame later.
+  const [started, setStarted] = useState(step > 1);
+  if (step > 1 && !started) setStarted(true);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const shownStep = useRef(step);
   // The step's body is remounted on every change, which drops the focused control (the button that was
@@ -62,11 +68,13 @@ export function Wizard({ step, setStep, steps, stepLabel, footer, headingLevel =
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {stepLabel(step, total)}
       </p>
-      <div className="wizard-dots" aria-hidden="true">
-        {steps.map((s, i) => (
-          <span key={s.title} className={i + 1 <= step ? "on" : undefined} />
-        ))}
-      </div>
+      {started && (
+        <div className="wizard-dots" aria-hidden="true">
+          {steps.map((s, i) => (
+            <span key={s.title} className={i + 1 <= step ? "on" : undefined} />
+          ))}
+        </div>
+      )}
 
       {step > 1 && (
         <div className="wizard-summary">
