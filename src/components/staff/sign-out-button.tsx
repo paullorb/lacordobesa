@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { signOut } from "@/app/staff/actions";
 import { StaffIcon } from "@/components/icons";
 import { SubmitButton } from "@/components/staff/form-bits";
+import { pushPlugin, storePushToken, storedPushToken, unregisterDevice } from "@/lib/native-push-client";
 
 /**
  * Signing out, as an icon in the header that asks first.
@@ -34,7 +35,22 @@ export function SignOutButton({ name }: { name: string }) {
           if (e.target === e.currentTarget) e.currentTarget.close();
         }}
       >
-        <form action={signOut} className="grid gap-4">
+        <form
+          action={signOut}
+          className="grid gap-4"
+          // In the iPhone app: hand the server this device's push token so it is removed while the
+          // session still exists, and stop the device itself. A shared shop phone must not keep
+          // notifying whoever used it last. Outside the app there is no token and nothing happens.
+          onSubmit={(e) => {
+            const token = storedPushToken();
+            if (!token) return;
+            const field = e.currentTarget.elements.namedItem("push_token");
+            if (field instanceof HTMLInputElement) field.value = token;
+            storePushToken(null);
+            void unregisterDevice(pushPlugin());
+          }}
+        >
+          <input type="hidden" name="push_token" defaultValue="" />
           <div>
             <h2 id="signout-title" className="font-serif text-xl">
               ¿Cerrar sesión?

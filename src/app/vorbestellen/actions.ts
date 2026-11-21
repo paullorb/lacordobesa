@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { isISODate, isTime } from "@/lib/dates";
 import { formErrors, formLocale } from "@/lib/form-errors";
 import { isPreparation, type Preparation } from "@/lib/preorder-preparation";
+import { notifyStaff, preorderPush } from "@/lib/native-push";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import type { PreorderLine } from "@/lib/preorders";
 import { publicFormClient } from "@/lib/public-forms";
@@ -62,6 +64,7 @@ export async function requestPreorder(_prev: PreorderRequestState, formData: For
     p_preparation: preparation || undefined,
   });
   if (error) return { ok: false, error: errorFor(error.message) };
+  after(() => notifyStaff(preorderPush({ name, date, time })));
   return { ok: true, token: data };
 }
 

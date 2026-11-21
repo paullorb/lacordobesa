@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { NativePushTapHandler } from "@/components/staff/native-push";
 import { RegisterServiceWorker } from "@/components/staff/register-sw";
 import { staffDisplayName } from "@/lib/staff";
 import { staffSession } from "@/lib/auth";
@@ -40,6 +41,7 @@ export default function StaffLayout({ children }: LayoutProps<"/staff">) {
       </header>
       <main id="main" className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <RegisterServiceWorker />
+      <NativePushTapHandler />
     </div>
   );
 }
