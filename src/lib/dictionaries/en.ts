@@ -60,7 +60,6 @@ export const en: Dictionary = {
       "Empanadas, sweet classics and homemade specialities, the Argentine way.",
     heroReserve: "Reserve a table",
     heroMenu: "See the menu",
-    marqueeLabel: "Homemade specialities",
     storyEyebrow: "We are",
     storyTitle: "Homemade & Authentic",
     storyP1:
@@ -69,9 +68,6 @@ export const en: Dictionary = {
       "Our passion is to pass Argentine culture and traditions on to our children. We are a family business from Alta Gracia, Córdoba, and we cherish everything that has shaped us since we were young.",
     storySignature: "The La Cordobesa team",
     storyArtCaption: "Sabores de nuestra casa",
-    menuEyebrow: "De nuestra cocina",
-    menuTitle: "A few favourites",
-    menuFull: "See the full menu",
     specialTag: "Today",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Every empanada gets its own folded edge.",
@@ -179,14 +175,6 @@ export const en: Dictionary = {
     eyebrow: "Festejemos juntos",
     heading: "Celebrations & catering",
     intro: "Birthday, company party, christening: we cook Argentine for your celebration, at our place or to take away. Tell us what you have in mind.",
-    photos: [
-      { caption: "Cheers", alt: "Guests raising their glasses for a toast at a celebration" },
-      { caption: "Birthday", alt: "A cupcake with a single candle, held on a hand" },
-      { caption: "Buffet", alt: "A buffet with cold cuts, cheese, bread, olives and pears" },
-      { caption: "Mesa dulce", alt: "A wedding cake with small sweets on the table in front" },
-      { caption: "Set for a party", alt: "A white table laid with flowers, candles and glasses" },
-      { caption: "One table for everyone", alt: "A round table with a bouquet, wine and candles" },
-    ],
     ideas: [
       {
         title: "At our place",
@@ -386,10 +374,8 @@ export const en: Dictionary = {
     changeDate: "Change date",
     changeGuests: "Change guests",
     changeBudget: "Change budget",
-    continueLabel: "Continue",
     dateOpen: "Date still open",
     dateUnknown: "Not sure yet",
-    otherDate: "Other date",
     guestsAboutBefore: "about ",
     guestsAboutAfter: " guests",
     occasion: "What are you celebrating?",

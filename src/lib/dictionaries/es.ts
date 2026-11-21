@@ -56,7 +56,6 @@ export const es: Dictionary = {
       "Empanadas, clásicos dulces y especialidades caseras, a la manera argentina.",
     heroReserve: "Reservar mesa",
     heroMenu: "Ver el menú",
-    marqueeLabel: "Especialidades caseras",
     storyEyebrow: "Somos",
     storyTitle: "Casero y auténtico",
     storyP1:
@@ -65,9 +64,6 @@ export const es: Dictionary = {
       "Nuestra pasión es transmitirles a nuestros hijos la cultura y las tradiciones argentinas. Somos una empresa familiar de Alta Gracia, Córdoba, y vivimos con amor todo aquello que nos marcó desde pequeños.",
     storySignature: "Equipo La Cordobesa",
     storyArtCaption: "Sabores de nuestra casa",
-    menuEyebrow: "De nuestra cocina",
-    menuTitle: "Algunos de nuestros favoritos",
-    menuFull: "Ver el menú completo",
     specialTag: "Hoy",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Cada empanada lleva su propio repulgue.",
@@ -174,14 +170,6 @@ export const es: Dictionary = {
     eyebrow: "Festejemos juntos",
     heading: "Festejos y catering",
     intro: "Cumpleaños, evento de empresa, bautismo: cocinamos argentino para tu festejo, acá o para retirar. Contanos qué tenés en mente.",
-    photos: [
-      { caption: "Brindis", alt: "Invitados levantando sus copas para brindar en un festejo" },
-      { caption: "Cumpleaños", alt: "Un cupcake con una vela, sobre una mano" },
-      { caption: "Buffet", alt: "Un buffet con fiambres, quesos, pan, aceitunas y peras" },
-      { caption: "Mesa dulce", alt: "Una torta de casamiento con dulces chicos en la mesa de adelante" },
-      { caption: "Todo listo para la fiesta", alt: "Una mesa con mantel blanco, flores, velas y copas" },
-      { caption: "Una mesa para todos", alt: "Una mesa redonda con un ramo de flores, vino y velas" },
-    ],
     ideas: [
       {
         title: "Acá en el local",
@@ -378,10 +366,8 @@ export const es: Dictionary = {
     changeDate: "Cambiar la fecha",
     changeGuests: "Cambiar las personas",
     changeBudget: "Cambiar el presupuesto",
-    continueLabel: "Seguir",
     dateOpen: "Fecha a definir",
     dateUnknown: "Todavía no sé",
-    otherDate: "Otra fecha",
     guestsAboutBefore: "unas ",
     guestsAboutAfter: " personas",
     occasion: "¿Qué querés festejar?",
