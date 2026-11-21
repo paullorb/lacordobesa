@@ -264,6 +264,42 @@ regenerates `public/favicon.ico` and everything in `public/icons/`. The Instagra
 profile pictures are uploaded by hand in those apps. The public site and the staff area are two
 separate installable apps (`/manifest.webmanifest`, `/staff.webmanifest`).
 
+## Photos from the owners' shared album
+
+The owners add photos, each with a caption, to one shared iCloud album on their phones. Twice a day
+[`.github/workflows/sync-album.yml`](.github/workflows/sync-album.yml) runs
+[`scripts/sync-album.mjs`](scripts/sync-album.mjs), which brings the new ones into the gallery:
+
+1. **Read the album through its public link.** With "Public Website" switched on, an album has a link
+   of the form `https://www.icloud.com/sharedalbum/#...`, and that link is the only credential the sync
+   has. It opens that one album, read-only. Nobody signs in to iCloud, so nothing else in anyone's photo
+   library is reachable, by this script or by an agent working on this repository.
+2. **Skip what the site already has.** The site keeps a ledger (`gallery_imports`) of every album photo
+   it has taken, keyed by Apple's id for the photo. A photo staff later delete under `/staff/gallery`
+   stays on the ledger, so it does not come back. Removing a photo from the album does not remove it
+   from the site; delete it under `/staff/gallery`.
+3. **Brand it** ([`scripts/lib/brand-photo.mjs`](scripts/lib/brand-photo.mjs)): at most 2000 px, the
+   phone's own metadata dropped (location included), the emblem in the bottom right corner, and the
+   venue's name, copyright line and web address written into EXIF and XMP.
+4. **Hand it to the site** at `/api/gallery-sync`, which stores it and refreshes the cached gallery.
+   The script holds a bearer token for that endpoint and no Supabase key.
+
+The caption becomes the gallery caption (160 characters). A hashtag in it files the photo:
+`#comida` / `#essen` / `#food`, `#local` / `#lokal` / `#venue`, `#evento` / `#event` / `#feier`.
+Without one it is filed as food, and staff can change it under `/staff/gallery`. Videos are skipped.
+
+Setting it up, once:
+
+- In Photos, open the shared album, tap the people icon and switch on **Public Website**; copy the link.
+- `openssl rand -hex 32`, and store the result as `GALLERY_SYNC_TOKEN` on Vercel (production) and as a
+  GitHub Actions secret of the same name. Store the album link as the Actions secret `ICLOUD_ALBUM_URL`.
+- Apply migration `20261121132200_gallery_imports.sql`.
+
+To see what a run would produce without uploading anything:
+`ICLOUD_ALBUM_URL=... OUT_DIR=/tmp/album node scripts/sync-album.mjs`. A failing run opens the issue
+"Album sync is failing" and the next passing run closes it. The album endpoints are not a documented
+Apple API, so that issue is also how a change on Apple's side would show up.
+
 ## Tests
 
 ```bash

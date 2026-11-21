@@ -219,6 +219,35 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_imports: {
+        Row: {
+          gallery_item_id: string | null
+          imported_at: string
+          source: string
+          source_id: string
+        }
+        Insert: {
+          gallery_item_id?: string | null
+          imported_at?: string
+          source: string
+          source_id: string
+        }
+        Update: {
+          gallery_item_id?: string | null
+          imported_at?: string
+          source?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_imports_gallery_item_id_fkey"
+            columns: ["gallery_item_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_items: {
         Row: {
           caption: string | null
