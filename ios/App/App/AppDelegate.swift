@@ -52,3 +52,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return config
     }
 }
+
+/// The app's bridge view controller (SceneDelegate creates it instead of Capacitor's own).
+///
+/// The WebView fills the screen and keeps the page below the status bar (`contentInset: "always"`),
+/// but a scrolled page still slides up behind the clock and the Dynamic Island, because the site
+/// does not pad for them. A fixed strip in the page colour over the status bar area covers that,
+/// so the clock always sits on a calm background. It is a subview of the WebView itself, not of its
+/// scroll view, so it never moves.
+class AppViewController: CAPBridgeViewController {
+    private let statusBarCover = UIView()
+
+    override func capacitorDidLoad() {
+        super.capacitorDidLoad()
+        statusBarCover.backgroundColor = UIColor(red: 0xf3 / 255, green: 0xf8 / 255, blue: 0xfb / 255, alpha: 1)
+        statusBarCover.isUserInteractionEnabled = false
+        webView?.addSubview(statusBarCover)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        layoutStatusBarCover()
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        layoutStatusBarCover()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        layoutStatusBarCover()
+    }
+
+    private func layoutStatusBarCover() {
+        // The window's inset as well: the WebView can report none while it adjusts its own content.
+        let top = max(view.safeAreaInsets.top, view.window?.safeAreaInsets.top ?? 0)
+        statusBarCover.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: top)
+        webView?.bringSubviewToFront(statusBarCover)
+    }
+}
