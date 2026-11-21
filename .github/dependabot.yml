@@ -1,0 +1,38 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
+    groups:
+      next-react:
+        patterns:
+          - next
+          - react
+          - react-dom
+      routine:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - next
+          - react
+          - react-dom
+    ignore:
+      # Node moves in one deliberate commit or not at all.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # The paullorb/cicd pins are bumped by hand, in the same PR in every repo.
+    ignore:
+      - dependency-name: "paullorb/cicd/*"
+      - dependency-name: "paullorb/cicd"
