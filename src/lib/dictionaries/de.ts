@@ -34,6 +34,8 @@ export const de = {
     contact: "Kontakt",
     imprint: "Impressum",
     privacy: "Datenschutz",
+    /** The way into /staff for the team; the iPhone app opens the public site, so it needs one. */
+    staffLogin: "Team-Login",
     back: "Zurück zur Startseite",
     backHome: "Zur Startseite",
     madeWithBefore: "Con mucho ",
