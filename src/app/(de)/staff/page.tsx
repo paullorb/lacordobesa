@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { StaffLoading } from "@/components/staff/card-bits";
+import { NativePushCard } from "@/components/staff/native-push";
 import { ReservationCard } from "@/components/staff/reservation-card";
 import { requireStaff } from "@/lib/auth";
 import { fmtTime } from "@/lib/data";
@@ -62,6 +63,8 @@ async function Dashboard() {
           {todays?.length ?? 0} reservas · {seats} personas
         </p>
       </div>
+
+      <NativePushCard />
 
       {(pendingCount ?? 0) > 0 && (
         <section className="card border-amber-200 bg-amber-50">

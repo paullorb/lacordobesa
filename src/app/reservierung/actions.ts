@@ -1,9 +1,11 @@
 "use server";
 
+import { after } from "next/server";
 import { getReservationSettings } from "@/lib/data";
 import { addDays, isISODate, isTime } from "@/lib/dates";
 import { formErrors, formLocale } from "@/lib/form-errors";
 import { publicFormClient } from "@/lib/public-forms";
+import { notifyStaff, reservationPush } from "@/lib/native-push";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 import { isManageToken } from "@/lib/site";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -132,6 +134,8 @@ export async function requestReservation(_prev: RequestState, formData: FormData
     p_locale: formLocale(formData),
   });
   if (error) return { ok: false, error: errorFor(error.message), retryTime: RETRY_TIME.has(error.message) };
+  // The staff iPhone app; after the response, so the guest never waits on Apple.
+  after(() => notifyStaff(reservationPush({ name, partySize, date, time })));
   return { ok: true, id: data };
 }
 

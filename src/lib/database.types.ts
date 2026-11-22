@@ -219,6 +219,35 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_imports: {
+        Row: {
+          gallery_item_id: string | null
+          imported_at: string
+          source: string
+          source_id: string
+        }
+        Insert: {
+          gallery_item_id?: string | null
+          imported_at?: string
+          source: string
+          source_id: string
+        }
+        Update: {
+          gallery_item_id?: string | null
+          imported_at?: string
+          source?: string
+          source_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_imports_gallery_item_id_fkey"
+            columns: ["gallery_item_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_items: {
         Row: {
           caption: string | null
@@ -705,6 +734,38 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_push_tokens: {
+        Row: {
+          created_at: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       waitlist_entries: {
         Row: {
           created_at: string
@@ -859,6 +920,10 @@ export type Database = {
         }[]
       }
       preorder_settings: { Args: never; Returns: Json }
+      register_push_token: {
+        Args: { p_platform?: string; p_token: string }
+        Returns: undefined
+      }
       release_broadcast_email_attempt: {
         Args: { p_email: string }
         Returns: undefined
@@ -968,6 +1033,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined }
       unsubscribe_broadcast: { Args: { p_token: string }; Returns: undefined }
     }
     Enums: {

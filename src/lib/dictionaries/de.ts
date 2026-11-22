@@ -34,6 +34,8 @@ export const de = {
     contact: "Kontakt",
     imprint: "Impressum",
     privacy: "Datenschutz",
+    /** The way into /staff for the team; the iPhone app opens the public site, so it needs one. */
+    staffLogin: "Team-Login",
     back: "Zurück zur Startseite",
     backHome: "Zur Startseite",
     madeWithBefore: "Con mucho ",
@@ -61,8 +63,6 @@ export const de = {
       "Empanadas, süße Klassiker und hausgemachte Spezialitäten, nach argentinischer Art.",
     heroReserve: "Tisch reservieren",
     heroMenu: "Zum Menü",
-    /** Beside the small line at the foot of the hero that says there is more below. */
-    marqueeLabel: "Hausgemachte Spezialitäten",
     storyEyebrow: "Wir sind",
     storyTitle: "Hausgemacht & Authentisch",
     storyP1:
@@ -71,9 +71,6 @@ export const de = {
       "Es ist unsere Leidenschaft, die argentinische Kultur und Tradition an unsere Kinder weiterzugeben. Wir sind ein Familienunternehmen aus Alta Gracia, Córdoba, und wir leben die Liebe zu dem, was uns von klein auf geprägt hat.",
     storySignature: "Team La Cordobesa",
     storyArtCaption: "Sabores de nuestra casa",
-    menuEyebrow: "De nuestra cocina",
-    menuTitle: "Ein paar Lieblingsstücke",
-    menuFull: "Komplettes Menü ansehen",
     specialTag: "Heute",
     craftEyebrow: "Hecho a mano",
     craftTitle: "Jede Empanada bekommt ihren eigenen Rand.",
@@ -180,14 +177,6 @@ export const de = {
     eyebrow: "Festejemos juntos",
     heading: "Feiern & Catering",
     intro: "Geburtstag, Firmenfeier, Taufe: wir kochen argentinisch für eure Feier, bei uns oder zum Abholen. Erzähl uns, was du vorhast.",
-    photos: [
-      { caption: "Zum Wohl", alt: "Gäste heben bei einer Feier ihre Gläser zum Anstoßen" },
-      { caption: "Geburtstag", alt: "Ein Cupcake mit einer Kerze auf einer Hand" },
-      { caption: "Buffet", alt: "Ein Buffet mit Aufschnitt, Käse, Brot, Oliven und Birnen" },
-      { caption: "Mesa dulce", alt: "Eine Hochzeitstorte mit kleinen Süßigkeiten auf dem Tisch davor" },
-      { caption: "Festlich gedeckt", alt: "Ein weiß gedeckter Tisch mit Blumen, Kerzen und Gläsern" },
-      { caption: "Eine Tafel für alle", alt: "Ein runder Tisch mit Blumenstrauß, Wein und Kerzen" },
-    ],
     ideas: [
       {
         title: "Bei uns",
@@ -387,10 +376,8 @@ export const de = {
     changeDate: "Datum ändern",
     changeGuests: "Personenzahl ändern",
     changeBudget: "Rahmen ändern",
-    continueLabel: "Weiter",
     dateOpen: "Datum noch offen",
     dateUnknown: "Weiß ich noch nicht",
-    otherDate: "Anderes Datum",
     guestsAboutBefore: "ca. ",
     guestsAboutAfter: " Personen",
     occasion: "Was möchtest du feiern?",

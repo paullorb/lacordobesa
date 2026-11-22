@@ -77,8 +77,15 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
   redirect(next.startsWith("/staff") ? next : "/staff");
 }
 
-export async function signOut() {
+export async function signOut(formData?: FormData) {
   const supabase = await createClient();
+  // The iPhone app sends its push token along (sign-out-button.tsx); remove it while the session
+  // still exists, since unregister_push_token() only deletes the caller's own rows.
+  const pushToken = formData ? str(formData, "push_token") : "";
+  if (pushToken) {
+    const { error } = await supabase.rpc("unregister_push_token", { p_token: pushToken });
+    if (error) console.error("signOut push token", error);
+  }
   await supabase.auth.signOut();
   redirect("/staff/login");
 }

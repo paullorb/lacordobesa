@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications capability. Xcode switches this to "production" when it exports for
+	     TestFlight / App Store, so the sender must use APNS_ENV=production for those builds. -->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

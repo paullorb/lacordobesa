@@ -2,15 +2,13 @@ import { cacheLife } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
-import { ArrowIcon, MenuIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
+import { ArrowIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
 import { CheerCursor } from "@/components/cheer-cursor";
 import { HeroCursor } from "@/components/hero-cursor";
-import { Marquee } from "@/components/marquee";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
-import { CordobaBackdrop } from "@/components/cordoba-backdrop";
-import { CordobaFondo } from "@/components/cordoba-fondo";
+import { SolBackdrop } from "@/components/sol-backdrop";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
 import { InstagramIcon } from "@/components/instagram-icon";
@@ -18,7 +16,6 @@ import { JsonLd } from "@/components/json-ld";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
 import { PhoneNote } from "@/components/phone-note";
-import { Repulgue } from "@/components/repulgue";
 import { ShareButton } from "@/components/share-button";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
@@ -27,13 +24,11 @@ import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
-import { isUntranslated, menuDescription } from "@/lib/menu-text";
 import { restaurantJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
   getAnnouncement,
   getHomePhotos,
-  getMenu,
   getOpeningHours,
   getReservationSettings,
   getUpcomingClosures,
@@ -42,27 +37,11 @@ import { getInstagramPosts } from "@/lib/instagram";
 
 export const HOME_PATH = "/";
 
-/** Spanish in every locale on purpose: it is the shop talking, not the page.
- *
- *  Repeated so one copy of the track is wider than any viewport. Three phrases alone are about
- *  700px, which left half a screen of nothing between them on a desktop and read as scattered
- *  words rather than a ribbon. */
-const PHRASES = ["Empanadas hechas a mano", "Pastelería argentina", "Un pedacito de Argentina"];
-const MARQUEE = Array.from({ length: 6 }, (_, i) => PHRASES.map((p) => ({ key: `${i}-${p}`, text: p }))).flat();
-
-const FAVOURITE_PHOTOS = [
-  { src: "/assets/home/empanadas-close.jpg", alt: { de: "Frisch geformte Empanadas mit gedrehtem Rand", en: "Freshly shaped empanadas with a crimped edge", es: "Empanadas recién armadas con repulgue" } },
-  { src: "/assets/home/medialunas-cafe.jpg", alt: { de: "Medialuna und Kaffee im Morgenlicht", en: "A medialuna and coffee in morning light", es: "Medialuna y café a la luz de la mañana" } },
-  { src: "/assets/home/hands-dough.jpg", alt: { de: "Hände formen Empanadas aus Teig", en: "Hands shaping empanadas from dough", es: "Manos armando empanadas" } },
-  { src: "/assets/home/tarta.jpg", alt: { de: "Kuchenstücke, Croissants und Säfte auf einem Holztisch", en: "Cake slices, croissants and juices on a wooden table", es: "Porciones de torta, medialunas y jugos sobre una mesa de madera" } },
-];
-
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, menu, hours, closures, reservation, photos, instagram] = await Promise.all([
+  const [announcement, hours, closures, reservation, photos, instagram] = await Promise.all([
     getAnnouncement(),
-    getMenu(),
     getOpeningHours(),
     getUpcomingClosures(),
     getReservationSettings(),
@@ -79,21 +58,14 @@ export async function HomeView({ locale }: { locale: Locale }) {
   });
   const chapters = [
     { id: "geschichte", label: t.chapters.story, icon: "story" },
-    { id: "karte", label: t.chapters.menu, icon: "menu" },
     ...(photos.featured.length || instagram.length ? [{ id: "fotos", label: t.chapters.photos, icon: "gallery" }] : []),
     { id: "reservieren", label: t.chapters.reserve, icon: "reserve" },
     { id: "besuch", label: t.chapters.visit, icon: "visit" },
   ];
 
-  // Featured items on the home page; the full list lives behind each category.
-  const featured = menu.flatMap((c) => c.items.filter((i) => i.is_featured).map((i) => ({ ...i, category: c })));
-  const cards = featured.length ? featured : menu.flatMap((c) => c.items.slice(0, 1).map((i) => ({ ...i, category: c })));
-
   return (
     <div className="site">
       <JsonLd data={restaurantJsonLd(hours, locale, reservation.enabled)} />
-      {/* Trial for the owners, off unless the URL says ?fondo=cordoba (see cordoba-fondo.tsx). */}
-      <CordobaFondo />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
       {/* Wide screens only (see .chapter-nav): the page chapters, with the current one marked. */}
@@ -138,28 +110,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
           <HeroCursor />
         </section>
 
-        {/* Decorative: the visual track repeats the phrases six times so it is wider than any
-            viewport, which would mean hearing each one six times. The track is hidden from
-            assistive technology and the phrases are offered once, in order, instead. */}
-        <Marquee>
-          <p className="sr-only">{`${t.marqueeLabel}: ${PHRASES.join(". ")}.`}</p>
-          <div className="marquee-track" aria-hidden="true">
-            <div className="marquee-inner">
-              {MARQUEE.map((phrase) => (
-                <span key={phrase.key}>{phrase.text}</span>
-              ))}
-            </div>
-            <div className="marquee-inner">
-              {MARQUEE.map((phrase) => (
-                <span key={phrase.key}>{phrase.text}</span>
-              ))}
-            </div>
-          </div>
-        </Marquee>
-
         <section className="section story-section" id="geschichte">
-          {/* The province behind the story: a quiet map that drifts with the scroll. */}
-          <CordobaBackdrop />
+          {/* The Sol de Mayo behind the story, turning slowly with the scroll. The map of Córdoba
+              is the hero's; this chapter gets the sun from the flag instead. */}
+          <SolBackdrop />
           <div className="intro-grid">
             <div className="intro-copy">
               <p className="eyebrow">{t.storyEyebrow}</p>
@@ -168,55 +122,6 @@ export async function HomeView({ locale }: { locale: Locale }) {
               <p>{t.storyP2}</p>
               <p className="signature">{t.storySignature}</p>
             </div>
-          </div>
-        </section>
-
-        <section className="menu-section pattern-stars" id="karte">
-          <div className="inner">
-            <div className="section-heading">
-              <p className="eyebrow">{t.menuEyebrow}</p>
-              <h2>{t.menuTitle}</h2>
-              <Repulgue className="repulgue-divider" />
-            </div>
-
-            <div className="menu-grid">
-              {cards.map((item, i) => (
-                <article className="menu-card" key={item.id} data-spotlight="" data-cheer="">
-                  <div>
-                    <span className="dish-number">
-                      {String(i + 1).padStart(2, "0")} / {item.category.label}
-                    </span>
-                    <span className="dish-icon">
-                      <MenuIcon slug={item.category.slug} />
-                    </span>
-                    <h3>
-                      {item.name}
-                      {item.subtitle && <span>{item.subtitle}</span>}
-                    </h3>
-                    {menuDescription(item, locale) && (
-                      <p lang={isUntranslated(item, locale) ? "de" : undefined}>{menuDescription(item, locale)}</p>
-                    )}
-                  </div>
-                  {item.price_label && <span className="price">{item.price_label}</span>}
-                  {/* Crimped shut on hover, the way the dish itself is finished. */}
-                  <Repulgue folds={30} className="menu-card-edge" />
-                </article>
-              ))}
-            </div>
-            {/* Four of the staged photographs, between the favourites and the full menu. */}
-            <ul className="menu-photos">
-              {FAVOURITE_PHOTOS.map((p) => (
-                <li key={p.src}>
-                  <Image src={p.src} alt={p.alt[locale === "de" ? "de" : locale === "es" ? "es" : "en"]} fill sizes="(max-width: 800px) 50vw, 270px" />
-                </li>
-              ))}
-            </ul>
-            <p className="menu-more">
-              <Link className="button" href={href("/karte")}>
-                {t.menuFull} <ArrowIcon direction="right" />
-              </Link>
-            </p>
-
           </div>
         </section>
 
