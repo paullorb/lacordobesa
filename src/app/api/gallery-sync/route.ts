@@ -24,9 +24,21 @@ const denied = () => new Response(null, { status: 404 });
 
 export async function GET(request: NextRequest) {
   if (!syncAuthorized(request.headers.get("authorization"))) return denied();
-  const { data, error } = await createPrivilegedClient().from("gallery_imports").select("source_id").eq("source", ALBUM_SOURCE).limit(10000);
-  if (error) return json({ error: error.message }, 500);
-  return json({ known: data.map((row) => row.source_id) });
+  // Paged: the API answers with at most `max_rows` (1000, supabase/config.toml) rows whatever the limit
+  // says, and an id missing here would be sent again on every run.
+  const supabase = createPrivilegedClient();
+  const known: string[] = [];
+  for (;;) {
+    const { data, error } = await supabase
+      .from("gallery_imports")
+      .select("source_id")
+      .eq("source", ALBUM_SOURCE)
+      .order("source_id")
+      .range(known.length, known.length + 999);
+    if (error) return json({ error: error.message }, 500);
+    if (data.length === 0) return json({ known });
+    known.push(...data.map((row) => row.source_id));
+  }
 }
 
 export async function POST(request: NextRequest) {
