@@ -35,9 +35,18 @@ export function NativePushCard() {
       if (permission === "denied") return setState("blocked");
       if (permission === "granted" && token) {
         setState("on");
-        // The row may be gone (someone else signed in on this phone, or Apple retired the token):
-        // registering again is idempotent and puts it back under whoever is signed in now.
-        void savePushToken(token);
+        // The row may be gone (someone else signed in on this phone): saving again is idempotent and
+        // puts it back under whoever is signed in now. Apple may also have replaced the token (a
+        // backup restore), so ask for the current one; permission is granted, so nothing prompts.
+        const fresh = await requestPushToken(plugin).catch(() => token);
+        // Switched off while Apple was answering: do not switch it back on.
+        if (storedPushToken() !== token) return;
+        const { ok } = await savePushToken(fresh).catch(() => ({ ok: false }));
+        // Off meanwhile: take the row just saved back out.
+        if (storedPushToken() !== token) return void removePushToken(fresh).catch(() => undefined);
+        if (!ok || fresh === token) return;
+        storePushToken(fresh);
+        await removePushToken(token).catch(() => undefined);
       } else setState("off");
     })();
     return () => {

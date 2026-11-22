@@ -20,10 +20,14 @@ describe("the reservation calendar", () => {
   test("rings today and prints no word on any day", { skip }, async () => {
     await visit("/", {
       body: async ({ page }) => {
-        assert.equal(await page.locator(".day small").count(), 0, "no day should carry a label by default");
+        // The one word a day may carry is its month's short name, on the first day drawn and on a 1st.
+        const labelled = await page.locator(".day").evaluateAll((els) =>
+          els.flatMap((el, i) => (el.querySelector("small") && i > 0 ? [el.firstChild.textContent] : [])),
+        );
+        assert.ok(labelled.every((day) => day === "1"), `days ${labelled} carry a label`);
         const marked = await page.locator(".day.is-today").all();
         assert.equal(marked.length, 1, "exactly one day should be ringed");
-        const label = await marked[0].textContent();
+        const label = await marked[0].evaluate((el) => el.firstChild.textContent);
         const expected = Number(berlinToday().slice(8));
         assert.equal(Number(label), expected, `the calendar rings day ${label}, but today is the ${expected}.`);
         // On the rest day the ring still sits on today, but the cell is disabled and says so.
@@ -176,9 +180,9 @@ describe("the celebration wizard", () => {
         const dates = page.locator(".slots:not(.occasions) .slot");
         await dates.first().waitFor({ timeout: 15_000 });
         assert.ok(await page.locator(".chip").first().isVisible(), "the answer should become a chip");
-        // The last two chips are "other date" and "not sure yet"; "other date" opens the picker.
+        // The last two chips are "other date" and "not sure yet"; "other date" opens the calendar.
         await dates.nth((await dates.count()) - 2).click();
-        await page.locator(".date-input").waitFor({ timeout: 5_000 });
+        await page.locator(".calendar .day").first().waitFor({ timeout: 5_000 });
       },
     });
   });
