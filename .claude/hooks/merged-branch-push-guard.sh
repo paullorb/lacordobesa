@@ -38,6 +38,8 @@ SEPARATORS = {"&&", "||", ";", "|", "&", "(", ")", "\n", ";;", "|&"}
 VALUED = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env",
           "--super-prefix", "--exec-path"}
 PUSH_VALUED = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
+KEYWORDS = {"if", "then", "elif", "else", "while", "until", "do", "{", "!", "time"}
+EXPANSION = re.compile(r"\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))")
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
 
@@ -78,10 +80,11 @@ def segments(words):
 
 def strip_prefixes(segment):
     """Drop what runs a command without being it: `VAR=x`, `command`, `builtin`,
-    `exec` and `env` (with its options and assignments)."""
+    `exec`, `env` (with its options and assignments) and the shell keywords
+    that open a command list (`then`, `do`, `{`, `!`)."""
     while segment:
         word = segment[0]
-        if ASSIGNMENT.match(word) or word in ("command", "builtin", "exec", "nohup"):
+        if word in KEYWORDS or ASSIGNMENT.match(word) or word in ("command", "builtin", "exec", "nohup"):
             segment = segment[1:]
         elif word == "env":
             segment = segment[1:]
@@ -93,7 +96,27 @@ def strip_prefixes(segment):
     return segment
 
 
+def unexpanded(text):
+    return "$" in text or "`" in text
+
+
+def expand(text, here, variables):
+    """`$NAME` and `${NAME}` from the command itself, then the environment. What
+    is not known (a command substitution, an unset name) stays as written."""
+    def value(match):
+        name = match.group(1) or match.group(2)
+        if name == "PWD":
+            return here
+        found = variables.get(name, os.environ.get(name))
+        return match.group(0) if found is None else found
+    return EXPANSION.sub(value, text)
+
+
 def resolve(base, path):
+    # A directory only the shell can name is taken to be the one it stands in:
+    # asking about that branch is better than not asking at all.
+    if unexpanded(path):
+        return base
     return os.path.normpath(os.path.join(base, os.path.expanduser(path)))
 
 
@@ -138,6 +161,9 @@ def push_targets(directory, git_opts, args):
             source = target = spec
         if target == "HEAD" or (source == "HEAD" and not target):
             target = current_branch(directory, git_opts)
+        if unexpanded(target):
+            # Only the shell knows the name; the current branch is the likely one.
+            target = current_branch(directory, git_opts)
         if target.startswith("refs/heads/"):
             target = target[len("refs/heads/"):]
         elif target.startswith("refs/"):
@@ -159,6 +185,7 @@ except ValueError:
     sys.exit(0)
 
 here = cwd
+variables = {}
 scopes = []
 for segment in segments(words):
     # A `cd` inside `( ... )` ends with the subshell; the shell that runs the
@@ -169,7 +196,15 @@ for segment in segments(words):
     if segment == ")":
         here = scopes.pop() if scopes else here
         continue
-    segment = strip_prefixes(segment)
+    words_only = [w for w in segment if w not in KEYWORDS]
+    if words_only and words_only[0] in ("export", "local", "declare", "readonly"):
+        words_only = words_only[1:]
+    if words_only and all(ASSIGNMENT.match(w) for w in words_only):
+        for word in words_only:
+            name, _, value = word.partition("=")
+            variables[name] = expand(value, here, variables)
+        continue
+    segment = [expand(w, here, variables) for w in strip_prefixes(segment)]
     if not segment:
         continue
     if segment[0] == "cd":
