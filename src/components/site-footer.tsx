@@ -101,6 +101,9 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
               pages exist in German only. */}
           <Link href={legalHref("/impressum", locale)}>{t.imprint}</Link>
           <Link href={legalHref("/datenschutz", locale)}>{t.privacy}</Link>
+          {/* The team's way in. The iPhone app opens this public site (capacitor.config.ts), so the
+              login has to be reachable from it; it is the same link on the web. */}
+          <Link href="/staff/login" prefetch={false}>{t.staffLogin}</Link>
         </span>
       </div>
     </footer>

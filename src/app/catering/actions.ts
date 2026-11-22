@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { isISODate } from "@/lib/dates";
-import { isBudgetBand, isOccasion } from "@/lib/events";
+import { isBudgetBand, isOccasion, occasionLabel } from "@/lib/events";
 import { formErrors } from "@/lib/form-errors";
+import { inquiryPush, notifyStaff } from "@/lib/native-push";
 import { publicFormClient } from "@/lib/public-forms";
 import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
@@ -53,5 +55,6 @@ export async function requestEventInquiry(_prev: InquiryState, formData: FormDat
     p_message: message || undefined,
   });
   if (error) return { ok: false, error: errorFor(error.message) };
+  after(() => notifyStaff(inquiryPush({ name, occasion: occasionLabel(occasion), date: date || null })));
   return { ok: true };
 }

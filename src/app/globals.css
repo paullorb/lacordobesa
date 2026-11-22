@@ -141,7 +141,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
    Drawn by default; the motion block below only ever animates it in from there. */
 .repulgue { display: block; max-width: 100%; height: auto; overflow: visible; }
 .repulgue-divider { width: 168px; margin: .2rem auto 1.4rem; color: var(--coral); }
-.menu-card-edge { position: absolute; left: 2rem; right: 2rem; bottom: .9rem; width: calc(100% - 4rem); color: var(--coral); opacity: .55; }
 .hero-text { max-width: 440px; margin-bottom: 2rem; color: rgba(255,253,248,.84); font-size: var(--fs-lg); line-height: 1.8; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
 .button.button-light { --button-hover: #d8eef8; color: var(--ink); background: var(--paper); }
@@ -158,18 +157,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .hero-note .open-status { padding: .5rem .9rem; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; background: rgba(13,35,45,.45); backdrop-filter: blur(10px); font-size: var(--fs-sm); letter-spacing: .01em; }
 .open-status-inline { margin: .1rem 0 .7rem; font-size: var(--fs-sm); font-weight: 600; }
 .open-status-inline[data-state="open"] .open-dot { background: #2e9d68; }
-.marquee { overflow: hidden; border-bottom: 1px solid var(--line); }
-/* Two identical copies side by side; sliding the track exactly half its width lands copy two where
-   copy one started, so the loop has no seam. The second copy is aria-hidden in the markup. */
-.marquee-track { display: flex; width: max-content; }
-/* Each copy is at least a viewport wide, which is what guarantees the loop never shows a gap:
-   after sliding half the track, copy two already covers the screen on its own. Without this the
-   phrases are ~700px and a 1280px window sees empty space on every cycle. */
-.marquee-inner { display: flex; flex: 0 0 auto; min-width: 100vw; align-items: center; justify-content: flex-start; gap: .8rem 2.4rem; padding: .9rem 1rem; color: var(--blue-dark); font-family: var(--serif); font-size: clamp(1.4rem, 2.4vw, 2rem); line-height: 1.25; font-style: italic; white-space: nowrap; }
-/* Every other phrase is drawn in outline, so the ribbon reads as type set with intent rather than
-   a line of small print, and the eye has somewhere to rest between the solid ones. */
-.marquee-inner span:nth-child(even) { color: transparent; -webkit-text-stroke: 1px var(--blue-dark); }
-.marquee-inner span::after { content: "✳"; margin-left: 1.9rem; color: var(--coral-text); font-size: .5em; font-style: normal; vertical-align: .2em; -webkit-text-stroke: 0; }
 .section { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 112px 0; }
 .section-heading { max-width: 640px; margin: 0 auto 3.5rem; text-align: center; }
 .section-heading .eyebrow { justify-content: center; }
@@ -177,23 +164,13 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .section-heading h1 { color: var(--ink); font-size: clamp(2.8rem, 5.6vw, 4.6rem); line-height: 1.05; text-wrap: balance; }
 .section-heading > p:last-child { margin-bottom: 0; color: var(--muted); line-height: 1.8; font-size: var(--fs-lg); }
 .intro-grid { display: block; }
-/* The story chapter carries the map of Córdoba behind its copy. The backdrop bleeds to the full
-   viewport width (the same 50vw trick as .menu-index) and never intercepts a click or a
-   selection; the copy keeps its place above it. */
+/* The story chapter carries the Sol de Mayo behind its copy (see sol-backdrop.tsx). The backdrop
+   bleeds to the full viewport width (the same 50vw trick as .menu-index) and never intercepts a
+   click or a selection; the copy keeps its place above it. */
 .story-section { position: relative; }
 .story-section .intro-grid { position: relative; z-index: 1; }
-.cordoba-backdrop { position: absolute; z-index: 0; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); display: flex; align-items: center; justify-content: center; overflow: hidden; pointer-events: none; }
-.cordoba-backdrop img { width: min(920px, 135%); max-width: none; height: auto; opacity: .1; filter: saturate(.8); user-select: none; }
-/* Trial, only under html[data-fondo="cordoba"] (see cordoba-fondo.tsx): the province as a fixed
-   layer behind the whole home page. z-index -1 puts it under every in-flow background, so it shows
-   through the cream sections; the mint and white bands go slightly translucent to let it through,
-   and the dark bands (hero photo, craft, footer) cover it on purpose. The story chapter's own
-   drifting map steps aside so the province is not drawn twice. */
-.cordoba-fondo { display: none; }
-[data-fondo="cordoba"] .cordoba-fondo { display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url("/assets/cordoba-map.svg") center / auto min(118vh, 175vw) no-repeat; opacity: .13; filter: saturate(.8); }
-[data-fondo="cordoba"] .cordoba-backdrop { display: none; }
-[data-fondo="cordoba"] .menu-section { background-color: color-mix(in srgb, var(--mint) 80%, transparent); }
-[data-fondo="cordoba"] .reserve-section { background-color: color-mix(in srgb, var(--paper) 78%, transparent); }
+.sol-backdrop { position: absolute; z-index: 0; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); display: flex; align-items: center; justify-content: center; overflow: hidden; pointer-events: none; color: #c8930f; }
+.sol-backdrop svg { width: min(680px, 120%); height: auto; flex: none; opacity: .16; }
 .intro-copy { max-width: 760px; margin: 0 auto; text-align: center; }
 .intro-copy .eyebrow { justify-content: center; }
 .intro-copy h2 { max-width: none; }
@@ -203,17 +180,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .intro-copy > p:not(.eyebrow) + p { margin-top: 1em; }
 .menu-section { width: 100%; padding: 110px 24px; background: var(--mint); }
 .menu-section .inner { width: min(1120px, 100%); margin: auto; }
-.menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
-.menu-card { position: relative; min-height: 275px; padding: 2rem; background: var(--paper); border: 1px solid rgba(21,47,59,.08); display: flex; flex-direction: column; justify-content: space-between; transition: transform .25s, box-shadow .25s; }
-.menu-card:nth-child(3n+2) { margin-top: 26px; }
-.menu-card:nth-child(3n) { margin-top: 52px; }
-.dish-number { color: var(--coral-text); font-family: var(--serif); font-size: var(--fs-sm); font-style: italic; }
 /* The category mark sits beside the dish number and takes its colour from it. */
-.dish-icon { display: inline-flex; vertical-align: -.3em; margin-left: .45rem; color: var(--coral); }
-.menu-card h3 { margin: 1.25rem 0 .6rem; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; }
-.menu-card h3 span { display: block; margin-top: .25rem; font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .14em; color: var(--blue-dark); text-transform: uppercase; }
-.menu-card p { margin: 0; max-width: 270px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.7; }
-.menu-card .price { color: var(--ink); font-size: var(--fs-sm); font-weight: 700; margin-top: 1.2rem; }
 /* The full carta. Each category is a row: its name set large in a column that stays put while its
    dishes scroll past, then the dishes as a printed menu, name and price joined by a dotted leader. */
 .menu-page { width: min(1120px, calc(100% - 48px)); margin: auto; padding: 96px 0 112px; }
@@ -275,11 +242,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .menu-item-body small { display: block; max-width: 520px; margin-top: .3rem; color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; }
 .menu-items .menu-icon { margin-top: .3rem; }
 .menu-cta { margin: 2.2rem 0 0; text-align: center; }
-.menu-photos { list-style: none; margin: 4.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; }
-.menu-photos li { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 4px; background: var(--paper); }
-.menu-photos li:nth-child(even) { margin-top: 26px; }
-.menu-photos img { object-fit: cover; }
-@media (max-width: 800px) { .menu-photos { grid-template-columns: 1fr 1fr; margin-top: 3rem; } .menu-photos li:nth-child(even) { margin-top: 0; } }
 .menu-more { margin: 3rem 0 0; text-align: center; }
 .menu-note { max-width: 620px; margin: 2.8rem auto 0; text-align: center; color: var(--muted); font-size: var(--fs-xs); line-height: 1.8; }
 .specials { display: grid; gap: .8rem; max-width: 720px; margin: 0 auto 3rem; }
@@ -382,7 +344,8 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .reserve-call strong { font-weight: 700; white-space: nowrap; }
 
 .wizard { gap: 1.1rem; }
-.wizard-dots { display: flex; gap: .35rem; }
+.wizard-dots { display: flex; gap: .35rem; animation: wizard-dots-in .45s cubic-bezier(.22,.61,.36,1) both; transform-origin: left; }
+@keyframes wizard-dots-in { from { opacity: 0; transform: scaleX(.6); } to { opacity: 1; transform: none; } }
 .wizard-dots span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); transition: background .35s ease; }
 .wizard-dots span.on { background: var(--blue-dark); }
 .wizard-title:focus { outline: none; } /* Focus lands here on a step change (wizard.tsx); it is not a control. */
@@ -406,6 +369,9 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 .day[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: white; }
 .day[aria-pressed="true"] small { color: rgba(255,253,248,.75); }
 .day:disabled { opacity: .32; cursor: not-allowed; }
+/* Days outside the bookable range, drawn so every row is a whole week (booking-calendar.tsx). */
+.day-out { display: grid; align-content: center; justify-items: center; min-height: 46px; padding: .25rem .1rem; border: 1px solid transparent; color: var(--muted); opacity: .45; font-family: var(--serif); font-size: var(--fs-base); line-height: 1.1; user-select: none; }
+.day-out small { font-family: var(--sans); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .slot.party { min-width: 3rem; padding: .6rem 1rem; font-size: var(--fs-base); }
 /* The celebration wizard's first question: one answer per row on a phone, two or three columns
    where there is room, so six answers of very different lengths line up instead of wrapping ragged. */
@@ -503,10 +469,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
 /* /catering: the three things we can do for a feier. */
 .idea-grid { list-style: none; margin: 0 0 3rem; padding: 0; display: grid; border-top: 1px solid var(--line); }
 .idea-grid li { display: grid; grid-template-columns: 3rem minmax(9rem, 13rem) 1fr; gap: .3rem 1.5rem; align-items: baseline; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
-.event-photos { list-style: none; margin: 0 0 3rem; padding: 0; display: grid; gap: .6rem; grid-template-columns: repeat(3, 1fr); }
-.event-photos li { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--mint); }
-.event-photos img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.event-photo-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.4rem .9rem .75rem; color: #fff; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: linear-gradient(transparent, rgba(13,35,45,.78)); pointer-events: none; }
 .idea-num { color: var(--coral-text); font-family: var(--serif); font-size: var(--fs-lg); font-style: italic; }
 .site .idea-grid h2 { margin: 0; font-family: var(--serif); font-size: var(--fs-xl); font-weight: 500; line-height: 1.2; letter-spacing: -.01em; }
 .idea-grid p { margin: 0; color: var(--muted); font-size: var(--fs-base); line-height: 1.65; }
@@ -642,7 +604,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .menu-items li:hover .menu-item-price { color: var(--coral-text); }
   .reserve-call:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.6); }
   .menu-toggle:hover svg { transform: rotate(-8deg) scale(1.06); }
-  .menu-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(31,83,99,.1); }
   .menu-index a:hover { background: var(--ink); color: var(--paper); }
   .site-footer .footer-links a:hover { background-size: 100% 1px; }
   .footer-links a:hover, .footer-col a:hover, .footer-col .contact-row a:hover, .footer-legal a:hover { color: #9ed8f2; }
@@ -744,8 +705,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .section { width: calc(100% - 40px); padding: 82px 0; }
   .reserve-grid { grid-template-columns: 1fr; gap: 3rem; }
   .menu-section { padding: 82px 20px; }
-  .menu-grid { grid-template-columns: 1fr 1fr; }
-  .menu-card:nth-child(n) { margin-top: 0; }
   .craft-grid, .visit, .reviews { grid-template-columns: 1fr; gap: 2.5rem; }
   /* minmax(0, …): a plain 1fr cannot shrink below its longest unbreakable line (the email address),
      which pushed the visit section 13px past a phone screen and made the browser zoom the page out. */
@@ -762,7 +721,6 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .visit-photo { position: relative; top: auto; height: auto; min-height: 390px; }
 }
 @media (max-width: 520px) {
-  .event-photos { grid-template-columns: repeat(2, 1fr); }
   .idea-grid li { grid-template-columns: 2.4rem 1fr; }
   .idea-grid p { grid-column: 2; }
   /* On a phone the text runs the full width, so the veil runs top to bottom instead. */
@@ -780,11 +738,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
   .hero-text { font-size: var(--fs-lg); }
   .hero-note { right: 14px; bottom: 14px; font-size: var(--fs-xs); }
   .hero-note img { width: 45px; }
-  .marquee-inner { justify-content: flex-start; gap: .65rem 1rem; font-size: 1.2rem; }
-  .marquee-inner span::after { margin-left: 1rem; }
   .section-heading { margin-bottom: 2.3rem; }
-  .menu-grid { grid-template-columns: 1fr; }
-  .menu-card { min-height: 230px; padding: 1.5rem; }
   .visit-card { padding: 1.5rem; }
   .visit-photo { min-height: 320px; }
   .gallery-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -810,7 +764,7 @@ body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(
    and it keeps the large flat cream areas from reading as a blank browser window. Fixed rather
    than scrolled, so it behaves like paper the page is printed on instead of sliding past.
 
-   The pattern is the same six-point star the marquee uses between phrases, tiled very faintly. It
+   The pattern is a small six-point star, tiled very faintly. It
    sits only on the mint and cream bands, never behind body copy, so nothing has to fight it for
    contrast. */
 body::after {
@@ -839,11 +793,6 @@ body::after {
    without them simply shows the finished state rather than hiding content it cannot reveal. */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The ribbon is moved by components/marquee.tsx, which also slows it and turns it round when
-     pointed at. Pointed at, the outlined words fill in as well, as a nod to being noticed. */
-  .marquee-track { will-change: transform; }
-  .marquee-inner span:nth-child(even) { transition: color .5s ease; }
-  @media (hover: hover) { .marquee:hover .marquee-inner span:nth-child(even) { color: var(--blue-dark); } }
 
   /* The hero settles rather than arrives: a slow drift out of a slight over-scale. Runs once, so
      it reads as the page composing itself, not as an effect. */
@@ -854,8 +803,7 @@ body::after {
   @supports (animation-timeline: view()) {
     /* Not the menu page: it is one section as long as the page, so "26% covered" would leave the
        whole carta half transparent until the reader was a third of the way down it. */
-    .site main > section:not(.hero, .menu-page),
-    .site main > .marquee {
+    .site main > section:not(.hero, .menu-page) {
       animation: section-reveal linear both;
       animation-timeline: view();
       animation-range: entry 8% cover 26%;
@@ -866,7 +814,6 @@ body::after {
 /* Paper has no scroll timeline, so a reveal would print as a blank page. */
 @media print {
   .site main > section,
-  .site main > .marquee,
   .site main { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
 
@@ -929,8 +876,6 @@ body::after {
 
 /* Where there is a pointer, a menu card is crimped shut as it is hovered. On touch it is simply drawn. */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .menu-card-edge path { stroke-dasharray: 1 2; stroke-dashoffset: 1; transition: stroke-dashoffset .8s cubic-bezier(.2,.7,.2,1); }
-  .menu-card:hover .menu-card-edge path { stroke-dashoffset: 0; }
 }
 /* A change of language swaps the whole document (each language has its own root layout), so the
    browser's cross-document view transition is what keeps that one from being a hard cut. */
@@ -962,13 +907,13 @@ body::after {
     /* Cards and rows lift into place one by one. Neighbours in a row enter the viewport together,
        so the second, third and fourth are each held back a little, which is what reads as a
        stagger. Animated with translate, not transform, so a card's hover lift still works. */
-    .menu-grid .menu-card, .photo-strip li, .reviews-list li, .idea-grid li, .specials .special, .menu-cat {
+    .photo-strip li, .reviews-list li, .idea-grid li, .specials .special, .menu-cat {
       animation: item-reveal linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 60%;
     }
-    .menu-grid .menu-card:nth-child(3n+2), .photo-strip li:nth-child(4n+2), .reviews-list li:nth-child(2n) { animation-range: entry 12% entry 72%; }
-    .menu-grid .menu-card:nth-child(3n), .photo-strip li:nth-child(4n+3) { animation-range: entry 24% entry 84%; }
+    .photo-strip li:nth-child(4n+2), .reviews-list li:nth-child(2n) { animation-range: entry 12% entry 72%; }
+    .photo-strip li:nth-child(4n+3) { animation-range: entry 24% entry 84%; }
     .photo-strip li:nth-child(4n) { animation-range: entry 36% entry 96%; }
 
     /* A photograph drifts inside its frame as the frame crosses the screen. */
@@ -976,19 +921,16 @@ body::after {
 
     .footer-wordmark { animation: wordmark-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
 
-    /* Córdoba drifts behind the story: it rises against the scroll, turns and grows a little,
-       and is clearest mid-chapter — present while the story is read, gone before and after. The
-       opacity lives in the keyframes so a browser without scroll timelines keeps the quiet .1
-       from the base rule rather than a map that never fades. */
+    /* The sun turns slowly behind the story as it is read, a few degrees across the chapter. */
     .story-section { view-timeline-name: --story; }
-    .cordoba-backdrop img { animation: cordoba-drift linear both; animation-timeline: --story; animation-range: entry 0% exit 100%; }
+    .sol-backdrop svg { animation: sol-turn linear both; animation-timeline: --story; animation-range: entry 0% exit 100%; }
   }
 }
 @keyframes hero-parallax { to { translate: 0 14%; scale: 1.28; } }
 @keyframes hero-leave { to { opacity: 0; translate: 0 -10%; } }
 @keyframes item-reveal { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
 @keyframes photo-drift { from { translate: 0 -5%; scale: 1.12; } to { translate: 0 5%; scale: 1.12; } }
-@keyframes cordoba-drift { from { translate: 0 9%; scale: 1; rotate: -1.6deg; opacity: .04; } 50% { opacity: .17; } to { translate: 0 -9%; scale: 1.12; rotate: 1.6deg; opacity: .04; } }
+@keyframes sol-turn { from { rotate: -12deg; scale: .94; } to { rotate: 12deg; scale: 1.04; } }
 @keyframes wordmark-rise { from { opacity: 0; translate: 0 30%; } to { opacity: 1; translate: 0 0; } }
 
 /* ------------------------------------------------------------------ page transitions
@@ -1388,6 +1330,3 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 
 /* The celebration form's "other date": the native picker in the site's own field styling, with the
    button that moves on beside it. */
-.date-pick { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
-.date-input { box-sizing: border-box; min-height: 46px; padding: .6rem .85rem; font: inherit; font-size: var(--fs-base); border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); color-scheme: light; }
-.date-input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }

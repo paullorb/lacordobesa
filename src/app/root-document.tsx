@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@/components/analytics";
+import { NativePushTapHandler } from "@/components/native-push-tap";
 import { APPS, ICONS } from "@/lib/brand";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
@@ -38,6 +39,7 @@ export function RootDocument({
       <body>
         {children}
         <Analytics />
+        <NativePushTapHandler />
       </body>
     </html>
   );

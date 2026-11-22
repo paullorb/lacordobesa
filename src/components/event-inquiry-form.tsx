@@ -1,20 +1,24 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 import { useTrackForm } from "@/components/analytics";
 import { useFormGuard } from "@/components/form-guard";
 import { requestEventInquiry } from "@/app/catering/actions";
-import { ArrowIcon, OccasionIcon } from "@/components/icons";
+import { OccasionIcon } from "@/components/icons";
+import { BookingCalendar } from "@/components/booking-calendar";
+import { ContactFields, type Contact } from "@/components/contact-fields";
 import { PhoneNote } from "@/components/phone-note";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { addDays, fmtDate, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { BUDGET_CODES, GUEST_OPTIONS, OCCASION_CODES, type BudgetBand, type Occasion } from "@/lib/events";
 import type { Locale } from "@/lib/i18n";
-import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 const MESSAGE_MAX = 1500;
-const QUICK_DAYS = 6;
+/** A celebration is planned further ahead than a table, so the calendar opens on five weeks and
+ *  reaches a year out, four weeks at a time. */
+const FIRST_WEEKS = 5;
+const DAYS_AHEAD = 365;
 const NEVER_CHANGES = () => () => {};
 
 /**
@@ -23,7 +27,7 @@ const NEVER_CHANGES = () => () => {};
  * Shares the wizard with the table booking rather than re-implementing it: same progress bar, same
  * go-back chips, same step animation. Date and headcount are usually what the guest wants to
  * discuss, so both can be answered "not sure yet"; `null` is "not asked yet", `""` is that answer.
- * The date offers the next few days as chips and opens the native picker for anything else.
+ * The date is picked on the same calendar as the table booking and the pre-order.
  *
  * Every answer rides along as a hidden input, because only the current step is mounted. The contact
  * fields live in state for the same reason: going back through a chip unmounts them.
@@ -38,27 +42,12 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
   const [step, setStep] = useState(1);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const [eventDate, setEventDate] = useState<string | null>(null);
-  const [customDate, setCustomDate] = useState(false);
   const [guests, setGuests] = useState<string | null>(null);
   const [budget, setBudget] = useState<BudgetBand | null>(null);
-  const [contact, setContact] = useState({ name: "", phone: "", email: "", message: "" });
-  const dateInput = useRef<HTMLInputElement>(null);
+  const [contact, setContact] = useState<Contact>({ name: "", phone: "", email: "", notes: "" });
   const today = useSyncExternalStore(NEVER_CHANGES, todayISO, () => minDate);
-  const firstDay = today > minDate ? today : minDate;
-  const quickDays = Array.from({ length: QUICK_DAYS }, (_, i) => addDays(firstDay, i + 1));
-
-  useEffect(() => {
-    if (!customDate) return;
-    try {
-      dateInput.current?.showPicker();
-    } catch {
-      // Not allowed without a recent tap, or not supported: the field is on screen and can be typed into.
-    }
-  }, [customDate]);
-  const contactField = (key: keyof typeof contact) => ({
-    value: contact[key],
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
-  });
+  // From tomorrow: a celebration is never arranged for the same day.
+  const firstDay = addDays(today > minDate ? today : minDate, 1);
 
   if (state?.ok) {
     return (
@@ -105,36 +94,26 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
       changeLabel: t.changeDate,
       body: (
         <div className="wizard-body">
-          <div className="slots" role="group" aria-label={t.date}>
-            {quickDays.map((iso) => (
-              <button
-                key={iso}
-                type="button"
-                className="slot"
-                aria-pressed={!customDate && eventDate === iso}
-                onClick={() => {
-                  setCustomDate(false);
-                  setEventDate(iso);
-                  setStep(3);
-                }}
-              >
-                {fmtDate(iso, locale, { year: undefined, day: "numeric" })}
-              </button>
-            ))}
+          <BookingCalendar
+            locale={locale}
+            today={today}
+            firstDay={firstDay}
+            maxDate={addDays(firstDay, DAYS_AHEAD)}
+            selected={eventDate || null}
+            isClosed={() => false}
+            onPick={(iso) => {
+              setEventDate(iso);
+              setStep(3);
+            }}
+            label={t.date}
+            initialWeeks={FIRST_WEEKS}
+          />
+          <div className="slots">
             <button
               type="button"
               className="slot"
-              aria-pressed={customDate || (!!eventDate && !quickDays.includes(eventDate))}
-              onClick={() => setCustomDate(true)}
-            >
-              {t.otherDate}
-            </button>
-            <button
-              type="button"
-              className="slot"
-              aria-pressed={!customDate && eventDate === ""}
+              aria-pressed={eventDate === ""}
               onClick={() => {
-                setCustomDate(false);
                 setEventDate("");
                 setStep(3);
               }}
@@ -142,31 +121,6 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
               {t.dateUnknown}
             </button>
           </div>
-          {customDate && (
-            <div className="date-pick">
-              <input
-                ref={dateInput}
-                className="date-input"
-                type="date"
-                required
-                aria-label={t.date}
-                min={firstDay}
-                value={eventDate ?? ""}
-                onChange={(e) => setEventDate(e.target.value)}
-              />
-              <button
-                type="button"
-                className="button"
-                // Checked here, because the input unmounts on the next step and only a hidden copy
-                // of its value reaches the server, where a past date would be a late error.
-                onClick={() => {
-                  if (dateInput.current?.reportValidity()) setStep(3);
-                }}
-              >
-                {t.continueLabel} <ArrowIcon direction="right" />
-              </button>
-            </div>
-          )}
         </div>
       ),
     },
@@ -244,69 +198,24 @@ export function EventInquiryForm({ locale, minDate }: { locale: Locale; minDate:
           <input type="hidden" name="guests" value={guests ?? ""} />
           <input type="hidden" name="budget_band" value={budget ?? "unsicher"} />
 
-          <div className="form-row">
-            <div className="field-float">
-              <input
-                id="ev-name"
-                name="name"
-                required
-                minLength={2}
-                maxLength={FIELD_LIMITS.name}
-                autoComplete="name"
-                placeholder="María González"
-                {...contactField("name")}
-              />
-              <label htmlFor="ev-name">{t.name}</label>
-            </div>
-            <div className="field-float">
-              <input
-                id="ev-phone"
-                name="phone"
-                type="tel"
-                required
-                minLength={5}
-                maxLength={FIELD_LIMITS.phone}
-                autoComplete="tel"
-                placeholder="+49 170 1234567"
-                {...contactField("phone")}
-              />
-              <label htmlFor="ev-phone">{t.phone}</label>
-            </div>
-          </div>
-          <div className="field-float">
-            <input
-              id="ev-email"
-              name="email"
-              type="email"
-              maxLength={FIELD_LIMITS.email}
-              autoComplete="email"
-              placeholder="maria@example.com"
-              {...contactField("email")}
-            />
-            <label htmlFor="ev-email">{t.email}</label>
-          </div>
-          <div className="field-float">
-            <textarea
-              id="message"
-              name="message"
-              rows={5}
-              maxLength={MESSAGE_MAX}
-              placeholder={t.messagePlaceholder}
-              {...contactField("message")}
-            />
-            <label htmlFor="message">{t.message}</label>
-          </div>
-
-          {state && !state.ok && (
-            <p className="form-error" role="alert">
-              {state.error}
-            </p>
-          )}
-
-          <button type="submit" className="button" disabled={pending}>
-            {pending ? t.submitting : t.submit}
-          </button>
-          <p className="form-note">{t.note}</p>
+          <ContactFields
+            id="ev"
+            value={contact}
+            onChange={setContact}
+            labels={{ name: t.name, phone: t.phone, email: t.email, notes: t.message, notesPlaceholder: t.messagePlaceholder }}
+            notesName="message"
+            notesMax={MESSAGE_MAX}
+          >
+            {state && !state.ok && (
+              <p className="form-error" role="alert">
+                {state.error}
+              </p>
+            )}
+            <button type="submit" className="button" disabled={pending}>
+              {pending ? t.submitting : t.submit}
+            </button>
+            <p className="form-note">{t.note}</p>
+          </ContactFields>
         </form>
       ),
     },

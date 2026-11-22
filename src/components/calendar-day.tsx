@@ -11,12 +11,14 @@ type Props = {
   pressed: boolean;
   closed: boolean;
   disabled?: boolean;
+  /** The month's short name, on the first of a month and the first day drawn. */
+  month?: string | null;
   onPick: () => void;
 };
 
 /** One day in a booking calendar. Pointing at it names the day the way people say it ("Morgen",
  *  "Diesen Freitag"), which a bare number cannot; today is marked by a ring, not by a label. */
-export function CalendarDay({ iso, today, locale, pressed, closed, disabled, onPick }: Props) {
+export function CalendarDay({ iso, today, locale, pressed, closed, disabled, month, onPick }: Props) {
   const r = getDictionary(locale).reservation;
   const rel = relativeDay(iso, today);
   const weekday = fmtDate(iso, locale, { weekday: "long", day: undefined, month: undefined, year: undefined });
@@ -42,6 +44,7 @@ export function CalendarDay({ iso, today, locale, pressed, closed, disabled, onP
       onClick={onPick}
     >
       {Number(iso.slice(8))}
+      {month && <small>{month}</small>}
     </button>
   );
 }

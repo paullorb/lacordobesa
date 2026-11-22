@@ -104,7 +104,7 @@ describe("row level security", () => {
         and not exists (select 1 from pg_policies p where p.schemaname = 'public' and p.tablename = t.tablename)
       order by 1`).flat();
     // These internal tables have RLS on with no policies: only the service role may touch them.
-    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "request_quota", "staff_invites"], "the set of policy-less tables changed");
+    assert.deepEqual(withoutPolicies, ["broadcast_email_send_attempts", "gallery_imports", "request_quota", "staff_invites", "staff_push_tokens"], "the set of policy-less tables changed");
   });
 
   test("no policy is open to anon for writing", { skip }, async () => {
@@ -167,6 +167,7 @@ describe("the grant matrix", () => {
     preorder_by_token: "true,false,true",
     preorder_settings: "true,true,true",
     request_event_inquiry: "false,false,true",
+    register_push_token: "false,true,true",
     release_broadcast_email_attempt: "false,false,true",
     request_broadcast_email: "false,false,true",
     request_preorder: "false,false,true",
@@ -180,6 +181,7 @@ describe("the grant matrix", () => {
     subscribe_broadcast: "false,false,true",
     take_request_quota: "false,false,true",
     track_event: "false,false,true",
+    unregister_push_token: "false,true,true",
     unsubscribe_broadcast: "true,false,true",
   };
 

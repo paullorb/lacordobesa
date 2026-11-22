@@ -5,17 +5,17 @@ import { useTrackForm } from "@/components/analytics";
 import { useFormGuard } from "@/components/form-guard";
 import { requestPreorder } from "@/app/vorbestellen/actions";
 import { ArrowIcon, MenuIcon } from "@/components/icons";
-import { CalendarDay } from "@/components/calendar-day";
-import { calendarMonths, NEVER_CHANGES } from "@/components/reservation-form";
+import { BookingCalendar } from "@/components/booking-calendar";
+import { ContactFields, type Contact } from "@/components/contact-fields";
+import { NEVER_CHANGES } from "@/components/reservation-form";
 import { Wizard, type WizardStep } from "@/components/wizard";
 import { PhoneNote } from "@/components/phone-note";
 import { EMPANADA_SLUG, PREPARATIONS, type Preparation } from "@/lib/preorder-preparation";
 import type { PreorderableItem } from "@/lib/preorders";
 import { fmtDate, leadBoundary, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
-import { INTL_LOCALE, localeHref, type Locale } from "@/lib/i18n";
+import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
-import { FIELD_LIMITS } from "@/lib/reservation-limits";
 
 /** Opening hours as the form needs them: weekday (0 = Sunday) to the window the shop is open. */
 export type PickupWindow = { opens: string; closes: string } | null;
@@ -67,8 +67,6 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
   useTrackForm("preorder", state, pending);
   const dict = getDictionary(locale);
   const t = dict.preorderForm;
-  const r = dict.reservation;
-  const monthLong = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
 
   // The calendar hints ("Morgen") count from the visitor's today; the server render has no clock to trust.
   // Hoisted subscribe, as in ReservationForm, so React is not handed a new one every render.
@@ -85,11 +83,7 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
   // The stepper entry that last changed, so only that number plays its bump (and not every row again
   // whenever the step remounts). `n` makes each press a new key and so a fresh run of the animation.
   const [bump, setBump] = useState<{ id: string; n: number; dir: "up" | "down" } | null>(null);
-  const [contact, setContact] = useState({ name: "", phone: "", email: "", notes: "" });
-  const contactField = (key: keyof typeof contact) => ({
-    value: contact[key],
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContact({ ...contact, [key]: e.target.value }),
-  });
+  const [contact, setContact] = useState<Contact>({ name: "", phone: "", email: "", notes: "" });
 
   const chosen = items.filter((i) => (quantities[i.id] ?? 0) > 0);
   const categories = [...new Set(items.map((i) => i.category))];
@@ -267,41 +261,22 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
     changeLabel: t.changeDate,
     body: (
       <div className="wizard-body">
-        <div className="calendar" role="group" aria-label={t.pickupDate}>
-          {calendarMonths(firstDay, maxDate, monthLong).map((month) => (
-            <div className="calendar-month" key={month.key}>
-              <p className="calendar-label">{month.label}</p>
-              <div className="calendar-heads" aria-hidden="true">
-                {r.weekdayHeads.map((w) => (
-                  <span key={w}>{w}</span>
-                ))}
-              </div>
-              <div className="calendar-grid">
-                {month.pad > 0 && <span style={{ gridColumn: `span ${month.pad}` }} />}
-                {month.days.map((iso) => {
-                  const closed = isClosed(iso);
-                  return (
-                    <CalendarDay
-                      key={iso}
-                      iso={iso}
-                      today={today}
-                      locale={locale}
-                      pressed={date === iso}
-                      closed={closed}
-                      onPick={() => {
-                        setDate(iso);
-                        setTime("");
-                        // A day with times goes straight to choosing one; a day that is too soon
-                        // stays here, with the reason below the calendar.
-                        if (slotsFor(iso).length > 0) go(step + 1);
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+        <BookingCalendar
+          locale={locale}
+          today={today}
+          firstDay={firstDay}
+          maxDate={maxDate}
+          selected={date}
+          isClosed={isClosed}
+          onPick={(iso) => {
+            setDate(iso);
+            setTime("");
+            // A day with times goes straight to choosing one; a day that is too soon
+            // stays here, with the reason below the calendar.
+            if (slotsFor(iso).length > 0) go(step + 1);
+          }}
+          label={t.pickupDate}
+        />
         {date && slots.length === 0 && (
           <p className="form-note" role="status">
             {t.tooSoonThatDay}
@@ -376,35 +351,22 @@ export function PreorderForm({ locale, items, windows, closedDates, minDate, max
           )}
         </ul>
 
-        <div className="form-row">
-          <div className="field-float">
-            <input id="pre-name" name="name" required minLength={2} maxLength={FIELD_LIMITS.name} autoComplete="name" placeholder="María González" {...contactField("name")} />
-            <label htmlFor="pre-name">{t.name}</label>
-          </div>
-          <div className="field-float">
-            <input id="pre-phone" name="phone" type="tel" required minLength={6} maxLength={FIELD_LIMITS.phone} autoComplete="tel" placeholder="+49 170 1234567" {...contactField("phone")} />
-            <label htmlFor="pre-phone">{t.phone}</label>
-          </div>
-        </div>
-        <div className="field-float">
-          <input id="pre-email" name="email" type="email" maxLength={FIELD_LIMITS.email} autoComplete="email" placeholder="maria@example.com" {...contactField("email")} />
-          <label htmlFor="pre-email">{t.email}</label>
-        </div>
-        <div className="field-float">
-          <textarea id="pre-notes" name="notes" rows={3} maxLength={FIELD_LIMITS.notes} placeholder={t.wishesPlaceholder} {...contactField("notes")} />
-          <label htmlFor="pre-notes">{t.wishes}</label>
-        </div>
-
-        {state && !state.ok && (
-          <p className="form-error" role="alert">
-            {state.error}
-          </p>
-        )}
-
-        <button type="submit" className="button" disabled={pending}>
-          {pending ? t.submitting : t.submit}
-        </button>
-        <p className="form-note">{t.note(leadHours)}</p>
+        <ContactFields
+          id="pre"
+          value={contact}
+          onChange={setContact}
+          labels={{ name: t.name, phone: t.phone, email: t.email, notes: t.wishes, notesPlaceholder: t.wishesPlaceholder }}
+        >
+          {state && !state.ok && (
+            <p className="form-error" role="alert">
+              {state.error}
+            </p>
+          )}
+          <button type="submit" className="button" disabled={pending}>
+            {pending ? t.submitting : t.submit}
+          </button>
+          <p className="form-note">{t.note(leadHours)}</p>
+        </ContactFields>
       </form>
     ),
   };
