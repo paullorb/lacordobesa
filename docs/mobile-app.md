@@ -1,8 +1,10 @@
-# The staff iPhone app
+# The La Cordobesa iPhone app
 
-A Capacitor shell around the deployed `/staff` pages, so the owners can manage the site from an app
-on their phones and get a push notification for every new reservation, pre-order and catering
-inquiry.
+A Capacitor shell around the deployed site, one-to-one: guests get the public pages (menu,
+reservations, pre-orders), and the team signs in through the footer's **Team-Login** link to manage
+the site under `/staff` and get a push notification for every new reservation, pre-order and catering
+inquiry. Opening on the public site is also what makes it an app for everybody in App Review's eyes,
+rather than an internal tool behind a login.
 
 ## Why Capacitor, not Swift, and not the PWA
 
@@ -27,7 +29,7 @@ inquiry.
 | Xcode project (checked in, standard Capacitor practice) | `ios/` |
 | Offline page bundled into the app | `mobile/www/index.html` |
 | Device tokens, one row per phone that switched on | `staff_push_tokens`, migration `20261121135841` |
-| Switch on the dashboard, tap → open the right page | `src/components/staff/native-push.tsx`, `src/lib/native-push-client.ts` |
+| Switch on the dashboard, tap → open the right page | `src/components/staff/native-push.tsx`, `src/components/native-push-tap.tsx`, `src/lib/native-push-client.ts` |
 | Sending to APNs (HTTP/2, `.p8` key, no Firebase) | `src/lib/native-push.ts` |
 | Triggers | `after()` in `requestReservation`, `requestPreorder`, `requestEventInquiry` |
 | CI build, unsigned, on hosted macOS | `.github/workflows/native-build.yml` → `paullorb/cicd` `app-native-build.yml` |

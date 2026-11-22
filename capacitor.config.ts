@@ -1,6 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// The staff app: a native iOS shell around the deployed /staff area (docs/mobile-app.md).
+// The La Cordobesa app: a native iOS shell around the deployed site (docs/mobile-app.md). Guests get
+// the public site, one-to-one; the team signs in from the footer's "Team-Login" link and then has
+// the /staff area, with push notifications for new requests.
 //
 // There is no code fork. The WebView loads the live site, so every web deploy reaches the app at
 // once; the binary only needs a new TestFlight build when the shell itself changes (Capacitor
@@ -21,11 +23,13 @@ const config: CapacitorConfig = {
   appendUserAgent: "LaCordobesaShell",
   backgroundColor: "#f3f8fb",
   server: {
-    url: "https://lacordobesa.vercel.app/staff",
+    url: "https://lacordobesa.vercel.app",
     allowNavigation: ["lacordobesa.vercel.app", "lacordobesa.de", "*.lacordobesa.de"],
   },
   ios: {
-    contentInset: "never",
+    // The site does not pad for the notch (no viewport-fit=cover / safe-area insets), so the
+    // WebView keeps the page below the status bar instead of drawing the header under the clock.
+    contentInset: "always",
   },
   plugins: {
     // Without this iOS shows nothing for a push that arrives while the app is open, and drops it
