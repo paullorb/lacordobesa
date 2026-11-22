@@ -40,6 +40,7 @@ VALUED = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--config-env",
 PUSH_VALUED = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
 KEYWORDS = {"if", "then", "elif", "else", "while", "until", "do", "{", "!", "time"}
 EXPANSION = re.compile(r"\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))")
+SINGLE, DOUBLE = chr(39), chr(34)
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
 
@@ -96,6 +97,30 @@ def strip_prefixes(segment):
     return segment
 
 
+# Stands for a dollar sign the shell would not expand, in single quotes or after
+# a backslash: shlex drops the quoting, so it is marked before and put back after.
+LITERAL = "\x01"
+
+
+def mark_literals(text):
+    out, quote, i = [], "", 0
+    while i < len(text):
+        char = text[i]
+        if char == "\\" and quote != SINGLE and text[i + 1:i + 2] == "$":
+            out.append(LITERAL)
+            i += 2
+            continue
+        if char == "\\" and quote != SINGLE:
+            out.append(text[i:i + 2])
+            i += 2
+            continue
+        if char in (SINGLE, DOUBLE):
+            quote = "" if quote == char else quote or char
+        out.append(LITERAL if char == "$" and quote == SINGLE else char)
+        i += 1
+    return "".join(out)
+
+
 def unexpanded(text):
     return "$" in text or "`" in text
 
@@ -117,6 +142,7 @@ def resolve(base, path):
     # asking about that branch is better than not asking at all.
     if unexpanded(path):
         return base
+    path = path.replace(LITERAL, "$")
     return os.path.normpath(os.path.join(base, os.path.expanduser(path)))
 
 
@@ -174,7 +200,7 @@ def push_targets(directory, git_opts, args):
 
 
 try:
-    words = tokens(command)
+    words = tokens(mark_literals(command))
 except ValueError:
     # Unbalanced quoting (a heredoc with an apostrophe): fall back to spotting
     # a plain push and asking about the cwd branch.
@@ -191,10 +217,10 @@ for segment in segments(words):
     # A `cd` inside `( ... )` ends with the subshell; the shell that runs the
     # next push is still where it was.
     if segment == "(":
-        scopes.append(here)
+        scopes.append((here, dict(variables)))
         continue
     if segment == ")":
-        here = scopes.pop() if scopes else here
+        here, variables = scopes.pop() if scopes else (here, variables)
         continue
     words_only = [w for w in segment if w not in KEYWORDS]
     if words_only and words_only[0] in ("export", "local", "declare", "readonly"):
@@ -257,7 +283,7 @@ for segment in segments(words):
             continue
         directory = found
     for branch in push_targets(directory, git_opts, args):
-        print(directory + "\t" + branch)
+        print(directory + "\t" + branch.replace(LITERAL, "$"))
 ' 2>/dev/null) || exit 0
 [ -n "$targets" ] || exit 0
 command -v gh >/dev/null 2>&1 || exit 0

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { removePushToken, savePushToken } from "@/app/staff/push-actions";
 import {
   pushPermission,
@@ -23,6 +23,9 @@ type State = "hidden" | "off" | "on" | "busy" | "blocked";
 export function NativePushCard() {
   const [state, setState] = useState<State>("hidden");
   const [error, setError] = useState<string | null>(null);
+  // Set the moment someone switches off, before the removal is awaited: a token refresh still in
+  // flight must see it, and storage is only cleared once the removal has answered.
+  const switchedOff = useRef(false);
 
   useEffect(() => {
     const plugin = pushPlugin();
@@ -40,10 +43,10 @@ export function NativePushCard() {
         // backup restore), so ask for the current one; permission is granted, so nothing prompts.
         const fresh = await requestPushToken(plugin).catch(() => token);
         // Switched off while Apple was answering: do not switch it back on.
-        if (storedPushToken() !== token) return;
+        if (switchedOff.current || storedPushToken() !== token) return;
         const { ok } = await savePushToken(fresh).catch(() => ({ ok: false }));
         // Off meanwhile: take the row just saved back out.
-        if (storedPushToken() !== token) return void removePushToken(fresh).catch(() => undefined);
+        if (switchedOff.current || storedPushToken() !== token) return void removePushToken(fresh).catch(() => undefined);
         if (!ok || fresh === token) return;
         storePushToken(fresh);
         await removePushToken(token).catch(() => undefined);
@@ -73,6 +76,7 @@ export function NativePushCard() {
   }
 
   async function disable() {
+    switchedOff.current = true;
     setState("busy");
     const token = storedPushToken();
     if (token) await removePushToken(token).catch(() => undefined);
