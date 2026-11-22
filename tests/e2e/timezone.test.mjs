@@ -48,7 +48,7 @@ async function dayFingerprint(page, selector) {
     const el = document.querySelector(sel);
     if (!el) return null;
     return {
-      day: (el.textContent ?? "").trim(),
+      day: (el.firstChild?.textContent ?? "").trim(),
       month: (el.closest(".calendar-month")?.querySelector(".calendar-label")?.textContent ?? "").trim(),
       hint: el.getAttribute("data-hint"),
       // A closed day (the Monday rest day) says "Ruhetag" instead of "Heute" and is disabled.
