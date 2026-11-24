@@ -53,7 +53,7 @@ const PATH = Array.from({ length: RAYS }, (_, i) => {
 export function SolBackdrop() {
   return (
     <div className="sol-backdrop" aria-hidden="true">
-      <svg viewBox="0 0 400 400" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+      <svg aria-hidden="true" viewBox="0 0 400 400" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
         <circle cx={CENTER} cy={CENTER} r={FACE} />
         <circle cx={CENTER} cy={CENTER} r={FACE - 9} strokeWidth="1" />
         <path d={PATH} />
