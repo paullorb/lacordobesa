@@ -97,13 +97,15 @@ export function BookingCalendar({ locale, today, firstDay, maxDate, selected, is
   );
 }
 
-/** "November 2026", "November – Dezember 2026" or "Dezember 2026 – Januar 2027". Built by hand
+const RANGE_WORD: Record<Locale, string> = { de: "bis", es: "a", en: "to" };
+
+/** "November 2026", "November bis Dezember 2026" or "Dezember 2026 bis Januar 2027". Built by hand
  *  rather than with formatRange, whose separators differ between ICU builds and so between the
  *  server render and the browser. */
 function rangeLabel(from: string, to: string, locale: Locale) {
   const full = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long", year: "numeric" });
   const month = new Intl.DateTimeFormat(INTL_LOCALE[locale], { timeZone: "UTC", month: "long" });
   if (from.slice(0, 7) === to.slice(0, 7)) return full.format(at(from));
-  if (from.slice(0, 4) === to.slice(0, 4)) return `${month.format(at(from))} – ${full.format(at(to))}`;
-  return `${full.format(at(from))} – ${full.format(at(to))}`;
+  if (from.slice(0, 4) === to.slice(0, 4)) return `${month.format(at(from))} ${RANGE_WORD[locale]} ${full.format(at(to))}`;
+  return `${full.format(at(from))} ${RANGE_WORD[locale]} ${full.format(at(to))}`;
 }
