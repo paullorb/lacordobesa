@@ -5,7 +5,7 @@ import { NativePushTapHandler } from "@/components/native-push-tap";
 import { APPS, ICONS } from "@/lib/brand";
 import { getDictionary } from "@/lib/dictionaries";
 import { INTL_LOCALE, OG_LOCALE, type Locale } from "@/lib/i18n";
-import { OG_IMAGE, SITE_URL } from "@/lib/site";
+import { OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const viewport: Viewport = { themeColor: APPS.public.themeColor };
 
@@ -50,8 +50,18 @@ export function rootMetadata(locale: Locale): Metadata {
   const t = getDictionary(locale).home;
   return {
     metadataBase: new URL(SITE_URL),
-    title: { default: t.title, template: "%s · La Cordobesa" },
+    title: { default: t.title, template: `%s · ${SITE_NAME}` },
     description: t.description,
+    applicationName: SITE_NAME,
+    category: "restaurant",
+    // Let Google show a large image preview and a full-length snippet. Both feed the AI Overviews and
+    // Discover cards; without them Google falls back to a thumbnail and a clipped snippet. A page
+    // that sets its own `robots` (legal, staff, token pages) replaces this whole object.
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+    },
     // Where every icon comes from, and how to swap the logo: see lib/brand.ts.
     icons: { icon: [...ICONS.favicon], apple: APPS.public.appleIcon },
     // The public site installs as "La Cordobesa". The staff area links its own manifest, scoped to /staff.
@@ -60,9 +70,11 @@ export function rootMetadata(locale: Locale): Metadata {
     openGraph: {
       title: t.title,
       description: t.description,
+      siteName: SITE_NAME,
       images: [OG_IMAGE],
       locale: OG_LOCALE[locale],
       type: "website",
     },
+    twitter: { card: "summary_large_image", title: t.title, description: t.description, images: [OG_IMAGE.url] },
   };
 }

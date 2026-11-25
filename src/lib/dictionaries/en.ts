@@ -51,9 +51,9 @@ export const en: Dictionary = {
     animateEmpanada: "Animate the empanada",
     chapters: { story: "Story", menu: "Menu", photos: "Photos", craft: "Craft", reviews: "Guests", reserve: "Reserve", visit: "Visit" },
     todayMark: "Today",
-    title: "La Cordobesa · A piece of Argentina in Frankfurt am Main",
+    title: "La Cordobesa · Argentine Empanadas & Bakery in Frankfurt",
     description:
-      "Homemade Argentine specialities in Frankfurt: empanadas, alfajores, cakes and more. Made with love at La Cordobesa.",
+      "Homemade Argentine empanadas, alfajores, cakes, pasta and grill in Frankfurt am Main. Reserve a table, pre-order or ask about catering at La Cordobesa.",
     heroEyebrow: "Like home. Made with love.",
     heroTitleLine1: "Argentina.",
     heroTitleLine2: "At the heart of Frankfurt.",
@@ -135,9 +135,37 @@ export const en: Dictionary = {
     follow: "Follow us on Instagram",
     instagramAlt: (handle: string) => `Instagram post by ${handle}`,
   },
+  faq: {
+    eyebrow: "Preguntas",
+    title: "Good to know",
+    dayRange: (from: string, to: string) => `${from} to ${to}`,
+    dayPair: (a: string, b: string) => `${a} and ${b}`,
+    whereQ: "Where is La Cordobesa?",
+    whereA: (address: string) => `Our address: ${address}.`,
+    hoursQ: "When is La Cordobesa open?",
+    hoursA: (summary: string) => `${summary}.`,
+    hoursNone: "Call us for the current opening hours",
+    whatQ: "What does La Cordobesa serve?",
+    whatA:
+      "Homemade Argentine food: empanadas, alfajores, cakes and pastelitos, pasta and dishes from the grill. Everything is on the menu.",
+    reserveQ: "Can I reserve a table?",
+    reserveOnline: (phone: string) => `Yes, online with the form on the home page or by phone on ${phone}.`,
+    reservePhone: (phone: string) => `Yes, by phone on ${phone} for now.`,
+    preorderQ: "Can I pre-order empanadas and collect them?",
+    preorderOnline:
+      "Yes. Empanadas in packs of six and pizza can be pre-ordered online. We call to confirm, and you pay when you collect.",
+    preorderPhone: (phone: string) => `Yes, call us on ${phone} or send a WhatsApp message.`,
+    cateringQ: "Do you do catering and host celebrations?",
+    cateringA:
+      "Yes: birthdays, company parties and christenings at our place, a mesa dulce with alfajores and cakes, or catering to take away, such as trays of empanadas for the office. Enquiries go through the Celebrations & catering page.",
+    whoQ: "Who is behind La Cordobesa?",
+    whoA:
+      "A family from Alta Gracia in the province of Córdoba, Argentina, hence the name. We cook and bake what we know from home.",
+  },
   menuPage: {
     title: "Menu",
-    description: "The full La Cordobesa menu: empanadas, pasta, grill, desserts and drinks, all homemade.",
+    seoTitle: "Menu: Empanadas, Alfajores, Pasta & Grill",
+    description: "The La Cordobesa menu in Frankfurt am Main: Argentine empanadas, pasta, grill, alfajores, desserts and drinks, all homemade.",
     eyebrow: "De nuestra cocina",
     intro: "Everything homemade, prepared the Argentine way.",
     note: "If you have allergies or intolerances, please ask our staff.",
@@ -148,13 +176,15 @@ export const en: Dictionary = {
   },
   galleryPage: {
     title: "Gallery",
-    description: "A look inside La Cordobesa: our place, homemade empanadas and sweets, celebrations and special moments.",
+    seoTitle: "Gallery: Our Place, Empanadas & Sweets",
+    description: "A look inside La Cordobesa in Frankfurt am Main: our place, homemade empanadas and sweets, celebrations and special moments.",
     eyebrow: "Momentos",
     intro: "Our place, fresh bakes, celebrations.",
     empty: "The first pictures will appear here soon.",
   },
   preorderPage: {
     title: "Pre-order",
+    seoTitle: "Pre-order Empanadas to Collect in Frankfurt",
     description:
       "Empanadas in packs of six or pizza for the evening: pre-order from La Cordobesa and collect it fresh.",
     eyebrow: "Encargá con tiempo",
@@ -171,6 +201,7 @@ export const en: Dictionary = {
   },
   cateringPage: {
     title: "Celebrations & catering",
+    seoTitle: "Argentine Catering & Celebrations in Frankfurt",
     description:
       "Birthday, company party, christening or catering to take away: La Cordobesa caters your celebration with Argentine cooking, in Frankfurt am Main.",
     eyebrow: "Festejemos juntos",

@@ -4,6 +4,7 @@ import { GALLERY_PATH } from "@/components/pages/gallery-view";
 import { HOME_PATH } from "@/components/pages/home-view";
 import { MENU_PATH } from "@/components/pages/menu-view";
 import { PREORDER_PATH } from "@/components/pages/preorder-view";
+import { getGalleryItems, getHomePhotos } from "@/lib/data";
 import { alternates, LOCALES, localeHref } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
 
@@ -18,8 +19,17 @@ const PAGES: { path: string; priority: number; changeFrequency: MetadataRoute.Si
   { path: GALLERY_PATH, priority: 0.6, changeFrequency: "monthly" },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (href: string) => `${SITE_URL}${href === "/" ? "" : href}`;
+
+  // An image sitemap for the pages that show photos, so image search finds them without running the
+  // gallery's script. Absolute URLs only: Google ignores a relative one.
+  const [gallery, home] = await Promise.all([getGalleryItems(), getHomePhotos()]);
+  const absolute = (src: string) => (src.startsWith("http") ? src : `${SITE_URL}${src}`);
+  const IMAGES: Record<string, string[]> = {
+    [HOME_PATH]: [absolute(home.hero?.image_url ?? "/assets/hero-pasteleria.jpg"), ...home.featured.map((g) => absolute(g.image_url))],
+    [GALLERY_PATH]: gallery.map((g) => absolute(g.image_url)),
+  };
 
   // One entry per locale per page, each carrying the full set of alternates. That is what tells
   // Google the two URLs are one page in two languages rather than two thin duplicates.
@@ -28,6 +38,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: url(localeHref(locale, path)),
       changeFrequency,
       priority,
+      ...(IMAGES[path]?.length ? { images: [...new Set(IMAGES[path])].slice(0, 1000) } : {}),
       alternates: {
         languages: Object.fromEntries(Object.entries(alternates(path)).map(([tag, href]) => [tag, url(href)])),
       },

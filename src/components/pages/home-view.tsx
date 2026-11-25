@@ -24,7 +24,9 @@ import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
-import { restaurantJsonLd } from "@/lib/structured-data";
+import { faqEntries } from "@/lib/faq";
+import { getPreorderSettings } from "@/lib/preorders";
+import { faqJsonLd, restaurantJsonLd, websiteJsonLd } from "@/lib/structured-data";
 import {
   fmtTime,
   getAnnouncement,
@@ -40,14 +42,16 @@ export const HOME_PATH = "/";
 export async function HomeView({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home;
   const href = (path: string) => localeHref(locale, path);
-  const [announcement, hours, closures, reservation, photos, instagram] = await Promise.all([
+  const [announcement, hours, closures, reservation, photos, instagram, preorder] = await Promise.all([
     getAnnouncement(),
     getOpeningHours(),
     getUpcomingClosures(),
     getReservationSettings(),
     getHomePhotos(),
     getInstagramPosts(),
+    getPreorderSettings(),
   ]);
+  const faq = faqEntries(locale, { hours, reservationsEnabled: reservation.enabled, preordersEnabled: preorder.enabled });
 
   // The open-now status runs in the browser, so it gets just the fields it reads.
   const openingHours = hours.map(({ weekday, opens, closes, is_closed }) => ({ weekday, opens, closes, is_closed }));
@@ -65,7 +69,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
-      <JsonLd data={restaurantJsonLd(hours, locale, reservation.enabled)} />
+      <JsonLd data={restaurantJsonLd(hours, locale, reservation.enabled, closures)} />
+      <JsonLd data={websiteJsonLd(locale)} />
+      <JsonLd data={faqJsonLd(faq, locale)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={HOME_PATH} />
       {/* Wide screens only (see .chapter-nav): the page chapters, with the current one marked. */}
@@ -223,6 +229,28 @@ export async function HomeView({ locale }: { locale: Locale }) {
             label={`${CONTACT.street}, ${CONTACT.city}`}
             openUrl={CONTACT.mapsUrl}
           />
+        </section>
+
+        {/* Plain questions with plain answers: what people ask a search engine or an assistant about
+            the place, answered in the words the FAQPage graph above repeats. */}
+        <section className="section faq-section" id="fragen" aria-labelledby="faq-title">
+          <p className="eyebrow">{getDictionary(locale).faq.eyebrow}</p>
+          <h2 id="faq-title">{getDictionary(locale).faq.title}</h2>
+          <div className="faq-list">
+            {faq.map((entry) => (
+              <details key={entry.id} id={`frage-${entry.id}`}>
+                <summary>
+                  <h3>{entry.question}</h3>
+                </summary>
+                <p>{entry.answer}</p>
+              </details>
+            ))}
+          </div>
+          <p className="faq-links">
+            <Link href={href("/karte")}>{t.heroMenu}</Link>
+            <Link href={href("/vorbestellen")}>{getDictionary(locale).nav.preorder}</Link>
+            <Link href={href("/catering")}>{getDictionary(locale).footer.celebrate}</Link>
+          </p>
         </section>
       </main>
 

@@ -47,9 +47,9 @@ export const es: Dictionary = {
     animateEmpanada: "Animar la empanada",
     chapters: { story: "Historia", menu: "Menú", photos: "Fotos", craft: "A mano", reviews: "Opiniones", reserve: "Reservar", visit: "Visitanos" },
     todayMark: "Hoy",
-    title: "La Cordobesa · Un pedacito de Argentina en Frankfurt am Main",
+    title: "La Cordobesa · Empanadas argentinas y pastelería en Frankfurt",
     description:
-      "Especialidades argentinas caseras en Frankfurt: empanadas, alfajores, tortas y más. Hechas con amor en La Cordobesa.",
+      "Empanadas, alfajores, tortas, pastas y parrilla argentina caseras en Frankfurt am Main. Reservá mesa, encargá o pedí catering en La Cordobesa.",
     heroEyebrow: "Como en casa. Con mucho amor.",
     heroTitleLine1: "Argentina.",
     heroTitleLine2: "En el corazón de Frankfurt.",
@@ -130,9 +130,37 @@ export const es: Dictionary = {
     follow: "Seguinos en Instagram",
     instagramAlt: (handle: string) => `Publicación de Instagram de ${handle}`,
   },
+  faq: {
+    eyebrow: "Preguntas",
+    title: "Lo que nos preguntan",
+    dayRange: (from: string, to: string) => `${from} a ${to}`,
+    dayPair: (a: string, b: string) => `${a} y ${b}`,
+    whereQ: "¿Dónde queda La Cordobesa?",
+    whereA: (address: string) => `Nuestra dirección: ${address}.`,
+    hoursQ: "¿Qué horario tiene La Cordobesa?",
+    hoursA: (summary: string) => `${summary}.`,
+    hoursNone: "El horario actual te lo damos por teléfono",
+    whatQ: "¿Qué hay en La Cordobesa?",
+    whatA:
+      "Cocina argentina casera: empanadas, alfajores, tortas y pastelitos, pastas y platos a la parrilla. Todo está en el menú.",
+    reserveQ: "¿Puedo reservar una mesa?",
+    reserveOnline: (phone: string) => `Sí, online con el formulario de la página de inicio o por teléfono al ${phone}.`,
+    reservePhone: (phone: string) => `Sí, por ahora por teléfono al ${phone}.`,
+    preorderQ: "¿Puedo encargar empanadas y pasar a buscarlas?",
+    preorderOnline:
+      "Sí. Las empanadas de a seis y las pizzas se encargan online. Te llamamos para confirmar y se paga al retirar.",
+    preorderPhone: (phone: string) => `Sí, llamanos al ${phone} o escribinos por WhatsApp.`,
+    cateringQ: "¿Hacen catering y festejos?",
+    cateringA:
+      "Sí: cumpleaños, eventos de empresa y bautismos en el local, una mesa dulce con alfajores y tortas, o catering para retirar, como empanadas por bandeja para la oficina. Las consultas van por la página Festejos y catering.",
+    whoQ: "¿Quién está detrás de La Cordobesa?",
+    whoA:
+      "Una familia de Alta Gracia, en la provincia de Córdoba, Argentina: de ahí el nombre. Cocinamos y horneamos lo que conocemos de casa.",
+  },
   menuPage: {
     title: "Menú",
-    description: "El menú completo de La Cordobesa: empanadas, pastas, parrilla, postres y bebidas, todo casero.",
+    seoTitle: "Menú: empanadas, alfajores, pastas y parrilla",
+    description: "El menú de La Cordobesa en Frankfurt am Main: empanadas argentinas, pastas, parrilla, alfajores, postres y bebidas, todo casero.",
     eyebrow: "De nuestra cocina",
     intro: "Todo casero, hecho a la manera argentina.",
     note: "Si tenés alguna alergia o intolerancia, avisale a nuestro equipo.",
@@ -143,13 +171,15 @@ export const es: Dictionary = {
   },
   galleryPage: {
     title: "Galería",
-    description: "Un vistazo a La Cordobesa: nuestro local, empanadas y dulces caseros, festejos y momentos especiales.",
+    seoTitle: "Galería: el local, empanadas y dulces",
+    description: "Un vistazo a La Cordobesa en Frankfurt am Main: nuestro local, empanadas y dulces caseros, festejos y momentos especiales.",
     eyebrow: "Momentos",
     intro: "Nuestro local, lo recién horneado, los festejos.",
     empty: "Acá van a aparecer las primeras fotos.",
   },
   preorderPage: {
     title: "Encargar",
+    seoTitle: "Encargá empanadas para retirar en Frankfurt",
     description:
       "Empanadas de a seis o pizzas para la noche: encargá en La Cordobesa y pasá a buscarlo recién hecho.",
     eyebrow: "Encargá con tiempo",
@@ -166,6 +196,7 @@ export const es: Dictionary = {
   },
   cateringPage: {
     title: "Festejos y catering",
+    seoTitle: "Catering y festejos argentinos en Frankfurt",
     description:
       "Cumpleaños, evento de empresa, bautismo o catering para retirar: La Cordobesa arma tu festejo con cocina argentina, en Frankfurt am Main.",
     eyebrow: "Festejemos juntos",
