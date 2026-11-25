@@ -1,6 +1,7 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { EventInquiryForm } from "@/components/event-inquiry-form";
+import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { CONTACT, whatsappHref } from "@/lib/contact";
@@ -8,6 +9,7 @@ import { getAnnouncement } from "@/lib/data";
 import { getDictionary } from "@/lib/dictionaries";
 import { todayISO } from "@/lib/dates";
 import { localeHref, type Locale } from "@/lib/i18n";
+import { breadcrumbJsonLd, cateringJsonLd } from "@/lib/structured-data";
 
 export const CATERING_PATH = "/catering";
 
@@ -17,6 +19,8 @@ export async function CateringView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
+      <JsonLd data={breadcrumbJsonLd(locale, CATERING_PATH, t.title)} />
+      <JsonLd data={cateringJsonLd(locale, t)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={CATERING_PATH} />
 

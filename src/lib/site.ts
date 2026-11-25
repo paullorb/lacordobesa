@@ -38,5 +38,8 @@ export const preorderUrl = (token: string, locale: Locale = DEFAULT_LOCALE) =>
 export const unsubscribeUrl = (token: string, locale?: string | null) =>
   `${SITE_URL}${localeHref(locale && isLocale(locale) ? locale : DEFAULT_LOCALE, `/abmelden/${token}`)}`;
 
+/** The short name a search result or link preview shows as the site's name. */
+export const SITE_NAME = "La Cordobesa";
+
 /** The link-preview picture (WhatsApp, Instagram, iMessage). Kept under 300 KB because WhatsApp drops larger ones. */
 export const OG_IMAGE = { url: "/assets/og-image.jpg", width: 1200, height: 600, alt: "La Cordobesa" };

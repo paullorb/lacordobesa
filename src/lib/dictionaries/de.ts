@@ -53,9 +53,9 @@ export const de = {
     animateEmpanada: "Empanada hüpfen lassen",
     chapters: { story: "Geschichte", menu: "Menü", photos: "Fotos", craft: "Handwerk", reviews: "Gäste", reserve: "Reservieren", visit: "Besuch" },
     todayMark: "Heute",
-    title: "La Cordobesa · Ein Stück Argentinien in Frankfurt am Main",
+    title: "La Cordobesa · Argentinische Empanadas & Pastelería in Frankfurt",
     description:
-      "Hausgemachte argentinische Spezialitäten in Frankfurt: Empanadas, Alfajores, Kuchen und mehr. Mit Liebe gemacht bei La Cordobesa.",
+      "Hausgemachte argentinische Empanadas, Alfajores, Torten, Pasta und Grill in Frankfurt am Main. Tisch reservieren, vorbestellen oder Catering anfragen bei La Cordobesa.",
     heroEyebrow: "Wie zuhause. Con mucho amor.",
     heroTitleLine1: "Argentinien.",
     heroTitleLine2: "Im Herzen Frankfurts.",
@@ -136,9 +136,40 @@ export const de = {
     follow: "Seguinos auf Instagram",
     instagramAlt: (handle: string) => `Instagram-Beitrag von ${handle}`,
   },
+  /** The questions on the home page, also published as FAQPage JSON-LD and in /llms.txt. Every
+   *  answer has to stay true: the hours and the switches come from the database (see lib/faq.ts). */
+  faq: {
+    eyebrow: "Preguntas",
+    title: "Gut zu wissen",
+    dayRange: (from: string, to: string) => `${from} bis ${to}`,
+    dayPair: (a: string, b: string) => `${a} und ${b}`,
+    whereQ: "Wo ist La Cordobesa?",
+    whereA: (address: string) => `Unsere Adresse: ${address}.`,
+    hoursQ: "Wann hat La Cordobesa geöffnet?",
+    hoursA: (summary: string) => `${summary}.`,
+    hoursNone: "Die aktuellen Öffnungszeiten erfährst du telefonisch",
+    whatQ: "Was gibt es bei La Cordobesa?",
+    whatA:
+      "Hausgemachte argentinische Küche: Empanadas, Alfajores, Torten und Pastelitos, Pasta und Gerichte vom Grill. Das ganze Angebot steht im Menü.",
+    reserveQ: "Kann ich einen Tisch reservieren?",
+    reserveOnline: (phone: string) => `Ja, online über das Formular auf der Startseite oder telefonisch unter ${phone}.`,
+    reservePhone: (phone: string) => `Ja, im Moment telefonisch unter ${phone}.`,
+    preorderQ: "Kann ich Empanadas vorbestellen und abholen?",
+    preorderOnline:
+      "Ja. Empanadas im Sechserpack und Pizza kannst du online vorbestellen. Wir rufen zur Bestätigung an, bezahlt wird bei der Abholung.",
+    preorderPhone: (phone: string) => `Ja, ruf uns dafür an unter ${phone} oder schreib uns per WhatsApp.`,
+    cateringQ: "Macht ihr Catering und richtet ihr Feiern aus?",
+    cateringA:
+      "Ja: Geburtstage, Firmenfeiern und Taufen bei uns im Lokal, eine Mesa dulce mit Alfajores und Torten, oder Catering zum Abholen, etwa Empanadas blechweise fürs Büro. Anfragen gehen über die Seite Feiern & Catering.",
+    whoQ: "Wer steht hinter La Cordobesa?",
+    whoA:
+      "Eine Familie aus Alta Gracia in der argentinischen Provinz Córdoba, daher der Name. Wir kochen und backen, was wir von zu Hause kennen.",
+  },
   menuPage: {
     title: "Menü",
-    description: "Das komplette Menü von La Cordobesa: Empanadas, Pasta, Grill, Desserts und Getränke, alles hausgemacht.",
+    /** The <title> and social card; `title` stays the short heading. */
+    seoTitle: "Menü: Empanadas, Alfajores, Pasta & Grill",
+    description: "Das Menü von La Cordobesa in Frankfurt am Main: argentinische Empanadas, Pasta, Grill, Alfajores, Desserts und Getränke, alles hausgemacht.",
     eyebrow: "De nuestra cocina",
     intro: "Alles hausgemacht, nach argentinischer Art zubereitet.",
     note: "Bei Allergien oder Unverträglichkeiten frag bitte unser Personal.",
@@ -149,13 +180,17 @@ export const de = {
   },
   galleryPage: {
     title: "Galerie",
-    description: "Einblicke in La Cordobesa: unser Lokal, hausgemachte Empanadas und Süßes, Feiern und besondere Momente.",
+    /** The <title> and social card; `title` stays the short heading. */
+    seoTitle: "Galerie: Lokal, Empanadas & Süßes",
+    description: "Einblicke in La Cordobesa in Frankfurt am Main: unser Lokal, hausgemachte Empanadas und Süßes, Feiern und besondere Momente.",
     eyebrow: "Momentos",
     intro: "Unser Lokal, frisch Gebackenes, Feiern.",
     empty: "Hier erscheinen bald die ersten Bilder.",
   },
   preorderPage: {
     title: "Vorbestellen",
+    /** The <title> and social card; `title` stays the short heading. */
+    seoTitle: "Empanadas vorbestellen & abholen in Frankfurt",
     description:
       "Empanadas im Sechserpack oder Pizza für den Abend: bestell bei La Cordobesa vor und hol alles frisch ab.",
     eyebrow: "Encargá con tiempo",
@@ -172,6 +207,8 @@ export const de = {
   },
   cateringPage: {
     title: "Feiern & Catering",
+    /** The <title> and social card; `title` stays the short heading. */
+    seoTitle: "Argentinisches Catering & Feiern in Frankfurt",
     description:
       "Geburtstag, Firmenfeier, Taufe oder Catering zum Abholen: La Cordobesa richtet eure Feier mit argentinischer Küche aus, in Frankfurt am Main.",
     eyebrow: "Festejemos juntos",

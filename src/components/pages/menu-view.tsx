@@ -14,7 +14,7 @@ import { getDictionary } from "@/lib/dictionaries";
 import { mailConfigured } from "@/lib/mail";
 import { localeHref, type Locale } from "@/lib/i18n";
 import { isUntranslated, menuDescription } from "@/lib/menu-text";
-import { menuJsonLd } from "@/lib/structured-data";
+import { breadcrumbJsonLd, menuJsonLd } from "@/lib/structured-data";
 
 export const MENU_PATH = "/karte";
 
@@ -30,6 +30,7 @@ export async function MenuView({ locale }: { locale: Locale }) {
   return (
     <div className="site">
       <JsonLd data={menuJsonLd(menu, locale)} />
+      <JsonLd data={breadcrumbJsonLd(locale, MENU_PATH, t.title)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={MENU_PATH} />
 

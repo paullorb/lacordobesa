@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowIcon } from "@/components/icons";
+import { JsonLd } from "@/components/json-ld";
 import { PreorderForm, type PickupWindow } from "@/components/preorder-form";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -8,6 +9,7 @@ import { fmtTime, getAnnouncement, getClosures, getOpeningHours } from "@/lib/da
 import { getDictionary } from "@/lib/dictionaries";
 import { localeHref, type Locale } from "@/lib/i18n";
 import { getPickupRange, getPreorderableItems, getPreorderSettings } from "@/lib/preorders";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
 
 export const PREORDER_PATH = "/vorbestellen";
 
@@ -33,6 +35,7 @@ export async function PreorderView({ locale }: { locale: Locale }) {
 
   return (
     <div className="site">
+      <JsonLd data={breadcrumbJsonLd(locale, PREORDER_PATH, t.title)} />
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={PREORDER_PATH} />
 

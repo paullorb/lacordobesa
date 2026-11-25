@@ -1330,3 +1330,17 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 
 /* The celebration form's "other date": the native picker in the site's own field styling, with the
    button that moves on beside it. */
+
+/* The home page's questions. Native <details>, so every answer is in the HTML for a crawler and opens
+   without script; the heading inside <summary> keeps the outline honest for a screen reader. */
+.faq-section { padding-top: 0; }
+.faq-section h2 { margin: 0 0 2rem; }
+.faq-list { display: grid; border-top: 1px solid var(--line); }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.15rem 0; cursor: pointer; list-style: none; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: "+"; flex: 0 0 auto; color: var(--blue-dark); font-size: 1.5rem; line-height: 1; transition: rotate .25s; }
+.faq-list details[open] summary::after { rotate: 45deg; }
+.faq-list h3 { margin: 0; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
+.faq-list p { max-width: 70ch; margin: 0 0 1.3rem; color: var(--muted); line-height: 1.8; }
+.faq-section .faq-links { display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; margin: 1.6rem 0 0; font-weight: 600; }

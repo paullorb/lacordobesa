@@ -1,10 +1,12 @@
 import { GalleryGrid } from "@/components/gallery-grid";
+import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { whatsappHref } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import { getAnnouncement, getGalleryItems } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
+import { breadcrumbJsonLd, galleryJsonLd } from "@/lib/structured-data";
 
 export const GALLERY_PATH = "/gallery";
 
@@ -17,6 +19,8 @@ export async function GalleryView({ locale }: { locale: Locale }) {
     // src/lib/i18n.ts: assistive technology and :lang() honour the nearest ancestor, and Google is
     // told through the hreflang alternates in each page's metadata.
     <div className="site">
+      <JsonLd data={breadcrumbJsonLd(locale, GALLERY_PATH, t.title)} />
+      {items.length > 0 && <JsonLd data={galleryJsonLd(locale, t.title, items.map((i) => ({ url: i.image_url, caption: i.caption })))} />}
       {announcement && <div className="announcement">{announcement}</div>}
       <SiteHeader whatsappHref={whatsappHref()} locale={locale} path={GALLERY_PATH} />
 

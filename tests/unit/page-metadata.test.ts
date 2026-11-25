@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import { pageMetadata, tokenPageMetadata } from "@/lib/page-metadata";
 import { alternates, localeHref, LOCALES, OG_LOCALE } from "@/lib/i18n";
 import { OG_IMAGE } from "@/lib/site";
+import { getDictionary } from "@/lib/dictionaries";
 
 const menuPage = (d: { menuPage: { title: string; description: string } }) => d.menuPage;
 
@@ -90,3 +91,17 @@ describe("tokenPageMetadata", () => {
     assert.equal(new Set(titles).size, LOCALES.length, "two locales share a token-page title");
   });
 });
+
+describe("search-result wording", () => {
+  test("prefers seoTitle for the <title>, and names the shop on the social card", () => {
+    for (const locale of LOCALES) {
+      const meta = pageMetadata(locale, "/karte", menuPage);
+      assert.notEqual(meta.title, getDictionaryTitle(locale), `${locale}: the short heading leaked into <title>`);
+      assert.match(String(meta.openGraph?.title), /La Cordobesa$/);
+      assert.equal((meta.twitter as { card?: string } | undefined)?.card, "summary_large_image");
+      assert.equal(meta.openGraph?.url, localeHref(locale, "/karte"));
+    }
+  });
+});
+
+const getDictionaryTitle = (locale: (typeof LOCALES)[number]) => getDictionary(locale).menuPage.title;
