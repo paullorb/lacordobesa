@@ -3,17 +3,18 @@ import { LOGO } from "@/lib/brand";
 import { CONTACT } from "@/lib/contact";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
+import { ROAD_PATHS } from "./neighbourhood-map-roads";
 
 /**
- * The few streets round the shop, drawn in the colours people know from a map app: the Niddapark
- * and the allotments in green, the SV Blau-Gelb ground with its track and pitch next door, the
- * tennis and padel courts the shop sits among, the U-Bahn and S-Bahn stops, the A66 and
- * Rosa-Luxemburg-Straße as the yellow roads that frame it.
+ * The streets round the shop, drawn as a map app draws them: the Niddapark with its woods,
+ * meadows and allotments, the SV Blau-Gelb ground next door, the courts round the shop, the houses
+ * of Ginnheim between their streets, the A66 and what lies beyond it.
  *
- * Drawn by hand from the map view of the area (roughly to scale, north up) rather than embedded,
- * so it costs no request, no third-party cookie and no script, and it is in the brand's colours.
- * The coordinates are those of that view (1300 × 830); the viewBox crops the part that matters.
- * Every road runs on to the edge of the drawing or into another road, as it does on the ground.
+ * Traced from the Google Maps view of the area (about a metre a pixel, north up). The ground is a
+ * static SVG (/assets/neighbourhood.svg) made by a script that places every house inside its
+ * street block and clear of every road, so it costs one cached request, no third-party cookie and
+ * no script. The sports grounds south of the A66 run out of the frame just as they do on the map.
+ * Only the things a reader acts on are drawn here: the stops, the routes, the shop, the labels.
  *
  * The routes are links to Google Maps directions, written out in the list underneath: that list
  * is what a crawler, a keyboard and a screen reader get. The stops on the drawing link to the same
@@ -21,9 +22,15 @@ import type { Locale } from "@/lib/i18n";
  * in CSS (see .hood in globals.css); with reduced motion it is simply the finished drawing.
  */
 
-const VENUE = { x: 625, y: 378 };
+const VIEW = { x: 320, y: 100, w: 800, h: 770 };
+const VENUE = { x: 632, y: 379 };
 const U_STOP = { x: 990, y: 208 };
-const S_STOP = { x: 788, y: 150 };
+const S_STOP = { x: 775, y: 128 };
+const CAR = { x: 1046, y: 700 };
+
+/** The callout's name as drawn in the brand serif at 24px (the ink: width, and cap height since the name
+ *  has no descenders), so the box round it can be the same padding on all four sides. */
+const CALLOUT = { width: 149, pad: 11, ink: 18.7 };
 
 function routeHref(origin: string, mode: "transit" | "driving", locale: Locale) {
   const q = new URLSearchParams({
@@ -36,15 +43,10 @@ function routeHref(origin: string, mode: "transit" | "driving", locale: Locale) 
   return `https://www.google.com/maps/dir/?${q}`;
 }
 
-const ROADS = {
-  street: "M800 -10 C 745 210, 650 430, 558 840",
-  rail: "M828 -10 C 784 200, 692 430, 590 840",
-  rosa: "M780 -10 C 812 60, 846 92, 900 118 C 970 150, 1050 168, 1130 182",
-  a66: "M310 604 C 620 646, 860 712, 1130 762",
-  landstrasse: "M571 790 C 760 802, 900 806, 952 762 C 962 600, 954 360, 948 120",
-  epstein: "M952 470 C 1030 478, 1090 498, 1130 510",
-  grid: "M804 152 L 812 470 M808 318 L 950 338 M812 448 L 952 458 M950 236 L 1130 268 M1104 262 L 1112 506 M812 470 C 860 520, 900 600, 960 640 M952 740 C 1010 764, 1070 782, 1130 790",
-};
+/** The walks, along the streets you would take: from the U-Bahn west on the road past the houses,
+ *  over the line and down Am Ginnheimer Wäldchen; from the S-Bahn straight down that street. */
+const U_WALK = "M990 208L1012 240L944 236L874 231L806 226L762 222L733 226L722 258L710 290L695 322L681 350L668 368L654 376";
+const S_WALK = "M775 128L755 132L744 170L731 210L716 254L704 290L689 322L676 348L662 366L650 374";
 
 export function NeighbourhoodMap({ locale }: { locale: Locale }) {
   const t = getDictionary(locale).home.neighbourhood;
@@ -54,275 +56,120 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
     routeHref("Hauptwache, Frankfurt am Main", "driving", locale),
   ];
   const kinds = ["u", "s", "car"] as const;
-
-  const uWalk = `M${U_STOP.x} ${U_STOP.y} C 930 196, 862 170, 800 156 C 770 222, 720 300, ${VENUE.x + 20} ${VENUE.y - 8}`;
-  const sWalk = `M${S_STOP.x} ${S_STOP.y} C 772 222, 724 300, ${VENUE.x + 14} ${VENUE.y - 12}`;
+  const box = { x: VENUE.x + 30, y: VENUE.y - 90, w: CALLOUT.width + 2 * CALLOUT.pad, h: CALLOUT.ink + 2 * CALLOUT.pad };
 
   return (
     <figure className="hood">
       <div className="hood-stage">
-        <svg className="hood-map" viewBox="320 40 800 760" aria-hidden="true" focusable="false">
+        <svg className="hood-map" viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`} aria-hidden="true" focusable="false">
           <defs>
-            {/* Houses as little blocks with a lit roof and a shadowed side: the town east of the rails. */}
-            <pattern id="hood-blocks" width="36" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(8)">
-              <rect x="5" y="6" width="24" height="15" rx="2" fill="#d6cdbf" />
-              <rect x="3" y="3" width="24" height="15" rx="2" fill="#efe9df" />
-              <rect x="3" y="3" width="24" height="5" rx="2" fill="#f8f4ee" />
-            </pattern>
-            <pattern id="hood-plots" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)">
-              <rect width="18" height="18" fill="#cbe5b9" />
-              <rect x="1.5" y="1.5" width="15" height="15" rx="2" fill="#b9dba3" />
-              <circle cx="12" cy="6" r="2.6" fill="#9cc987" />
-            </pattern>
-            <radialGradient id="hood-tree" cx=".38" cy=".34" r=".7">
-              <stop offset="0" stopColor="#b6dc9d" />
-              <stop offset=".6" stopColor="#7fb86a" />
-              <stop offset="1" stopColor="#5f9a52" />
-            </radialGradient>
-            <pattern id="hood-trees" width="26" height="24" patternUnits="userSpaceOnUse">
-              <ellipse cx="9" cy="12" rx="6.5" ry="4" fill="#5d8f4f" opacity=".35" />
-              <circle cx="7" cy="8" r="6" fill="url(#hood-tree)" />
-              <ellipse cx="21" cy="21" rx="5" ry="3" fill="#5d8f4f" opacity=".35" />
-              <circle cx="19" cy="18" r="4.6" fill="url(#hood-tree)" />
-            </pattern>
-            <pattern id="hood-grass" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
-              <rect width="12" height="12" fill="#c6e5ae" />
-              <path d="M0 6 H12" stroke="#bddda4" strokeWidth="2" />
-            </pattern>
-            <linearGradient id="hood-light" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#ffffff" stopOpacity=".28" />
-              <stop offset=".55" stopColor="#ffffff" stopOpacity="0" />
-              <stop offset="1" stopColor="#17384b" stopOpacity=".12" />
-            </linearGradient>
             <filter id="hood-lift" x="-20%" y="-20%" width="140%" height="160%">
-              <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#17384b" floodOpacity=".28" />
+              <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#17384b" floodOpacity=".26" />
             </filter>
-            <path id="hood-street-path" d={ROADS.street} />
-            <path id="hood-a66-path" d={ROADS.a66} />
-            <path id="hood-rl-path" d={ROADS.rosa} />
+            {Object.entries(ROAD_PATHS).map(([id, d]) => (
+              <path key={id} id={`hood-${id}-path`} d={d} />
+            ))}
           </defs>
 
-          {/* Land, then the town east of the railway. */}
-          <rect x="320" y="0" width="800" height="830" fill="#f3efe6" />
-          <path d="M790 120 L 1130 110 L 1130 830 L 980 830 L 962 700 L 640 760 L 700 470 Z" fill="url(#hood-blocks)" />
+          <image className="hood-ground-art" href="/assets/neighbourhood.svg" x={VIEW.x} y={VIEW.y} width={VIEW.w} height={VIEW.h} preserveAspectRatio="none" />
 
-          {/* The Niddapark, its woods and the allotments between it and the courts. */}
-          <g className="hood-green">
-            <path d="M320 0 L 776 0 L 742 140 L 610 150 L 560 122 L 430 118 L 404 260 L 458 384 L 560 410 L 604 436 L 580 560 L 556 650 L 540 700 L 320 660 Z" fill="url(#hood-grass)" />
-            <path d="M330 300 C 380 270, 420 330, 400 420 C 380 500, 340 520, 320 470 Z" fill="url(#hood-trees)" />
-            <path d="M470 440 C 520 430, 560 470, 540 560 C 520 620, 470 600, 460 540 Z" fill="url(#hood-trees)" />
-            <path d="M330 40 C 390 20, 440 60, 420 110 C 400 150, 350 140, 330 110 Z" fill="url(#hood-trees)" />
-            <path d="M600 24 C 650 10, 700 30, 700 70 C 690 110, 630 110, 610 80 Z" fill="url(#hood-trees)" />
-            <path d="M420 128 L 556 132 L 520 300 L 545 404 L 458 380 L 408 262 Z" fill="url(#hood-plots)" />
-            <path d="M650 470 L 940 476 L 944 704 L 616 640 L 620 560 Z" fill="url(#hood-plots)" />
-            <path d="M330 220 C 400 180, 450 220, 470 300 S 540 420, 600 430 M360 560 C 420 520, 480 500, 556 420 M400 100 C 470 140, 500 120, 560 128 M330 640 C 380 600, 420 620, 470 600" fill="none" stroke="#f7f3ea" strokeWidth="3" strokeLinecap="round" />
-          </g>
-
-          {/* South of the A66 it is green again: allotments, the dog meadow and three sports grounds,
-              drawn a little closer to the motorway than they are so they fit the frame. */}
-          <g className="hood-green">
-            <path d="M310 612 C 620 654, 860 720, 1000 744 L 1000 830 L 310 830 Z" fill="url(#hood-grass)" />
-            <path d="M330 646 L 540 672 L 552 800 L 330 800 Z" fill="url(#hood-plots)" />
-            <path d="M648 670 C 690 666, 724 676, 740 690 L 732 732 C 700 740, 664 736, 646 726 Z" fill="url(#hood-trees)" />
-            <path d="M560 700 C 600 720, 640 740, 700 790 M760 720 C 800 740, 820 770, 830 800" fill="none" stroke="#f7f3ea" strokeWidth="3" strokeLinecap="round" />
-          </g>
-          <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 2 } as CSSProperties}>
-            {/* VfR Bockenheim: a football pitch. */}
-            <g transform="rotate(10 716 768)">
-              <rect x="684" y="750" width="64" height="38" fill="#78bb5b" />
-              {[0, 1, 2, 3].map((k) => (
-                <rect key={k} x={684 + k * 16} y="750" width="8" height="38" fill="#6fb153" />
-              ))}
-              <rect x="688" y="754" width="56" height="30" fill="none" stroke="#ffffff" strokeWidth="1.2" />
-              <line x1="716" x2="716" y1="754" y2="784" stroke="#ffffff" strokeWidth="1.2" />
-              <circle cx="716" cy="769" r="5" fill="none" stroke="#ffffff" strokeWidth="1.2" />
-            </g>
-            {/* TGB Frankfurt: the club hall and its court. */}
-            <g transform="rotate(12 790 724)">
-              <rect x="764" y="708" width="40" height="26" rx="2" fill="#d6cdbf" />
-              <rect x="762" y="704" width="40" height="26" rx="2" fill="#f2ede4" />
-              <rect x="762" y="704" width="40" height="8" rx="2" fill="#fbf8f3" />
-              <rect x="808" y="708" width="22" height="30" fill="#d8764c" />
-              <rect x="810" y="711" width="18" height="24" fill="none" stroke="#ffffff" strokeWidth=".9" />
-            </g>
-            {/* Sportcampus Ginnheim: a running track round a pitch. */}
-            <g transform="rotate(10 892 762)">
-              <rect x="844" y="740" width="96" height="44" rx="22" fill="#c8664a" />
-              <rect x="847" y="743" width="90" height="38" rx="19" fill="none" stroke="#e0937a" strokeWidth="1" />
-              <rect x="856" y="750" width="72" height="24" rx="12" fill="#86c465" />
-              <rect x="856" y="750" width="72" height="24" rx="12" fill="none" stroke="#ffffff" strokeWidth="1.2" opacity=".7" />
-            </g>
-          </g>
-          <text className="hood-tag hood-tag-soft" x="440" y="740" textAnchor="middle">
-            KGV Rothwiese
-          </text>
-
-          {/* Roads, each drawn twice (casing, then surface) so they read as raised above the ground. */}
-          <g className="hood-roads" fill="none" strokeLinecap="round" strokeLinejoin="round">
-            <path d={`${ROADS.grid} ${ROADS.epstein} ${ROADS.landstrasse}`} stroke="#d8cfc0" strokeWidth="10" />
-            <path d={`${ROADS.grid} ${ROADS.epstein} ${ROADS.landstrasse}`} stroke="#ffffff" strokeWidth="7" />
-            <path d={ROADS.street} stroke="#d8cfc0" strokeWidth="14" />
-            <path d={ROADS.street} stroke="#ffffff" strokeWidth="10" />
-            <path d={ROADS.rail} stroke="#8c969c" strokeWidth="6" />
-            <path d={ROADS.rail} stroke="#f3efe6" strokeWidth="2.2" strokeDasharray="9 9" />
-            <g filter="url(#hood-lift)">
-              <path d={`${ROADS.rosa} ${ROADS.a66}`} stroke="#dcae45" strokeWidth="24" />
-              <path d={`${ROADS.rosa} ${ROADS.a66}`} stroke="#f7d57a" strokeWidth="18" />
-              <path d={`${ROADS.rosa} ${ROADS.a66}`} stroke="#fbe6a8" strokeWidth="1.4" strokeDasharray="12 10" />
-            </g>
-          </g>
           <g className="hood-road-label">
-            <text dy="4"><textPath href="#hood-street-path" startOffset="20%">Am Ginnheimer Wäldchen</textPath></text>
-            <text dy="4"><textPath href="#hood-rl-path" startOffset="44%">Rosa-Luxemburg-Straße</textPath></text>
-            <text dy="4"><textPath href="#hood-a66-path" startOffset="46%">A66</textPath></text>
+            <text dy="3.5"><textPath href="#hood-street-path" startOffset="21%">Am Ginnheimer Wäldchen</textPath></text>
+            <text dy="3.5"><textPath href="#hood-street-path" startOffset="66%">Am Ginnheimer Wäldchen</textPath></text>
+            <text dy="3.5"><textPath href="#hood-ginnheimer-path" startOffset="58%">Ginnheimer Straße</textPath></text>
+            <text dy="3.5"><textPath href="#hood-epstein-path" startOffset="14%">Wilhelm-Epstein-Str.</textPath></text>
+            <text dy="3.5"><textPath href="#hood-heinz-path" startOffset="22%">Heinzstraße</textPath></text>
+            <text dy="3.5"><textPath href="#hood-landstr-path" startOffset="8%">Ginnheimer Landstraße</textPath></text>
+            <text className="hood-road-label-major" dy="4"><textPath href="#hood-rosa-path" startOffset="44%">Rosa-Luxemburg-Straße</textPath></text>
+            <text className="hood-road-label-major" dy="4"><textPath href="#hood-a66-path" startOffset="20%">A66</textPath></text>
+            <text className="hood-road-label-major" dy="4"><textPath href="#hood-a66-path" startOffset="78%">A66</textPath></text>
           </g>
 
-          {/* SV Blau-Gelb: the running track and the football pitch, next door to the north. */}
-          <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 0 } as CSSProperties}>
-            <g transform="rotate(16 568 240)">
-              <rect x="528" y="166" width="80" height="148" rx="40" fill="#c8664a" />
-              <rect x="532" y="170" width="72" height="140" rx="36" fill="none" stroke="#e0937a" strokeWidth="1" />
-              <rect x="540" y="182" width="56" height="116" rx="28" fill="#86c465" />
-              <rect x="540" y="182" width="56" height="116" rx="28" fill="none" stroke="#ffffff" strokeWidth="1.2" opacity=".7" />
-            </g>
-            {[{ x: 672, y: 232, h: 104 }].map((p) => (
-              <g key={p.y} transform={`rotate(16 ${p.x} ${p.y})`}>
-                <rect x={p.x - 28} y={p.y - p.h / 2} width="56" height={p.h} fill="#78bb5b" />
-                {[0, 1, 2, 3].map((k) => (
-                  <rect key={k} x={p.x - 28} y={p.y - p.h / 2 + (k * p.h) / 4} width="56" height={p.h / 8} fill="#6fb153" />
-                ))}
-                <rect x={p.x - 24} y={p.y - p.h / 2 + 4} width="48" height={p.h - 8} fill="none" stroke="#ffffff" strokeWidth="1.4" />
-                <line x1={p.x - 24} x2={p.x + 24} y1={p.y} y2={p.y} stroke="#ffffff" strokeWidth="1.4" />
-                <circle cx={p.x} cy={p.y} r="7" fill="none" stroke="#ffffff" strokeWidth="1.4" />
-              </g>
-            ))}
-          </g>
-          <text className="hood-tag hood-tag-in" x="672" y="236" textAnchor="middle" transform="rotate(-74 672 232)">
-            {t.football}
-          </text>
-          <text className="hood-label" x="532" y="148" textAnchor="middle">
-            SV Blau-Gelb
-          </text>
-          <text className="hood-tag" x="532" y="128" textAnchor="middle">
-            {t.track} · {t.football}
-          </text>
-
-          {/* The shop is the clubhouse in the middle; the courts lie round it: clay for tennis to the
-              north, west and south, the blue padel courts to the south-east. */}
-          <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 1 } as CSSProperties}>
-            <g transform={`rotate(16 ${VENUE.x} ${VENUE.y})`}>
-              {[
-                { x: 601, y: 326, w: 19, h: 38 },
-                { x: 630, y: 326, w: 19, h: 38 },
-                { x: 559, y: 360, w: 19, h: 38 },
-                { x: 581, y: 360, w: 19, h: 38 },
-                { x: 603, y: 392, w: 38, h: 19 },
-              ].map((c) => {
-                const across = c.w > c.h;
-                return (
-                  <g key={`${c.x}-${c.y}`}>
-                    <rect x={c.x} y={c.y} width={c.w} height={c.h} fill="#d8764c" />
-                    <rect x={c.x + 2} y={c.y + 2} width={c.w - 4} height={c.h - 4} fill="none" stroke="#ffffff" strokeWidth=".9" />
-                    {across ? (
-                      <line x1={c.x + c.w / 2} x2={c.x + c.w / 2} y1={c.y} y2={c.y + c.h} stroke="#ffffff" strokeWidth="1.2" />
-                    ) : (
-                      <line x1={c.x} x2={c.x + c.w} y1={c.y + c.h / 2} y2={c.y + c.h / 2} stroke="#ffffff" strokeWidth="1.2" />
-                    )}
-                  </g>
-                );
-              })}
-              {[0, 1].map((i) => (
-                <g key={i}>
-                  <rect x={648 + i * 17} y="384" width="14" height="26" rx="1.5" fill="#3a78c9" />
-                  <rect x={648 + i * 17} y="384" width="14" height="26" rx="1.5" fill="none" stroke="#9cc3f0" strokeWidth="1" />
-                  <line x1={648 + i * 17} x2={662 + i * 17} y1="397" y2="397" stroke="#ffffff" strokeWidth="1.2" />
-                </g>
-              ))}
-              {/* The clubhouse: the shop. */}
-              <rect x="608" y="372" width="34" height="16" rx="2" fill="#d6cdbf" />
-              <rect x="606" y="368" width="34" height="16" rx="2" fill="#f2ede4" />
-              <rect x="606" y="368" width="34" height="6" rx="2" fill="#fbf8f3" />
-            </g>
-          </g>
-          <text className="hood-tag" x="552" y="372" textAnchor="end">
-            {t.tennis}
-          </text>
-          <text className="hood-tag" x="672" y="432">
-            {t.padel}
-          </text>
-
-          <text className="hood-area-label" x="372" y="226">
+          <text className="hood-area-label" x="330" y="322">
             {t.park}
           </text>
-          <text className="hood-tag hood-tag-soft" x="478" y="252" textAnchor="middle">
+          <text className="hood-tag hood-tag-soft" x="456" y="232" textAnchor="middle">
             {t.gardens}
           </text>
+          <text className="hood-tag hood-tag-soft" x="720" y="560" textAnchor="middle">
+            {t.gardens}
+          </text>
+          <text className="hood-label hood-label-small" x="574" y="176" textAnchor="middle">
+            SV Blau-Gelb
+          </text>
+          <text className="hood-tag" x="578" y="366" textAnchor="end">
+            {t.tennis}
+          </text>
+          <text className="hood-tag" x="616" y="428" textAnchor="end">
+            {t.padel}
+          </text>
+          <text className="hood-tag hood-tag-soft" x="606" y="856" textAnchor="middle">
+            TGB Frankfurt
+          </text>
+          <text className="hood-tag hood-tag-soft" x="815" y="856" textAnchor="middle">
+            Sportcampus Ginnheim
+          </text>
 
-          {/* The park's two everyday landmarks and the hospital on the far side. */}
+          {/* The park's fitness corner, the dog meadow over the motorway and the hospital. */}
           <Poi x={395} y={488} kind="sport" label={t.fitness} i={0} />
-          <Poi x={712} y={84} kind="play" label={t.playground} i={1} />
-          <Poi x={1030} y={556} kind="health" label={["Agaplesion", "Markus Krankenhaus"]} i={2} below />
-          <Poi x={672} y={694} kind="dogs" label={t.dogs} i={3} below />
+          <Poi x={640} y={760} kind="dogs" label={t.dogs} i={1} />
+          <Poi x={1032} y={555} kind="health" label={["Agaplesion", "Markus Krankenhaus"]} i={2} below />
 
-          {/* The walks from the U-Bahn and the S-Bahn, drawn in. */}
-          <path className="hood-route hood-route-u" d={uWalk} />
-          <path className="hood-route hood-route-s" d={sWalk} />
+          <path className="hood-route hood-route-u" d={U_WALK} />
+          <path className="hood-route hood-route-s" d={S_WALK} />
 
           <a href={hrefs[0]} target="_blank" rel="noreferrer" tabIndex={-1} className="hood-stop" style={{ "--i": 0 } as CSSProperties}>
-            <rect x={U_STOP.x - 14} y={U_STOP.y - 14} width="28" height="28" rx="6" fill="#1a5aa6" stroke="#ffffff" strokeWidth="2.5" />
-            <text x={U_STOP.x} y={U_STOP.y + 6} className="hood-glyph" textAnchor="middle">
+            <rect x={U_STOP.x - 13} y={U_STOP.y - 13} width="26" height="26" rx="6" fill="#1a5aa6" stroke="#ffffff" strokeWidth="2.5" />
+            <text x={U_STOP.x} y={U_STOP.y + 5.5} className="hood-glyph" textAnchor="middle">
               U
             </text>
-            <text x={U_STOP.x + 14} y={U_STOP.y + 36} className="hood-label" textAnchor="end">
+            <text x={U_STOP.x - 20} y={U_STOP.y - 4} className="hood-label" textAnchor="end">
               Ginnheim Mitte
             </text>
-            <text x={U_STOP.x + 14} y={U_STOP.y + 53} className="hood-tag hood-tag-u" textAnchor="end">
+            <text x={U_STOP.x - 20} y={U_STOP.y + 13} className="hood-tag hood-tag-u" textAnchor="end">
               U1 · U9 · 16 · {t.minutes(10)}
             </text>
           </a>
           <a href={hrefs[1]} target="_blank" rel="noreferrer" tabIndex={-1} className="hood-stop" style={{ "--i": 1 } as CSSProperties}>
-            <circle cx={S_STOP.x} cy={S_STOP.y} r="15" fill="#0a8a3a" stroke="#ffffff" strokeWidth="2.5" />
-            <text x={S_STOP.x} y={S_STOP.y + 6} className="hood-glyph" textAnchor="middle">
+            <circle cx={S_STOP.x} cy={S_STOP.y} r="14" fill="#0a8a3a" stroke="#ffffff" strokeWidth="2.5" />
+            <text x={S_STOP.x} y={S_STOP.y + 5.5} className="hood-glyph" textAnchor="middle">
               S
             </text>
-            <text x={S_STOP.x - 22} y={S_STOP.y - 4} className="hood-label" textAnchor="end">
+            <text x={S_STOP.x + 20} y={S_STOP.y - 4} className="hood-label">
               Frankfurt-Ginnheim
             </text>
-            <text x={S_STOP.x - 22} y={S_STOP.y + 13} className="hood-tag hood-tag-s" textAnchor="end">
+            <text x={S_STOP.x + 20} y={S_STOP.y + 13} className="hood-tag hood-tag-s">
               S6 · {t.minutes(12)}
             </text>
           </a>
           <a href={hrefs[2]} target="_blank" rel="noreferrer" tabIndex={-1} className="hood-stop" style={{ "--i": 2 } as CSSProperties}>
-            <rect x="1036" y="694" width="70" height="30" rx="15" fill="#17384b" stroke="#ffffff" strokeWidth="2" />
-            <path d="M1050 714 h28 v-5 l-5 -6 h-16 l-5 6 Z M1054 715 a2.6 2.6 0 1 0 0.01 0 M1074 715 a2.6 2.6 0 1 0 0.01 0" fill="#ffffff" />
-            <path d="M1086 709 h10 m-4 -4 l4 4 l-4 4" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <text x="1104" y="668" textAnchor="end" className="hood-label hood-label-blue">
+            <rect x={CAR.x - 34} y={CAR.y - 14} width="68" height="28" rx="14" fill="#17384b" stroke="#ffffff" strokeWidth="2" />
+            <path d={`M${CAR.x - 22} ${CAR.y + 6} h28 v-5 l-5 -6 h-16 l-5 6 Z M${CAR.x - 18} ${CAR.y + 7} a2.6 2.6 0 1 0 0.01 0 M${CAR.x + 2} ${CAR.y + 7} a2.6 2.6 0 1 0 0.01 0`} fill="#ffffff" />
+            <path d={`M${CAR.x + 13} ${CAR.y + 1} h10 m-4 -4 l4 4 l-4 4`} fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <text x={CAR.x + 34} y={CAR.y - 37} textAnchor="end" className="hood-label hood-label-blue">
               {t.centre}
             </text>
-            <text x="1104" y="685" textAnchor="end" className="hood-tag hood-tag-car">
+            <text x={CAR.x + 34} y={CAR.y - 21} textAnchor="end" className="hood-tag hood-tag-car">
               {t.steps[2].line} · {t.minutes(15)}
             </text>
           </a>
 
-          {/* La Cordobesa: the badge on a stalk, the name as in the header. */}
+          {/* La Cordobesa: the badge on a stalk over the clubhouse, the name as in the header. */}
           <a href={CONTACT.mapsUrl} target="_blank" rel="noreferrer" tabIndex={-1} className="hood-here">
-            <ellipse cx={VENUE.x} cy={VENUE.y + 2} rx="14" ry="5" fill="#17384b" opacity=".25" />
-            <circle className="hood-pulse" cx={VENUE.x} cy={VENUE.y} r="20" />
+            <ellipse cx={VENUE.x} cy={VENUE.y + 2} rx="12" ry="4.5" fill="#17384b" opacity=".25" />
+            <circle className="hood-pulse" cx={VENUE.x} cy={VENUE.y} r="18" />
             <line x1={VENUE.x} y1={VENUE.y} x2={VENUE.x} y2={VENUE.y - 46} stroke="#17384b" strokeWidth="3" strokeLinecap="round" />
             <g className="hood-badge-mark" filter="url(#hood-lift)">
               <circle cx={VENUE.x} cy={VENUE.y - 70} r="27" fill="#ffffff" />
               <image className="hood-logo" href={LOGO.full} x={VENUE.x - 25} y={VENUE.y - 95} width="50" height="50" />
             </g>
             <g className="hood-callout">
-              <rect x={VENUE.x + 34} y={VENUE.y - 90} width="164" height="40" rx="10" />
-              <text x={VENUE.x + 48} y={VENUE.y - 62} className="hood-brand">
+              <rect x={box.x} y={box.y} width={box.w} height={box.h} rx="10" />
+              <text x={box.x + box.w / 2} y={box.y + CALLOUT.pad + CALLOUT.ink} className="hood-brand" textAnchor="middle">
                 {t.here}
               </text>
             </g>
           </a>
-
-          {/* Light from the top left and a little shade at the far corner: the page lit like paper. */}
-          <rect x="320" y="0" width="800" height="830" fill="url(#hood-light)" pointerEvents="none" />
         </svg>
       </div>
 
@@ -346,27 +193,26 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
   );
 }
 
-function Poi({ x, y, kind, label, i, below }: { x: number; y: number; kind: "sport" | "play" | "health" | "dogs"; label: string | string[]; i: number; below?: boolean }) {
+function Poi({ x, y, kind, label, i, below }: { x: number; y: number; kind: "sport" | "health" | "dogs"; label: string | string[]; i: number; below?: boolean }) {
   const lines = Array.isArray(label) ? label : [label];
   const glyph = { fill: "none", stroke: "#ffffff", strokeWidth: 1.8, strokeLinecap: "round" as const };
   return (
     <g className={`hood-poi hood-poi-${kind}`} style={{ "--i": i } as CSSProperties}>
-      <circle cx={x} cy={y} r="12" />
-      {kind === "sport" && <circle {...glyph} cx={x} cy={y} r="5" />}
-      {kind === "play" && <path {...glyph} d={`M${x} ${y + 6} V${y} M${x - 5} ${y + 1} L${x} ${y - 6} L${x + 5} ${y + 1} Z`} />}
+      <circle className="hood-poi-dot" cx={x} cy={y} r="11" />
+      {kind === "sport" && <circle {...glyph} cx={x} cy={y} r="4.6" />}
       {kind === "health" && <path {...glyph} strokeWidth={2.4} d={`M${x} ${y - 5} V${y + 5} M${x - 5} ${y} H${x + 5}`} />}
       {kind === "dogs" && (
         <g fill="#ffffff">
-          <ellipse cx={x} cy={y + 2.5} rx="3.6" ry="3" />
-          <circle cx={x - 4.5} cy={y - 2} r="1.6" />
-          <circle cx={x - 1.6} cy={y - 4.8} r="1.6" />
-          <circle cx={x + 1.6} cy={y - 4.8} r="1.6" />
-          <circle cx={x + 4.5} cy={y - 2} r="1.6" />
+          <ellipse cx={x} cy={y + 2.5} rx="3.4" ry="2.8" />
+          <circle cx={x - 4.3} cy={y - 1.8} r="1.5" />
+          <circle cx={x - 1.5} cy={y - 4.6} r="1.5" />
+          <circle cx={x + 1.5} cy={y - 4.6} r="1.5" />
+          <circle cx={x + 4.3} cy={y - 1.8} r="1.5" />
         </g>
       )}
-      <text x={below ? x : x + 18} y={below ? y + 30 : y + 5} textAnchor={below ? "middle" : "start"} className="hood-label">
+      <text x={below ? x : x + 17} y={below ? y + 28 : y + 5} textAnchor={below ? "middle" : "start"} className="hood-label">
         {lines.map((line, k) => (
-          <tspan key={line} x={below ? x : x + 18} dy={k ? 17 : 0}>
+          <tspan key={line} x={below ? x : x + 17} dy={k ? 17 : 0}>
             {line}
           </tspan>
         ))}
