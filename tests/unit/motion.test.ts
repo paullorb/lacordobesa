@@ -1,8 +1,7 @@
 /**
- * The GSAP loader behind the one animation CSS cannot do (FLIP).
+ * The Web Animations helper behind the one animation CSS cannot do (FLIP).
  *
- * The contract is that motion is an enhancement which is allowed to fail. On the server, before the
- * chunk arrives, after a failed chunk fetch, and for a reader who asked for less movement, `motion()`
+ * The contract is that motion is an enhancement which is allowed to fail. On the server and for a reader who asked for less movement, `motion()`
  * must return null so the caller changes the DOM without animating. If it ever threw or returned a
  * half-loaded object instead, a list reorder or a gallery filter would take the feature down with it.
  *
@@ -11,7 +10,7 @@
  */
 import { test, describe, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { FLIP_DURATION, FLIP_EASE, motion, preloadMotion, reducedMotion } from "@/lib/motion";
+import { FLIP_DURATION, FLIP_EASE, motion, reducedMotion } from "@/lib/motion";
 
 const realWindow = (globalThis as { window?: unknown }).window;
 
@@ -49,18 +48,6 @@ describe("reducedMotion", () => {
   });
 });
 
-describe("preloadMotion", () => {
-  test("resolves without fetching anything on the server", async () => {
-    await assert.doesNotReject(preloadMotion());
-  });
-
-  test("resolves without fetching anything for a reader who asked for less movement", async () => {
-    fakeWindow(true);
-    await assert.doesNotReject(preloadMotion());
-    assert.equal(motion(), null);
-  });
-});
-
 describe("motion", () => {
   test("is null on the server, so a render never animates", () => {
     assert.equal(motion(), null);
@@ -71,11 +58,10 @@ describe("motion", () => {
     assert.equal(motion(), null);
   });
 
-  test("is null rather than a half-loaded object before the chunk arrives", () => {
-    // The caller's contract: null means "change the DOM, do not animate".
+  test("offers tween, getState and flip when movement is wanted", () => {
     fakeWindow(false);
-    const result = motion();
-    assert.ok(result === null || (typeof result === "object" && "gsap" in result && "Flip" in result));
+    const m = motion();
+    assert.ok(m && typeof m.tween === "function" && typeof m.getState === "function" && typeof m.flip === "function");
   });
 
   test("never throws, whatever the preference is", () => {

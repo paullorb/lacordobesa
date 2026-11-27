@@ -8,7 +8,7 @@ import { CheerCursor } from "@/components/cheer-cursor";
 import { getDictionary } from "@/lib/dictionaries";
 import { GALLERY_CATEGORIES } from "@/lib/gallery";
 import type { Locale } from "@/lib/i18n";
-import { FLIP_DURATION, FLIP_EASE, motion, preloadMotion } from "@/lib/motion";
+import { motion } from "@/lib/motion";
 
 export type GalleryPhoto = { id: string; url: string; caption: string | null; category: string; cheer: boolean };
 
@@ -28,12 +28,6 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
   const index = visible.findIndex((p) => p.id === openId);
   const current = index >= 0 ? visible[index] : null;
   const present = GALLERY_CATEGORIES.filter((c) => photos.some((p) => p.category === c.value));
-
-  // Warmed on mount rather than on the first click: a filter has to respond immediately, and a
-  // chunk that is still in flight would mean the first refilter is the one that does not animate.
-  useEffect(() => {
-    void preloadMotion();
-  }, []);
 
   useEffect(() => {
     const el = dialog.current;
@@ -57,17 +51,17 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
     // One uniform scale, not scaleX/scaleY fitted to the tile: a tile is 4:3 and crops its photo,
     // the lightbox letterboxes it, so fitting both axes would visibly squash the picture on the
     // way in. Scaling by width alone keeps it undistorted and still reads as the tile opening.
-    m.gsap.fromTo(
+    m.tween(
       box,
       {
         x: from.left + from.width / 2 - (to.left + to.width / 2),
         y: from.top + from.height / 2 - (to.top + to.height / 2),
         scale: from.width / to.width,
       },
-      { x: 0, y: 0, scale: 1, duration: FLIP_DURATION, ease: FLIP_EASE, clearProps: "transform" },
+      { x: 0, y: 0, scale: 1 },
     );
     const caption = el.querySelector("figcaption");
-    if (caption) m.gsap.fromTo(caption, { opacity: 0 }, { opacity: 1, duration: FLIP_DURATION, ease: FLIP_EASE });
+    if (caption) m.tween(caption, { opacity: 0 }, { opacity: 1 });
   }, [current]);
 
   /**
@@ -79,7 +73,7 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
    * together: measure, let React commit, then animate the difference.
    *
    * flushSync is what makes that possible in React. The new layout has to exist in the DOM before
-   * Flip can read it, and a plain setState would not have committed yet.
+   * the new boxes can be read, and a plain setState would not have committed yet.
    */
   function refilter(value: string) {
     if (value === filter) return;
@@ -89,25 +83,12 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
       setFilter(value);
       return;
     }
-    const state = m.Flip.getState(Array.from(list.children));
+    const state = m.getState(Array.from(list.children));
     flushSync(() => setFilter(value));
     // Read again, deliberately: `state` holds the tiles as they were, and this is the committed
-    // layout, so the two lists differ by whatever left and whatever arrived.
-    const arrived = Array.from(list.children);
-    m.Flip.from(state, {
-      duration: FLIP_DURATION,
-      ease: FLIP_EASE,
-      // Only the tiles still on screen are in `state`; a tile arriving from another category has
-      // no previous box to fly from, so it is faded up in place instead. Tiles that left are
-      // already unmounted by React and are nothing to animate.
-      targets: arrived,
-      onEnter: (els) =>
-        m.gsap.fromTo(
-          els,
-          { opacity: 0, scale: 0.86 },
-          { opacity: 1, scale: 1, duration: FLIP_DURATION, ease: FLIP_EASE },
-        ),
-    });
+    // layout. A tile arriving from another category has no previous box, so it fades up in place;
+    // tiles that left are already unmounted by React and are nothing to animate.
+    m.flip(state, Array.from(list.children), { scale: true });
   }
 
   function step(delta: number) {
@@ -129,7 +110,7 @@ export function GalleryGrid({ locale, photos }: { locale: Locale; photos: Galler
 
       <ul className="gallery-grid" ref={grid}>
         {visible.map((p, i) => (
-          // The photo's own id, so Flip pairs the two layouts by photograph rather than by whichever
+          // The photo's own id, so the two layouts pair the two layouts by photograph rather than by whichever
           // DOM node React happened to reuse.
           <li key={p.id} data-flip-id={p.id}>
             <button
