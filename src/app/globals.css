@@ -1406,52 +1406,67 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 /* ------------------------------------------------------------------ the walking-time map (Visítanos)
    See neighbourhood-map.tsx. Sticky in the visit grid like the photo it replaced, a paper card
    with the routes written out underneath. */
-.hood { position: sticky; top: calc(var(--header-h) + 28px); margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: min(78vh, 720px); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.hood-map { display: block; width: 100%; height: 100%; min-height: 0; }
+.hood { position: sticky; top: calc(var(--header-h) + 20px); margin: 0; display: grid; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .hood-legend { padding: 1.1rem 1.3rem 1.2rem; border-top: 1px solid var(--line); background: var(--cream); }
 .hood-legend strong { display: block; margin-bottom: .55rem; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
 .hood-legend ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
 .hood-legend li { display: flex; gap: .7rem; align-items: baseline; font-size: var(--fs-sm); line-height: 1.5; color: var(--ink); }
 .hood-legend small { display: block; margin-top: .6rem; font-size: var(--fs-xs); color: var(--muted); }
 .hood-badge { flex: 0 0 auto; min-width: 2.2rem; padding: .1rem .4rem; border-radius: 999px; text-align: center; font-size: var(--fs-xs); font-weight: 800; color: #ffffff; background: #9b4f96; }
-.hood-badge-u1 { background: #c8102e; }
-.hood-badge-s6 { background: #0a8a3a; }
-@media (max-width: 1100px) { .hood { position: relative; top: auto; height: auto; } .hood-map { aspect-ratio: 1; height: auto; } }
+@media (max-width: 1100px) { .hood { position: relative; top: auto; } }
 
-.hood-map { background: #f4f1ea; }
+.hood-stage { position: relative; aspect-ratio: 800 / 760; overflow: hidden; background: #f3efe6; }
+.hood-map { display: block; width: 100%; height: 100%; }
 .hood-label { font: 600 16px var(--sans); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
-.hood-label-here { font: italic 700 24px var(--serif); fill: #b3323a; }
-.hood-callout rect { fill: #ffffff; stroke: rgba(23,56,75,.18); stroke-width: 1; filter: drop-shadow(0 4px 10px rgba(23,56,75,.18)); }
-.hood-tag-in { fill: #ffffff; stroke: none; font-size: 12px; }
 .hood-label-blue { fill: var(--blue-dark); font-size: 14px; }
 .hood-tag { font: 700 13px var(--sans); letter-spacing: .06em; text-transform: uppercase; fill: #2f5d38; paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round; }
 .hood-tag-soft { fill: #4f7a45; opacity: .85; }
-.hood-stop .hood-tag { fill: #1a5aa6; }
+.hood-tag-in { fill: #ffffff; stroke: none; font-size: 12px; }
+.hood-tag-u { fill: #1a5aa6; }
+.hood-tag-s { fill: #0a7a33; }
 .hood-area-label { font: italic 600 30px var(--serif); fill: #3d7a3f; opacity: .85; }
 .hood-road-label { font: 700 11px var(--sans); letter-spacing: .05em; fill: #8a6a1c; }
 .hood-road-label text:first-child { fill: #6b7378; }
-.hood-u { font: 800 15px var(--sans); fill: #ffffff; }
-.hood-walk { fill: none; stroke: #1a5aa6; stroke-width: 4; stroke-dasharray: 2 9; stroke-linecap: round; }
-.hood-poi circle { stroke: #ffffff; stroke-width: 2.5; }
-.hood-poi-food circle { fill: #e8833a; }
+.hood-glyph { font: 800 16px var(--sans); fill: #ffffff; }
+.hood-route { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.hood-route-u { stroke: #1a5aa6; stroke-width: 4; stroke-dasharray: 2 9; }
+.hood-route-s { stroke: #0a8a3a; stroke-width: 4; stroke-dasharray: 2 9; }
+.hood-stop { cursor: pointer; }
+.hood-stop > :first-child { transition: transform .3s cubic-bezier(.2,.7,.2,1); transform-box: fill-box; transform-origin: center; }
+.hood-stop:hover > :first-child { transform: scale(1.18); }
+.hood-poi circle { stroke: #ffffff; stroke-width: 2.5; filter: drop-shadow(0 2px 2px rgba(23,56,75,.25)); }
 .hood-poi-sport circle { fill: #2f9d61; }
 .hood-poi-play circle { fill: #3a9a52; }
 .hood-poi-health circle { fill: #d6404a; }
 .hood-pulse { fill: #e14b52; opacity: .2; transform-box: fill-box; transform-origin: center; }
+.hood-here { cursor: pointer; }
+.hood-callout rect { fill: #ffffff; stroke: rgba(23,56,75,.14); stroke-width: 1; filter: drop-shadow(0 6px 12px rgba(23,56,75,.2)); }
+.hood-brand { font: 500 24px var(--serif); fill: var(--ink); }
+.hood-brand-sub { font: 500 9.5px var(--sans); letter-spacing: .22em; fill: var(--muted); }
+.hood-badge-mark, .hood-logo { transform-box: fill-box; transform-origin: center; transition: transform .8s cubic-bezier(.3,1.5,.5,1); }
+.hood-here:hover .hood-badge-mark { transform: translateY(-6px) scale(1.12); }
+.hood-here:hover .hood-logo { transform: rotate(360deg); }
+.hood-legend a { display: flex; gap: .7rem; align-items: baseline; color: inherit; text-decoration: none; }
+.hood-legend a:hover .hood-open, .hood-legend a:focus-visible .hood-open { text-decoration: underline; }
+.hood-open { color: var(--blue-dark); font-weight: 700; white-space: nowrap; }
+.hood-badge-u { background: #1a5aa6; }
+.hood-badge-s { background: #0a8a3a; }
+.hood-badge-car { background: var(--ink); }
 
+@media (prefers-reduced-motion: reduce) { .hood-here:hover .hood-logo, .hood-here:hover .hood-badge-mark { transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
   .hood-pulse { animation: hood-pulse 2.6s cubic-bezier(.2,.7,.2,1) infinite; }
+  .hood-route-u, .hood-route-s { animation: hood-march 1.4s linear infinite; }
   @supports (animation-timeline: view()) {
     .hood { view-timeline-name: --hood; }
     .hood-green { transform-box: fill-box; transform-origin: 0 50%; animation: hood-spread linear both; animation-timeline: --hood; animation-range: entry 0% cover 30%; }
     .hood-ground { transform-box: fill-box; transform-origin: center; animation: hood-pop linear both; animation-timeline: --hood; animation-range: entry calc(15% + var(--i) * 8%) cover calc(32% + var(--i) * 6%); }
     .hood-poi, .hood-stop { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry calc(30% + var(--i, 0) * 6%) cover calc(40% + var(--i, 0) * 5%); }
-    .hood-walk { animation: hood-draw linear both; animation-timeline: --hood; animation-range: entry 45% cover 55%; }
-    .hood-here { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry 10% cover 25%; }
+        .hood-here { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry 10% cover 25%; }
   }
 }
 @keyframes hood-pulse { 0% { transform: scale(.5); opacity: .45; } 100% { transform: scale(2.4); opacity: 0; } }
 @keyframes hood-spread { from { opacity: 0; transform: scaleX(.85); } to { opacity: 1; transform: none; } }
 @keyframes hood-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
 @keyframes hood-land { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
-@keyframes hood-draw { from { stroke-dashoffset: 420; } to { stroke-dashoffset: 0; } }
+@keyframes hood-march { to { stroke-dashoffset: -22; } }
