@@ -79,7 +79,7 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
 
         <path className="hood-u1" d={u1} />
         <text className="hood-label hood-centre" x="590" y="586" textAnchor="end">
-          ↘ {t.centre}
+          {t.centre}
         </text>
 
         {STOPS.map((s, i) => {
