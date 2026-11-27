@@ -20,7 +20,7 @@ function nextCheer(words: readonly string[], last: string) {
  * Mounted once per page and listening on the document, so a page only has to mark its elements. The
  * label is moved directly on the DOM rather than through state, since a pointer moves far more often
  * than React should render. It goes straight into <body>: inside the page it sat under sections that
- * GSAP's reveal leaves with a `transform`, which turns `position: fixed` into "fixed to that
+ * the scroll reveal leaves with a `transform`, which turns `position: fixed` into "fixed to that
  * section" and floated the label about 100px from the pointer.
  */
 export function CheerCursor({ locale }: { locale: Locale }) {

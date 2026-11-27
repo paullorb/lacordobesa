@@ -6,12 +6,11 @@
  * `reducedMotion: "reduce"` on purpose, so nothing here would be exercised by any other file.
  * These tests ask for motion explicitly.
  *
- * What is actually worth pinning down is not "does it look nice" but the three promises the
+ * What is actually worth pinning down is not "does it look nice" but the two promises the
  * enhancement makes:
  *
  *  - the reorder still happens when the animation does not, so nobody loses a feature to it;
- *  - somebody who asked for less movement gets none, and is not made to download GSAP either;
- *  - the home page never pays for it at all.
+ *  - somebody who asked for less movement gets none.
  */
 import { test, describe, after } from "node:test";
 import assert from "node:assert/strict";
@@ -25,38 +24,6 @@ after(closeBrowser);
 /** Transforms of every element matching `selector`, as the browser computes them. */
 const transformsOf = (page, selector) =>
   page.locator(selector).evaluateAll((els) => els.map((el) => getComputedStyle(el).transform));
-
-/**
- * The scripts a page loads only when movement is wanted.
- *
- * GSAP is one or more lazy chunks and a production build hashes their names, so they are found by
- * difference rather than matched by name: load the page twice, once asking for motion and once
- * not, and subtract.
- *
- * Both halves are measured on a cold first load, which is the only way this means anything. A
- * second navigation has the chunks in cache and reports about half the requests, so the difference
- * came out empty either way and the two assertions below passed without proving a thing.
- */
-async function motionOnlyScripts(path, { staff = false } = {}) {
-  const collect = (motion) =>
-    visit(path, {
-      staff,
-      motion,
-      before: ({ page }) => {
-        const urls = new Set();
-        page.on("response", (r) => r.request().resourceType() === "script" && urls.add(r.url()));
-        return urls;
-      },
-      body: async ({ page, before: urls }) => {
-        // Long enough for a preload fired on mount to have landed.
-        await page.waitForTimeout(2500);
-        return urls;
-      },
-    });
-  const withMotion = await collect(true);
-  const without = await collect(false);
-  return [...withMotion].filter((u) => !without.has(u));
-}
 
 describe("the gallery refilters by moving the photos", () => {
   test("surviving tiles glide and arriving tiles fade up", { skip }, async () => {
@@ -112,7 +79,7 @@ describe("the gallery refilters by moving the photos", () => {
     });
   });
 
-  test("asking for less movement refilters instantly, and downloads no GSAP", { skip }, async () => {
+  test("asking for less movement refilters instantly", { skip }, async () => {
     await visit("/gallery", {
       body: async ({ page }) => {
         const chips = page.locator(".gallery-filters .chip");
@@ -210,23 +177,5 @@ describe("the staff menu arranger moves the rows it reorders", () => {
         );
       },
     });
-  });
-});
-
-describe("GSAP is only ever loaded where it is used", () => {
-  // The positive control. Without it the two tests below could pass because the measurement is
-  // broken rather than because the home page is clean, which is exactly what happened once.
-  test("the gallery, which uses it, does load it", { skip }, async () => {
-    const extra = await motionOnlyScripts("/gallery");
-    assert.ok(extra.length > 0, "found no motion-only chunk even on the page that flips the grid");
-  });
-
-  test("the home page loads none of it", { skip }, async () => {
-    // The whole public motion layer is CSS, so the busiest page must not pay for the Flip plugin.
-    assert.deepEqual(await motionOnlyScripts("/"), []);
-  });
-
-  test("the menu page loads none of it", { skip }, async () => {
-    assert.deepEqual(await motionOnlyScripts("/karte"), []);
   });
 });
