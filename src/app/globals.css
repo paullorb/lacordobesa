@@ -1357,7 +1357,7 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 
 /* The story, lit as it is read. The words are split in the browser only; inline-block keeps each
    word where the text put it, and nothing but its opacity ever changes. */
-.read-word { display: inline-block; }
+.read-word { transition: opacity .5s ease-out; }
 .intro-copy > p[data-read] { color: var(--ink); }
 
 /* The questions as an index: numbered, the number in the brand's serif, the open one marked. */

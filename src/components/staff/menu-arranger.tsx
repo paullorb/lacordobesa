@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { flushSync } from "react-dom";
 import { MenuIcon, StaffIcon } from "@/components/icons";
 import { arrangeCategories, arrangeMenuItems, setMenuItemFeatured, type ActionResult } from "@/app/staff/actions";
-import { FLIP_EASE, motion, preloadMotion } from "@/lib/motion";
+import { motion } from "@/lib/motion";
 
 export type ArrangerCategory = {
   id: string;
@@ -131,12 +131,6 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
   const featuredZone = useRef<HTMLDivElement>(null);
   const pointerY = useRef(0);
 
-  // Warmed on mount: a reorder is a finger drag or a keypress, and neither can wait for a chunk to
-  // arrive over the network, so by the time a handle is grabbed Flip is already here.
-  useEffect(() => {
-    void preloadMotion();
-  }, []);
-
   /**
    * Changes the layout, gliding every row from where it was to where it lands.
    *
@@ -163,22 +157,13 @@ function Arranger({ arranging, categories, items }: { arranging: boolean; catego
     // A selector rather than a ref into this subtree: the page renders one arranger, these three
     // attributes belong to it alone, and reading a ref here would be a render-time ref access
     // (the window handlers below are captured into a useRef on every render).
-    const state = m.Flip.getState(MOVABLE);
+    const state = m.getState(MOVABLE);
     flushSync(() => setLayout(resolved));
     // nested, because the dish rows live inside the category sections and both can move at once.
     // prune, so a one-step swap on a sixty-dish menu animates the two rows that changed places.
-    m.Flip.from(state, {
-      duration,
-      ease: FLIP_EASE,
-      nested: true,
-      prune: true,
-      // `targets` so a row or chip that did not exist a moment ago is animated too, not just the
-      // ones that moved. The one that matters is the Startseite chip: dropping a dish on the home
-      // page has no other confirmation, and a chip that scales up says the drop was taken.
-      targets: MOVABLE,
-      onEnter: (els) =>
-        m.gsap.fromTo(els, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration, ease: FLIP_EASE }),
-    });
+    // New rows and chips fade up too: the Startseite chip is the one that matters, since dropping
+    // a dish on the home page has no other confirmation.
+    m.flip(state, MOVABLE, { duration, nested: true, prune: true, enter: { opacity: 0, scale: 0.7 } });
   }
 
   const itemById = new Map(items.map((i) => [i.id, i]));
