@@ -221,12 +221,65 @@ describe("GSAP is only ever loaded where it is used", () => {
     assert.ok(extra.length > 0, "found no motion-only chunk even on the page that flips the grid");
   });
 
-  test("the home page loads none of it", { skip }, async () => {
-    // The whole public motion layer is CSS, so the busiest page must not pay for the Flip plugin.
+  test("the home page loads none of it before the reader scrolls", { skip }, async () => {
+    // The first paint is CSS only. The reading layer (reading-motion.tsx) waits for a scroll.
     assert.deepEqual(await motionOnlyScripts("/"), []);
   });
 
   test("the menu page loads none of it", { skip }, async () => {
     assert.deepEqual(await motionOnlyScripts("/karte"), []);
+  });
+});
+
+describe("the long passages on the home page are paced, never hidden", () => {
+  test("the story is plain text in the HTML, for a crawler and a reader without script", { skip }, async () => {
+    const html = await (await fetch(BASE + "/")).text();
+    const story = html.match(/<p data-read="words">([^<]+)<\/p>/g) ?? [];
+    assert.equal(story.length, 2, "the two story paragraphs are not plain, unsplit text in the server HTML");
+  });
+
+  test("scrolling lights the story word by word without moving a line", { skip }, async () => {
+    await visit("/", {
+      motion: true,
+      body: async ({ page, errors }) => {
+        const story = page.locator(".intro-copy");
+        const before = await story.evaluate((el) => el.getBoundingClientRect().height);
+        await page.mouse.wheel(0, 400);
+        await page.locator(".read-word").first().waitFor({ state: "attached", timeout: 15_000 });
+        const after = await story.evaluate((el) => el.getBoundingClientRect().height);
+        assert.ok(Math.abs(after - before) < 1, `splitting the story changed its height from ${before} to ${after}`);
+        assert.deepEqual(errors, []);
+      },
+    });
+  });
+
+  test("an answer still opens and closes, and ends with no inline style left", { skip }, async () => {
+    await visit("/", {
+      motion: true,
+      body: async ({ page }) => {
+        await page.mouse.wheel(0, 400);
+        await page.locator(".read-word").first().waitFor({ state: "attached", timeout: 15_000 });
+        const details = page.locator(".faq-list details").first();
+        await details.scrollIntoViewIfNeeded();
+        await details.locator("summary").click();
+        await page.waitForTimeout(1500);
+        assert.equal(await details.evaluate((el) => el.open), true);
+        assert.equal(await details.locator(".faq-answer").evaluate((el) => el.getAttribute("style") ?? ""), "");
+        await details.locator("summary").click();
+        await page.waitForTimeout(1200);
+        assert.equal(await details.evaluate((el) => el.open), false);
+      },
+    });
+  });
+
+  test("asking for less movement splits nothing", { skip }, async () => {
+    await visit("/", {
+      body: async ({ page }) => {
+        await page.mouse.wheel(0, 400);
+        await page.waitForTimeout(2000);
+        assert.equal(await page.locator(".read-word").count(), 0);
+        assert.equal(await page.locator(".hero-light.is-lit").count(), 0);
+      },
+    });
   });
 });

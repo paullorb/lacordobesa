@@ -70,3 +70,30 @@ export function motion(): Motion | null {
 /** How the site moves things: one duration and one ease, so a reorder and a refilter feel related. */
 export const FLIP_DURATION = 0.45;
 export const FLIP_EASE = "power3.out";
+
+/* ------------------------------------------------------------------ the reading layer
+ * The long passages (the story under "Wir sind", the questions) are paced with GSAP: the story is
+ * lit word by word as it scrolls past the reading line, and an answer opens with its height and
+ * its lines eased in rather than snapping. Same rules as FLIP above, plus one: the server HTML is
+ * the finished text, untouched, so a crawler and a reader without script both get all of it, and
+ * the split into words happens in the browser only after GSAP has arrived. */
+
+type Reading = {
+  gsap: typeof GSAP;
+  ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger;
+  SplitText: typeof import("gsap/SplitText").SplitText;
+};
+
+let reading: Promise<Reading | null> | null = null;
+
+/** GSAP with ScrollTrigger and SplitText, fetched once per page. Null when movement is unwanted or the chunk failed. */
+export function loadReading(): Promise<Reading | null> {
+  if (typeof window === "undefined" || reducedMotion()) return Promise.resolve(null);
+  reading ??= Promise.all([import("gsap"), import("gsap/ScrollTrigger"), import("gsap/SplitText")])
+    .then(([{ gsap }, { ScrollTrigger }, { SplitText }]) => {
+      gsap.registerPlugin(ScrollTrigger, SplitText);
+      return { gsap, ScrollTrigger, SplitText };
+    })
+    .catch(() => null);
+  return reading;
+}
