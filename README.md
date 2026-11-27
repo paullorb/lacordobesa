@@ -225,7 +225,7 @@ than breaking the page.
 
 Gallery: `gallery_items` (migration `20261012085100`) plus a public Supabase Storage bucket `gallery`; only allow-listed staff can
 upload or delete. Images are shrunk in the browser (max 1800 px JPEG) before upload and served through `next/image`.
-The seed rows point at illustrations in `public/assets/gallery/` — staff can delete them once real photos are in.
+The seed illustrations were removed in favour of real photos (`20261127084320_drop_gallery_illustrations.sql`).
 
 Both public pages emit schema.org JSON-LD ([`src/lib/structured-data.ts`](src/lib/structured-data.ts)): the landing
 page a `Restaurant` graph with address and opening hours, `/karte` a `Menu` graph. That is what lets Google show the
