@@ -1442,7 +1442,8 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 .hood-here { cursor: pointer; }
 .hood-callout rect { fill: #ffffff; stroke: rgba(23,56,75,.14); stroke-width: 1; filter: drop-shadow(0 6px 12px rgba(23,56,75,.2)); }
 .hood-brand { font: 500 24px var(--serif); fill: var(--ink); }
-.hood-brand-sub { font: 500 9.5px var(--sans); letter-spacing: .22em; fill: var(--muted); }
+.hood-poi-dogs > circle { fill: #8a6a3e; }
+.hood-tag-car { fill: var(--blue-dark); }
 .hood-badge-mark, .hood-logo { transform-box: fill-box; transform-origin: center; transition: transform .8s cubic-bezier(.3,1.5,.5,1); }
 .hood-here:hover .hood-badge-mark { transform: translateY(-6px) scale(1.12); }
 .hood-here:hover .hood-logo { transform: rotate(360deg); }

@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/i18n";
 
 /**
  * The few streets round the shop, drawn in the colours people know from a map app: the Niddapark
- * and the allotments in green, the SV Blau-Gelb ground with its track and pitches next door, the
+ * and the allotments in green, the SV Blau-Gelb ground with its track and pitch next door, the
  * tennis and padel courts the shop sits among, the U-Bahn and S-Bahn stops, the A66 and
  * Rosa-Luxemburg-Straße as the yellow roads that frame it.
  *
@@ -41,9 +41,9 @@ const ROADS = {
   rail: "M828 -10 C 784 200, 692 430, 590 840",
   rosa: "M780 -10 C 812 60, 846 92, 900 118 C 970 150, 1050 168, 1130 182",
   a66: "M310 604 C 620 646, 860 712, 1130 762",
-  landstrasse: "M562 736 C 760 748, 900 770, 952 728 C 962 600, 954 360, 948 120",
+  landstrasse: "M571 790 C 760 802, 900 806, 952 762 C 962 600, 954 360, 948 120",
   epstein: "M952 470 C 1030 478, 1090 498, 1130 510",
-  grid: "M804 152 L 812 470 M808 318 L 950 338 M812 448 L 952 458 M950 236 L 1130 268 M1104 262 L 1112 506 M812 470 C 860 520, 900 600, 960 640 M952 728 C 1010 760, 1070 780, 1130 790",
+  grid: "M804 152 L 812 470 M808 318 L 950 338 M812 448 L 952 458 M950 236 L 1130 268 M1104 262 L 1112 506 M812 470 C 860 520, 900 600, 960 640 M952 740 C 1010 764, 1070 782, 1130 790",
 };
 
 export function NeighbourhoodMap({ locale }: { locale: Locale }) {
@@ -114,9 +114,48 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
             <path d="M330 40 C 390 20, 440 60, 420 110 C 400 150, 350 140, 330 110 Z" fill="url(#hood-trees)" />
             <path d="M600 24 C 650 10, 700 30, 700 70 C 690 110, 630 110, 610 80 Z" fill="url(#hood-trees)" />
             <path d="M420 128 L 556 132 L 520 300 L 545 404 L 458 380 L 408 262 Z" fill="url(#hood-plots)" />
-            <path d="M650 470 L 940 476 L 946 700 L 610 712 L 620 560 Z" fill="url(#hood-plots)" />
+            <path d="M650 470 L 940 476 L 944 704 L 616 640 L 620 560 Z" fill="url(#hood-plots)" />
             <path d="M330 220 C 400 180, 450 220, 470 300 S 540 420, 600 430 M360 560 C 420 520, 480 500, 556 420 M400 100 C 470 140, 500 120, 560 128 M330 640 C 380 600, 420 620, 470 600" fill="none" stroke="#f7f3ea" strokeWidth="3" strokeLinecap="round" />
           </g>
+
+          {/* South of the A66 it is green again: allotments, the dog meadow and three sports grounds,
+              drawn a little closer to the motorway than they are so they fit the frame. */}
+          <g className="hood-green">
+            <path d="M310 612 C 620 654, 860 720, 1000 744 L 1000 830 L 310 830 Z" fill="url(#hood-grass)" />
+            <path d="M330 646 L 540 672 L 552 800 L 330 800 Z" fill="url(#hood-plots)" />
+            <path d="M648 670 C 690 666, 724 676, 740 690 L 732 732 C 700 740, 664 736, 646 726 Z" fill="url(#hood-trees)" />
+            <path d="M560 700 C 600 720, 640 740, 700 790 M760 720 C 800 740, 820 770, 830 800" fill="none" stroke="#f7f3ea" strokeWidth="3" strokeLinecap="round" />
+          </g>
+          <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 2 } as CSSProperties}>
+            {/* VfR Bockenheim: a football pitch. */}
+            <g transform="rotate(10 716 768)">
+              <rect x="684" y="750" width="64" height="38" fill="#78bb5b" />
+              {[0, 1, 2, 3].map((k) => (
+                <rect key={k} x={684 + k * 16} y="750" width="8" height="38" fill="#6fb153" />
+              ))}
+              <rect x="688" y="754" width="56" height="30" fill="none" stroke="#ffffff" strokeWidth="1.2" />
+              <line x1="716" x2="716" y1="754" y2="784" stroke="#ffffff" strokeWidth="1.2" />
+              <circle cx="716" cy="769" r="5" fill="none" stroke="#ffffff" strokeWidth="1.2" />
+            </g>
+            {/* TGB Frankfurt: the club hall and its court. */}
+            <g transform="rotate(12 790 724)">
+              <rect x="764" y="708" width="40" height="26" rx="2" fill="#d6cdbf" />
+              <rect x="762" y="704" width="40" height="26" rx="2" fill="#f2ede4" />
+              <rect x="762" y="704" width="40" height="8" rx="2" fill="#fbf8f3" />
+              <rect x="808" y="708" width="22" height="30" fill="#d8764c" />
+              <rect x="810" y="711" width="18" height="24" fill="none" stroke="#ffffff" strokeWidth=".9" />
+            </g>
+            {/* Sportcampus Ginnheim: a running track round a pitch. */}
+            <g transform="rotate(10 892 762)">
+              <rect x="844" y="740" width="96" height="44" rx="22" fill="#c8664a" />
+              <rect x="847" y="743" width="90" height="38" rx="19" fill="none" stroke="#e0937a" strokeWidth="1" />
+              <rect x="856" y="750" width="72" height="24" rx="12" fill="#86c465" />
+              <rect x="856" y="750" width="72" height="24" rx="12" fill="none" stroke="#ffffff" strokeWidth="1.2" opacity=".7" />
+            </g>
+          </g>
+          <text className="hood-tag hood-tag-soft" x="440" y="740" textAnchor="middle">
+            KGV Rothwiese
+          </text>
 
           {/* Roads, each drawn twice (casing, then surface) so they read as raised above the ground. */}
           <g className="hood-roads" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -138,7 +177,7 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
             <text dy="4"><textPath href="#hood-a66-path" startOffset="46%">A66</textPath></text>
           </g>
 
-          {/* SV Blau-Gelb: the running track and two football pitches, next door to the north. */}
+          {/* SV Blau-Gelb: the running track and the football pitch, next door to the north. */}
           <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 0 } as CSSProperties}>
             <g transform="rotate(16 568 240)">
               <rect x="528" y="166" width="80" height="148" rx="40" fill="#c8664a" />
@@ -146,10 +185,7 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
               <rect x="540" y="182" width="56" height="116" rx="28" fill="#86c465" />
               <rect x="540" y="182" width="56" height="116" rx="28" fill="none" stroke="#ffffff" strokeWidth="1.2" opacity=".7" />
             </g>
-            {[
-              { x: 672, y: 232, h: 104 },
-              { x: 646, y: 322, h: 84 },
-            ].map((p) => (
+            {[{ x: 672, y: 232, h: 104 }].map((p) => (
               <g key={p.y} transform={`rotate(16 ${p.x} ${p.y})`}>
                 <rect x={p.x - 28} y={p.y - p.h / 2} width="56" height={p.h} fill="#78bb5b" />
                 {[0, 1, 2, 3].map((k) => (
@@ -164,33 +200,54 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
           <text className="hood-tag hood-tag-in" x="672" y="236" textAnchor="middle" transform="rotate(-74 672 232)">
             {t.football}
           </text>
-          <text className="hood-tag" x="512" y="146" textAnchor="middle">
-            {t.track}
+          <text className="hood-label" x="532" y="148" textAnchor="middle">
+            SV Blau-Gelb
+          </text>
+          <text className="hood-tag" x="532" y="128" textAnchor="middle">
+            {t.track} · {t.football}
           </text>
 
-          {/* The courts the shop sits among: clay for tennis, blue for padel. */}
+          {/* The shop is the clubhouse in the middle; the courts lie round it: clay for tennis to the
+              north, west and south, the blue padel courts to the south-east. */}
           <g className="hood-ground" filter="url(#hood-lift)" style={{ "--i": 1 } as CSSProperties}>
-            <g transform="rotate(16 615 385)">
-              {[0, 1, 2].map((i) => (
-                <g key={i}>
-                  <rect x={584 + i * 22} y="352" width="19" height="40" fill="#d8764c" />
-                  <rect x={586 + i * 22} y="355" width="15" height="34" fill="none" stroke="#ffffff" strokeWidth=".9" />
-                  <line x1={584 + i * 22} x2={603 + i * 22} y1="372" y2="372" stroke="#ffffff" strokeWidth="1.2" />
-                </g>
-              ))}
+            <g transform={`rotate(16 ${VENUE.x} ${VENUE.y})`}>
+              {[
+                { x: 601, y: 326, w: 19, h: 38 },
+                { x: 630, y: 326, w: 19, h: 38 },
+                { x: 559, y: 360, w: 19, h: 38 },
+                { x: 581, y: 360, w: 19, h: 38 },
+                { x: 603, y: 392, w: 38, h: 19 },
+              ].map((c) => {
+                const across = c.w > c.h;
+                return (
+                  <g key={`${c.x}-${c.y}`}>
+                    <rect x={c.x} y={c.y} width={c.w} height={c.h} fill="#d8764c" />
+                    <rect x={c.x + 2} y={c.y + 2} width={c.w - 4} height={c.h - 4} fill="none" stroke="#ffffff" strokeWidth=".9" />
+                    {across ? (
+                      <line x1={c.x + c.w / 2} x2={c.x + c.w / 2} y1={c.y} y2={c.y + c.h} stroke="#ffffff" strokeWidth="1.2" />
+                    ) : (
+                      <line x1={c.x} x2={c.x + c.w} y1={c.y + c.h / 2} y2={c.y + c.h / 2} stroke="#ffffff" strokeWidth="1.2" />
+                    )}
+                  </g>
+                );
+              })}
               {[0, 1].map((i) => (
                 <g key={i}>
-                  <rect x={608 + i * 18} y="398" width="15" height="28" rx="1.5" fill="#3a78c9" />
-                  <rect x={608 + i * 18} y="398" width="15" height="28" rx="1.5" fill="none" stroke="#9cc3f0" strokeWidth="1" />
-                  <line x1={608 + i * 18} x2={623 + i * 18} y1="412" y2="412" stroke="#ffffff" strokeWidth="1.2" />
+                  <rect x={648 + i * 17} y="384" width="14" height="26" rx="1.5" fill="#3a78c9" />
+                  <rect x={648 + i * 17} y="384" width="14" height="26" rx="1.5" fill="none" stroke="#9cc3f0" strokeWidth="1" />
+                  <line x1={648 + i * 17} x2={662 + i * 17} y1="397" y2="397" stroke="#ffffff" strokeWidth="1.2" />
                 </g>
               ))}
+              {/* The clubhouse: the shop. */}
+              <rect x="608" y="372" width="34" height="16" rx="2" fill="#d6cdbf" />
+              <rect x="606" y="368" width="34" height="16" rx="2" fill="#f2ede4" />
+              <rect x="606" y="368" width="34" height="6" rx="2" fill="#fbf8f3" />
             </g>
           </g>
-          <text className="hood-tag" x="572" y="362" textAnchor="end">
+          <text className="hood-tag" x="552" y="372" textAnchor="end">
             {t.tennis}
           </text>
-          <text className="hood-tag" x="648" y="442">
+          <text className="hood-tag" x="672" y="432">
             {t.padel}
           </text>
 
@@ -204,7 +261,8 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
           {/* The park's two everyday landmarks and the hospital on the far side. */}
           <Poi x={395} y={488} kind="sport" label={t.fitness} i={0} />
           <Poi x={712} y={84} kind="play" label={t.playground} i={1} />
-          <Poi x={1030} y={556} kind="health" label="Markus-Krankenhaus" i={2} below />
+          <Poi x={1030} y={556} kind="health" label={["Agaplesion", "Markus Krankenhaus"]} i={2} below />
+          <Poi x={672} y={694} kind="dogs" label={t.dogs} i={3} below />
 
           {/* The walks from the U-Bahn and the S-Bahn, drawn in. */}
           <path className="hood-route hood-route-u" d={uWalk} />
@@ -238,8 +296,11 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
             <rect x="1036" y="694" width="70" height="30" rx="15" fill="#17384b" stroke="#ffffff" strokeWidth="2" />
             <path d="M1050 714 h28 v-5 l-5 -6 h-16 l-5 6 Z M1054 715 a2.6 2.6 0 1 0 0.01 0 M1074 715 a2.6 2.6 0 1 0 0.01 0" fill="#ffffff" />
             <path d="M1086 709 h10 m-4 -4 l4 4 l-4 4" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <text x="1104" y="684" textAnchor="end" className="hood-label hood-label-blue">
+            <text x="1104" y="668" textAnchor="end" className="hood-label hood-label-blue">
               {t.centre}
+            </text>
+            <text x="1104" y="685" textAnchor="end" className="hood-tag hood-tag-car">
+              {t.steps[2].line} · {t.minutes(15)}
             </text>
           </a>
 
@@ -247,18 +308,15 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
           <a href={CONTACT.mapsUrl} target="_blank" rel="noreferrer" tabIndex={-1} className="hood-here">
             <ellipse cx={VENUE.x} cy={VENUE.y + 2} rx="14" ry="5" fill="#17384b" opacity=".25" />
             <circle className="hood-pulse" cx={VENUE.x} cy={VENUE.y} r="20" />
-            <line x1={VENUE.x} y1={VENUE.y} x2={VENUE.x} y2={VENUE.y - 34} stroke="#17384b" strokeWidth="3" strokeLinecap="round" />
+            <line x1={VENUE.x} y1={VENUE.y} x2={VENUE.x} y2={VENUE.y - 46} stroke="#17384b" strokeWidth="3" strokeLinecap="round" />
             <g className="hood-badge-mark" filter="url(#hood-lift)">
-              <circle cx={VENUE.x} cy={VENUE.y - 58} r="27" fill="#ffffff" />
-              <image className="hood-logo" href={LOGO.full} x={VENUE.x - 25} y={VENUE.y - 83} width="50" height="50" />
+              <circle cx={VENUE.x} cy={VENUE.y - 70} r="27" fill="#ffffff" />
+              <image className="hood-logo" href={LOGO.full} x={VENUE.x - 25} y={VENUE.y - 95} width="50" height="50" />
             </g>
             <g className="hood-callout">
-              <rect x={VENUE.x + 34} y={VENUE.y - 84} width="196" height="54" rx="10" />
-              <text x={VENUE.x + 48} y={VENUE.y - 56} className="hood-brand">
+              <rect x={VENUE.x + 34} y={VENUE.y - 90} width="164" height="40" rx="10" />
+              <text x={VENUE.x + 48} y={VENUE.y - 62} className="hood-brand">
                 {t.here}
-              </text>
-              <text x={VENUE.x + 48} y={VENUE.y - 39} className="hood-brand-sub">
-                PASTELERÍA ARGENTINA
               </text>
             </g>
           </a>
@@ -288,7 +346,8 @@ export function NeighbourhoodMap({ locale }: { locale: Locale }) {
   );
 }
 
-function Poi({ x, y, kind, label, i, below }: { x: number; y: number; kind: "sport" | "play" | "health"; label: string; i: number; below?: boolean }) {
+function Poi({ x, y, kind, label, i, below }: { x: number; y: number; kind: "sport" | "play" | "health" | "dogs"; label: string | string[]; i: number; below?: boolean }) {
+  const lines = Array.isArray(label) ? label : [label];
   const glyph = { fill: "none", stroke: "#ffffff", strokeWidth: 1.8, strokeLinecap: "round" as const };
   return (
     <g className={`hood-poi hood-poi-${kind}`} style={{ "--i": i } as CSSProperties}>
@@ -296,8 +355,21 @@ function Poi({ x, y, kind, label, i, below }: { x: number; y: number; kind: "spo
       {kind === "sport" && <circle {...glyph} cx={x} cy={y} r="5" />}
       {kind === "play" && <path {...glyph} d={`M${x} ${y + 6} V${y} M${x - 5} ${y + 1} L${x} ${y - 6} L${x + 5} ${y + 1} Z`} />}
       {kind === "health" && <path {...glyph} strokeWidth={2.4} d={`M${x} ${y - 5} V${y + 5} M${x - 5} ${y} H${x + 5}`} />}
+      {kind === "dogs" && (
+        <g fill="#ffffff">
+          <ellipse cx={x} cy={y + 2.5} rx="3.6" ry="3" />
+          <circle cx={x - 4.5} cy={y - 2} r="1.6" />
+          <circle cx={x - 1.6} cy={y - 4.8} r="1.6" />
+          <circle cx={x + 1.6} cy={y - 4.8} r="1.6" />
+          <circle cx={x + 4.5} cy={y - 2} r="1.6" />
+        </g>
+      )}
       <text x={below ? x : x + 18} y={below ? y + 30 : y + 5} textAnchor={below ? "middle" : "start"} className="hood-label">
-        {label}
+        {lines.map((line, k) => (
+          <tspan key={line} x={below ? x : x + 18} dy={k ? 17 : 0}>
+            {line}
+          </tspan>
+        ))}
       </text>
     </g>
   );
