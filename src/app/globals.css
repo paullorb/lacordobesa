@@ -1408,18 +1408,6 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
    with the routes written out underneath. */
 .hood { position: sticky; top: calc(var(--header-h) + 28px); margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: min(78vh, 720px); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .hood-map { display: block; width: 100%; height: 100%; min-height: 0; }
-.hood-woods { fill: #a9cf9a; opacity: .7; }
-.hood-ring circle { fill: none; stroke: var(--blue-dark); stroke-width: 1; stroke-dasharray: 3 6; opacity: .45; }
-.hood-ring-label { font: 600 11px var(--sans); fill: var(--blue-dark); letter-spacing: .04em; opacity: .8; }
-.hood-label { font: 600 13px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
-.hood-label-woods { font-style: italic; font-family: var(--serif); font-weight: 500; fill: #3d6b3b; }
-.hood-label-here { font: italic 700 22px var(--serif); fill: #b3323a; }
-.hood-centre { font-size: 12px; fill: var(--blue-dark); letter-spacing: .03em; }
-.hood-line { font: 800 11px var(--sans); fill: #ffffff; }
-.hood-walk { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-dasharray: 1 6; stroke-linecap: round; opacity: .5; }
-.hood-u1 { fill: none; stroke: #c8102e; stroke-width: 5; stroke-linecap: round; opacity: .85; }
-.hood-tower path, .hood-tower ellipse { fill: var(--ink); opacity: .75; }
-.hood-pulse { fill: #e14b52; opacity: .18; transform-box: fill-box; transform-origin: center; }
 .hood-legend { padding: 1.1rem 1.3rem 1.2rem; border-top: 1px solid var(--line); background: var(--cream); }
 .hood-legend strong { display: block; margin-bottom: .55rem; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
 .hood-legend ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
@@ -1430,18 +1418,40 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 .hood-badge-s6 { background: #0a8a3a; }
 @media (max-width: 1100px) { .hood { position: relative; top: auto; height: auto; } .hood-map { aspect-ratio: 1; height: auto; } }
 
+.hood-map { background: #f4f1ea; }
+.hood-label { font: 600 16px var(--sans); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+.hood-label-here { font: italic 700 24px var(--serif); fill: #b3323a; }
+.hood-callout rect { fill: #ffffff; stroke: rgba(23,56,75,.18); stroke-width: 1; filter: drop-shadow(0 4px 10px rgba(23,56,75,.18)); }
+.hood-tag-in { fill: #ffffff; stroke: none; font-size: 12px; }
+.hood-label-blue { fill: var(--blue-dark); font-size: 14px; }
+.hood-tag { font: 700 13px var(--sans); letter-spacing: .06em; text-transform: uppercase; fill: #2f5d38; paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round; }
+.hood-tag-soft { fill: #4f7a45; opacity: .85; }
+.hood-stop .hood-tag { fill: #1a5aa6; }
+.hood-area-label { font: italic 600 30px var(--serif); fill: #3d7a3f; opacity: .85; }
+.hood-road-label { font: 700 11px var(--sans); letter-spacing: .05em; fill: #8a6a1c; }
+.hood-road-label text:first-child { fill: #6b7378; }
+.hood-u { font: 800 15px var(--sans); fill: #ffffff; }
+.hood-walk { fill: none; stroke: #1a5aa6; stroke-width: 4; stroke-dasharray: 2 9; stroke-linecap: round; }
+.hood-poi circle { stroke: #ffffff; stroke-width: 2.5; }
+.hood-poi-food circle { fill: #e8833a; }
+.hood-poi-sport circle { fill: #2f9d61; }
+.hood-poi-play circle { fill: #3a9a52; }
+.hood-poi-health circle { fill: #d6404a; }
+.hood-pulse { fill: #e14b52; opacity: .2; transform-box: fill-box; transform-origin: center; }
+
 @media (prefers-reduced-motion: no-preference) {
   .hood-pulse { animation: hood-pulse 2.6s cubic-bezier(.2,.7,.2,1) infinite; }
-  .hood-u1 { stroke-dasharray: 1100; }
   @supports (animation-timeline: view()) {
     .hood { view-timeline-name: --hood; }
-    .hood-ring { transform-box: view-box; transform-origin: 50% 50%; animation: hood-spread linear both; animation-timeline: --hood; animation-range: entry calc(10% + var(--i) * 8%) cover calc(30% + var(--i) * 8%); }
-    .hood-stop { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry calc(30% + var(--i) * 10%) cover calc(40% + var(--i) * 8%); }
-    .hood-u1 { animation: hood-draw linear both; animation-timeline: --hood; animation-range: entry 30% cover 50%; }
-    .hood-tower, .hood-woods, .hood-label-woods { animation: section-reveal linear both; animation-timeline: --hood; animation-range: entry 40% cover 45%; }
+    .hood-green { transform-box: fill-box; transform-origin: 0 50%; animation: hood-spread linear both; animation-timeline: --hood; animation-range: entry 0% cover 30%; }
+    .hood-ground { transform-box: fill-box; transform-origin: center; animation: hood-pop linear both; animation-timeline: --hood; animation-range: entry calc(15% + var(--i) * 8%) cover calc(32% + var(--i) * 6%); }
+    .hood-poi, .hood-stop { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry calc(30% + var(--i, 0) * 6%) cover calc(40% + var(--i, 0) * 5%); }
+    .hood-walk { animation: hood-draw linear both; animation-timeline: --hood; animation-range: entry 45% cover 55%; }
+    .hood-here { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry 10% cover 25%; }
   }
 }
-@keyframes hood-pulse { 0% { transform: scale(.5); opacity: .45; } 100% { transform: scale(2.2); opacity: 0; } }
-@keyframes hood-spread { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
-@keyframes hood-land { from { opacity: 0; translate: 0 -14px; } to { opacity: 1; translate: 0 0; } }
-@keyframes hood-draw { from { stroke-dashoffset: 1100; } to { stroke-dashoffset: 0; } }
+@keyframes hood-pulse { 0% { transform: scale(.5); opacity: .45; } 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes hood-spread { from { opacity: 0; transform: scaleX(.85); } to { opacity: 1; transform: none; } }
+@keyframes hood-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+@keyframes hood-land { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
+@keyframes hood-draw { from { stroke-dashoffset: 420; } to { stroke-dashoffset: 0; } }
