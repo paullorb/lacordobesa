@@ -32,6 +32,18 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   merge by hand. `.github/workflows/auto-merge.yml` arms it when the PR opens,
   GitHub deletes the branch on merge, and the nightly sweep removes the local
   branch and its worktree once the work is proven merged.
+- **A PR never waits on Paul.** He does not read threads to find a PR that
+  is open or asking for his review. If a change needs his decision or his
+  review, ask him before opening the PR (in the thread he is in, or as a
+  `for-paul` issue) and open it once he has answered. An open PR has two
+  ends: it merges by itself on green, or it is closed with the reason in a
+  comment. Fix whatever keeps it from merging (red check, conflict, unarmed
+  auto-merge, unresolved review thread); if it cannot be fixed, close it.
+  Never request his review and never leave a PR open "for review".
+- **Open a PR ready, never as a draft.** Finish the local checks first, then
+  open it. A draft's first auto-merge run is skipped, and the PR can then sit
+  green, armed and "blocked" (paullorb/paullorber#495, paullorb/cicd#128).
+  After opening, see that it merged.
 - **Hand Paul his tasks as issues, not prose.** When something only Paul can
   do — a secret to set, a LaunchAgent to install, a decision to take — open
   an issue in the repo concerned, label it `for-paul`, and put the exact
