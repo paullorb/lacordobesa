@@ -30,9 +30,11 @@ describe("the reservation calendar", () => {
         const label = await marked[0].evaluate((el) => el.firstChild.textContent);
         const expected = Number(berlinToday().slice(8));
         assert.equal(Number(label), expected, `the calendar rings day ${label}, but today is the ${expected}.`);
-        // On the rest day the ring still sits on today, but the cell is disabled and says so.
-        const closed = await marked[0].isDisabled();
-        assert.equal(await marked[0].getAttribute("data-hint"), closed ? "Ruhetag" : "Heute");
+        // On the rest day the ring still sits on today, but the cell is disabled and says so. A day
+        // can also be disabled for being too late to book (an afternoon run), and that is still "Heute".
+        const hint = await marked[0].getAttribute("data-hint");
+        assert.ok(hint === "Heute" || hint === "Ruhetag", `today is hinted "${hint}"`);
+        if (hint === "Ruhetag") assert.equal(await marked[0].isDisabled(), true, "the rest day must not be bookable");
       },
     });
   });
