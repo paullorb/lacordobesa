@@ -1,17 +1,17 @@
 import { cacheLife } from "next/cache";
-import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 import { ArrowIcon, PhoneIcon, PinIcon, WhatsAppIcon } from "@/components/icons";
 import { ChapterNav } from "@/components/chapter-nav";
 import { CheerCursor } from "@/components/cheer-cursor";
 import { HeroCursor } from "@/components/hero-cursor";
+import { HeroLight } from "@/components/hero-light";
+import { ReadingMotion } from "@/components/reading-motion";
 import { OpeningHours, type HoursRow } from "@/components/opening-hours";
 import { ContactAddress, ContactEmail, ContactPhone, ContactRow } from "@/components/contact-row";
 import { SolBackdrop } from "@/components/sol-backdrop";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/site-footer";
-import { InstagramIcon } from "@/components/instagram-icon";
 import { JsonLd } from "@/components/json-ld";
 import { PhotoStrip } from "@/components/photo-strip";
 import { OpenStatus } from "@/components/open-status";
@@ -19,6 +19,7 @@ import { PhoneNote } from "@/components/phone-note";
 import { ShareButton } from "@/components/share-button";
 import { SiteHeader } from "@/components/site-header";
 import { VenueMap } from "@/components/venue-map";
+import { NeighbourhoodMap } from "@/components/neighbourhood-map";
 import { ReservationForm } from "@/components/reservation-form";
 import { CONTACT, whatsappHref } from "@/lib/contact";
 import { addDays, todayISO } from "@/lib/dates";
@@ -77,12 +78,14 @@ export async function HomeView({ locale }: { locale: Locale }) {
       {/* Wide screens only (see .chapter-nav): the page chapters, with the current one marked. */}
       <ChapterNav label={t.chaptersLabel} chapters={chapters} />
       <CheerCursor locale={locale} />
+      <ReadingMotion />
 
       <main id="main">
         <section className="hero" aria-labelledby="hero-title">
           {/* The province of Córdoba behind the headline. Decoration only (aria-hidden); the scrim in
               .hero::before keeps the copy readable on top of it. */}
           <div className="hero-map" aria-hidden="true" />
+          <HeroLight />
           <div className="hero-content">
             {/* One span, so the sentence is a single flex item that wraps like text. */}
             <p className="eyebrow">
@@ -124,8 +127,9 @@ export async function HomeView({ locale }: { locale: Locale }) {
             <div className="intro-copy">
               <p className="eyebrow">{t.storyEyebrow}</p>
               <h2>{t.storyTitle}</h2>
-              <p>{t.storyP1}</p>
-              <p>{t.storyP2}</p>
+              {/* Lit word by word as they are read (see reading-motion.tsx); plain text in the HTML. */}
+              <p data-read="words">{t.storyP1}</p>
+              <p data-read="words">{t.storyP2}</p>
               <p className="signature">{t.storySignature}</p>
             </div>
           </div>
@@ -204,23 +208,10 @@ export async function HomeView({ locale }: { locale: Locale }) {
                 </div>
               </div>
             </div>
-            {/* The wrapper is the grid cell and stretches to the contact card beside it; the photo
-                inside is shorter and sticky, so it rides along as the card is read instead of
-                leaving half a column of empty cream under it. */}
+            {/* The wrapper is the grid cell and stretches to the contact card beside it; the map
+                inside is sticky, so it rides along as the card is read. */}
             <div className="visit-media">
-              <a className="visit-photo" href={CONTACT.instagram} target="_blank" rel="noreferrer" aria-label={t.instagramAria}>
-                <Image
-                  src={photos.hero?.image_url ?? "/assets/hero-pasteleria.jpg"}
-                  alt={
-                    photos.hero?.caption ?? (photos.hero ? t.galleryPhotoAlt : t.heroPhotoAlt)
-                  }
-                  fill
-                  sizes="(max-width: 800px) 100vw, 55vw"
-                />
-                <span className="photo-caption inline-icon">
-                  <InstagramIcon size={15} /> {t.photoCaption} · {CONTACT.instagramHandle}
-                </span>
-              </a>
+              <NeighbourhoodMap locale={locale} />
             </div>
           </div>
           <VenueMap
@@ -236,13 +227,15 @@ export async function HomeView({ locale }: { locale: Locale }) {
         <section className="section faq-section" id="fragen" aria-labelledby="faq-title">
           <p className="eyebrow">{getDictionary(locale).faq.eyebrow}</p>
           <h2 id="faq-title">{getDictionary(locale).faq.title}</h2>
-          <div className="faq-list">
+          <div className="faq-list" data-accordion>
             {faq.map((entry) => (
               <details key={entry.id} id={`frage-${entry.id}`}>
                 <summary>
                   <h3>{entry.question}</h3>
                 </summary>
-                <p>{entry.answer}</p>
+                <div className="faq-answer">
+                  <p>{entry.answer}</p>
+                </div>
               </details>
             ))}
           </div>

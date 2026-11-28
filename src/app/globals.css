@@ -1344,3 +1344,128 @@ a[href^="mailto:"]:not(.button, .nav-cta, .reserve-call, .nav-aside a) { text-de
 .faq-list h3 { margin: 0; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
 .faq-list p { max-width: 70ch; margin: 0 0 1.3rem; color: var(--muted); line-height: 1.8; }
 .faq-section .faq-links { display: flex; flex-wrap: wrap; gap: .6rem 1.6rem; margin: 1.6rem 0 0; font-weight: 600; }
+
+/* ------------------------------------------------------------------ the reading layer and the light
+   GSAP and WebGL on top of the CSS motion above (see reading-motion.tsx and hero-light.tsx). Both
+   only ever add to a page that is already finished without them. */
+
+/* The Sol's light over the hero map. Between the scrim and the copy, screened so it can only ever
+   brighten; it fades in on its first frame, so a slow GPU shows the plain map rather than a flash. */
+.hero-light { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity 1.6s cubic-bezier(.16,.72,.3,1); }
+.hero-light.is-lit { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .hero-light { display: none; } }
+
+/* The story, lit as it is read. The words are split in the browser only; inline-block keeps each
+   word where the text put it, and nothing but its opacity ever changes. */
+.read-word { transition: opacity .5s ease-out; }
+.intro-copy > p[data-read] { color: var(--ink); }
+
+/* The questions as an index: numbered, the number in the brand's serif, the open one marked. */
+.faq-list { counter-reset: faq; }
+.faq-list details { counter-increment: faq; position: relative; transition: background-color .35s; }
+.faq-list summary { gap: 1.4rem; padding: 1.4rem 0; }
+.faq-list summary::before {
+  content: counter(faq, decimal-leading-zero); flex: 0 0 2.4rem;
+  font-family: var(--serif); font-style: italic; font-size: var(--fs-sm); color: var(--blue-dark);
+  font-variant-numeric: tabular-nums; transition: translate .4s cubic-bezier(.2,.7,.2,1);
+}
+.faq-list h3 { flex: 1 1 auto; transition: color .3s, translate .4s cubic-bezier(.2,.7,.2,1); }
+.faq-list summary::after {
+  display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 1.25rem; transition: rotate .45s cubic-bezier(.2,.7,.2,1), background-color .3s, color .3s, border-color .3s;
+}
+.faq-list details[open] summary::after { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.faq-list details::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--blue-dark);
+  transform: scaleX(0); transform-origin: left; transition: transform .6s cubic-bezier(.2,.7,.2,1);
+}
+.faq-list details[open]::after { transform: scaleX(1); }
+@media (hover: hover) {
+  .faq-list summary:hover h3 { color: var(--blue-dark); translate: .35rem 0; }
+  .faq-list summary:hover::before { translate: .35rem 0; }
+  .faq-list summary:hover::after { border-color: var(--blue-dark); }
+}
+.faq-answer { padding-left: 3.8rem; }
+.faq-list .faq-answer p { font-size: var(--fs-base); }
+@media (max-width: 640px) {
+  .faq-list summary::before { flex-basis: 1.8rem; }
+  .faq-answer { padding-left: 3.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-list summary:hover h3, .faq-list summary:hover::before { translate: none; }
+}
+
+/* A whisper of film grain over the public pages, the finish of printed paper. A fixed layer that
+   never repaints on scroll, behind nothing interactive (pointer-events: none). */
+.site::after {
+  content: ""; position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .045; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media print { .site::after { display: none; } }
+
+/* ------------------------------------------------------------------ the walking-time map (Visítanos)
+   See neighbourhood-map.tsx. Sticky in the visit grid like the photo it replaced, a paper card
+   with the routes written out underneath. */
+.hood { position: sticky; top: calc(var(--header-h) + 20px); margin: 0; display: grid; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.hood-legend { padding: 1.1rem 1.3rem 1.2rem; border-top: 1px solid var(--line); background: var(--cream); }
+.hood-legend strong { display: block; margin-bottom: .55rem; font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
+.hood-legend ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.hood-legend li { display: flex; gap: .7rem; align-items: baseline; font-size: var(--fs-sm); line-height: 1.5; color: var(--ink); }
+.hood-legend small { display: block; margin-top: .6rem; font-size: var(--fs-xs); color: var(--muted); }
+.hood-badge { flex: 0 0 auto; min-width: 2.2rem; padding: .1rem .4rem; border-radius: 999px; text-align: center; font-size: var(--fs-xs); font-weight: 800; color: #ffffff; background: #9b4f96; }
+@media (max-width: 1100px) { .hood { position: relative; top: auto; } }
+
+.hood-stage { position: relative; aspect-ratio: 800 / 770; overflow: hidden; background: #f3efe6; }
+.hood-map { display: block; width: 100%; height: 100%; }
+.hood-label { font: 600 16px var(--sans); fill: var(--ink); paint-order: stroke; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+.hood-label-blue { fill: var(--blue-dark); font-size: 14px; }
+.hood-label-small { font-size: 14px; }
+.hood-tag { font: 700 13px var(--sans); letter-spacing: .06em; text-transform: uppercase; fill: #2f5d38; paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linejoin: round; }
+.hood-tag-soft { fill: #4f7a45; opacity: .85; }
+.hood-tag-in { fill: #ffffff; stroke: none; font-size: 12px; }
+.hood-tag-u { fill: #1a5aa6; }
+.hood-tag-s { fill: #0a7a33; }
+.hood-area-label { font: italic 600 30px var(--serif); font-variant-ligatures: none; fill: #3d7a3f; paint-order: stroke; stroke: rgba(234,245,226,.85); stroke-width: 5px; stroke-linejoin: round; }
+.hood-road-label { font: 600 9.5px var(--sans); letter-spacing: .04em; fill: #6b7378; paint-order: stroke; stroke: #ffffff; stroke-width: 2.5px; stroke-linejoin: round; }
+.hood-road-label-major { font-size: 11px; font-weight: 700; fill: #7d5f17; stroke: none; }
+.hood-glyph { font: 800 16px var(--sans); fill: #ffffff; }
+.hood-route { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.hood-route-u { stroke: #1a5aa6; stroke-width: 4; stroke-dasharray: 2 9; }
+.hood-route-s { stroke: #0a8a3a; stroke-width: 4; stroke-dasharray: 2 9; }
+.hood-stop { cursor: pointer; }
+.hood-stop > :first-child { transition: transform .3s cubic-bezier(.2,.7,.2,1); transform-box: fill-box; transform-origin: center; }
+.hood-stop:hover > :first-child { transform: scale(1.18); }
+.hood-poi-dot { stroke: #ffffff; stroke-width: 2.5; filter: drop-shadow(0 2px 2px rgba(23,56,75,.25)); }
+.hood-poi-sport .hood-poi-dot { fill: #2f9d61; }
+.hood-poi-health .hood-poi-dot { fill: #d6404a; }
+.hood-poi-dogs .hood-poi-dot { fill: #8a6a3e; }
+.hood-pulse { fill: #e14b52; opacity: .2; transform-box: fill-box; transform-origin: center; }
+.hood-here { cursor: pointer; }
+.hood-callout rect { fill: #ffffff; stroke: rgba(23,56,75,.14); stroke-width: 1; filter: drop-shadow(0 6px 12px rgba(23,56,75,.2)); }
+.hood-brand { font: 500 24px var(--serif); fill: var(--ink); }
+.hood-tag-car { fill: var(--blue-dark); }
+.hood-badge-mark, .hood-logo { transform-box: fill-box; transform-origin: center; transition: transform .8s cubic-bezier(.3,1.5,.5,1); }
+.hood-here:hover .hood-badge-mark { transform: translateY(-6px) scale(1.12); }
+.hood-here:hover .hood-logo { transform: rotate(360deg); }
+.hood-legend a { display: flex; gap: .7rem; align-items: baseline; color: inherit; text-decoration: none; }
+.hood-legend a:hover .hood-open, .hood-legend a:focus-visible .hood-open { text-decoration: underline; }
+.hood-open { color: var(--blue-dark); font-weight: 700; white-space: nowrap; }
+.hood-badge-u { background: #1a5aa6; }
+.hood-badge-s { background: #0a8a3a; }
+.hood-badge-car { background: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) { .hood-here:hover .hood-logo, .hood-here:hover .hood-badge-mark { transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .hood-pulse { animation: hood-pulse 2.6s cubic-bezier(.2,.7,.2,1) infinite; }
+  .hood-route-u, .hood-route-s { animation: hood-march 1.4s linear infinite; }
+  @supports (animation-timeline: view()) {
+    .hood { view-timeline-name: --hood; }
+    .hood-ground-art { animation: hood-fade linear both; animation-timeline: --hood; animation-range: entry 0% cover 25%; }
+    .hood-poi, .hood-stop { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry calc(30% + var(--i, 0) * 6%) cover calc(40% + var(--i, 0) * 5%); }
+        .hood-here { animation: hood-land linear both; animation-timeline: --hood; animation-range: entry 10% cover 25%; }
+  }
+}
+@keyframes hood-pulse { 0% { transform: scale(.5); opacity: .45; } 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes hood-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hood-land { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
+@keyframes hood-march { to { stroke-dashoffset: -22; } }
